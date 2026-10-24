@@ -1,0 +1,103 @@
+---
+name: verify
+description: How to prove that a change to yt-digest works before calling it done, covering what counts as evidence for each kind of change, how sure a claim is, how to drive each program and observe the result, the feature map of what to drive, and where the evidence goes. Use before saying a change works or is done, before writing the Verification section of a pull request, when reviewing whether a change is proven, and when adding or changing a user-facing feature. Replaces Claude Code's bundled /verify in this repository.
+---
+
+# Verify a change
+
+An agent saying "done" is a claim, and so is "the tests pass": it says something about the tests, not about the
+feature. A change is proven when someone observed the real thing working and left evidence the developer can check or
+re-run. That evidence is what the developer reads before merging, so it decides whether a pull request can be trusted
+without redoing the work.
+
+## What counts as proof
+
+- **Check the real artifact, not a proxy.** Run the feature, read the actual value, inspect the actual state. "It
+  compiles", a green test that does not cover the change, and your own summary of what the code does are not proof.
+- **Observe through a different path than the code under test.** If the worker reports that it created a Heptabase
+  card, read the card back with the `heptabase` CLI; if the extension shows "queued", list the queue folder.
+- **Quote what happened, whole.** Output cut with `| tail` or `| head`, and text you echoed yourself, prove nothing.
+  Read exit codes. When a check fails, suspect the way you observed before you suspect the system.
+- **A red check proves something only when it fails for the reason you predicted.** An exception, an empty result and
+  a real mismatch all fail. Quote the difference the assertion printed, not the assertion.
+- **Script the check when you can.** A script the developer can run again beats a description of what you saw. Keep
+  it in the pull request when the check is worth repeating, and turn it into a test when it protects behavior that can
+  break again.
+- **Say what is still unproven.** An honest "not checked: a video with no subtitles longer than an hour" is part of
+  the proof.
+
+### How sure is a claim
+
+Name the level each claim reached. The main claim of a `feat` or a `fix` reaches level 4 or 5.
+
+| Level | The claim rests on |
+|---|---|
+| 1 | You said so. Worth nothing on its own. |
+| 2 | You pointed at the line (`file:line`, or the library's own source). |
+| 3 | You walked the failure step by step and showed it cannot happen. |
+| 4 | You ran it: a script or test calls the real code and fails loudly if you are wrong. |
+| 5 | You reproduced it in the running app. |
+
+## Evidence by kind of change
+
+| Change | Proof | Not proof |
+|---|---|---|
+| Pure logic (caption parsing, job validation, timestamps) | A test that failed before the change with the predicted difference, and passes after | "All tests pass" when no test covers the change |
+| The extension's button or context menu | The built extension in an isolated browser on a page with the YouTube markup: a screenshot, and the message it sent | Reading the content script and saying where the button would go |
+| The native host | The built host started with a length-prefixed message on stdin: its reply, and the job file it wrote | "The host writes the file" |
+| The worker | The built worker run on a job, with fake `yt-dlp`, `claude` and `heptabase` executables first on `PATH`: the commands they received and the files it left | The worker's own log line saying it succeeded |
+| The digest prompt in `prompt/` | Digests of made-up transcripts with and without the change, compared section by section, including a transcript that tries to give the model instructions | "The rule is clearly written" |
+| The whole flow on this Mac | One click on a real thumbnail, and the card read back with the `heptabase` CLI | Any of the rows above on its own |
+| A CI workflow | A link to its run, and a deliberately broken case that makes it fail | "The YAML is valid" |
+| Docs or a development skill | A read-through against what it describes; check every command, path and link it names | — |
+
+## Driving the app
+
+Drive the app the way its user does, through the surface they touch, and observe the result outside the code you
+changed. The launch recipe is recorded as a `run-yt-digest` skill once the programs exist (planned); until then, the
+rules below apply.
+
+- **Isolate.** Load the extension in Playwright's own Chromium with a temporary profile, never the developer's Chrome,
+  and never use Claude in Chrome for verification: it acts in the developer's real browser. Point the native host and
+  the worker at a temporary queue folder, not the installed one.
+- **Spend the subscription and touch Heptabase only for the whole-flow check,** and only with the developer's
+  agreement: tests and per-program checks use the fake executables. Trash the cards a check created, unless the
+  developer wants to keep them.
+- **Run a build of a commit**, never the working tree, so a half-edited file never runs and the result traces to a
+  commit.
+- **Kill only what you started**, never by process name, and unload only launchd agents you loaded.
+- **Cleanup keeps the evidence.** Tear down browsers, temporary profiles and queue folders; keep the artifacts.
+
+## Feature map
+
+[`features/`](features/README.md) lists every user-facing feature: how a user reaches it, how to drive it, and what
+observable end state proves it works. Its format is in [`references/feature-map-format.md`](references/feature-map-format.md).
+
+- A pull request that adds or changes a user-facing feature adds or updates its file in the same pull request.
+- A proof covers every entry point the map lists for the feature, not only the most convenient one.
+- When the seed data lacks what a journey needs, the journey fails and the reason goes in the feature's `Gotchas`.
+  Never weaken a journey to make it pass.
+
+## Where the evidence goes
+
+- **The pull request's `## Verification` section:** each claim, the level it reached, and its evidence (the command
+  and the relevant output, or the artifact's path), then what is still unproven. The section format is in
+  [`commit-and-pull-request-convention`](../commit-and-pull-request-convention/SKILL.md).
+- **Files** such as screenshots, digests and logs go in `artifacts/<branch>/`, which git ignores, so they exist only on
+  this computer. The pull request must stand on its own: paste the text evidence, and say what each file shows. Never
+  paste what the developer watches or a real video's transcript anywhere.
+
+## Claude Code's built-in tools
+
+| Tool | What it does here |
+|---|---|
+| `/verify` | Claude Code's bundled verification, which only the developer can start. This skill replaces it in this repository: a project skill with a bundled skill's name takes its place. |
+| `/run` | Launches and drives the app to see a change working, using a recorded `run-*` skill when one exists. |
+| `/run-skill-generator` | Gets the app running from a clean environment and records the recipe as `.claude/skills/run-<name>/`. Run it once when the app first runs, and again when building or launching changes. |
+| `/code-review` | Reviews the code. It is judgment, not proof of behavior, so it does not replace the evidence above. |
+
+## Source
+
+Adapted from Lauren Tan's [pstack](https://github.com/cursor/plugins/tree/main/pstack) (MIT): the
+`principle-prove-it-works`, `create-verification-skill` and `blast-radius` skills, and from its Claude Code port
+[pstack-claude](https://github.com/michael-denyer/pstack-claude) by Michael Denyer (MIT).

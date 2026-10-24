@@ -29,3 +29,12 @@ YouTube thumbnail hover button (Chrome extension content script, Shadow DOM)
 
 - YouTube's Watch Later list is not readable through the API, so the button replaces Watch Later.
 - Personal, local use only: `claude -p` runs on my own machine with my own subscription.
+
+## Development
+
+How the repository is organized, its conventions and the skills agents use are in [`AGENTS.md`](AGENTS.md).
+
+```bash
+npm install
+npm run check   # everything CI runs
+```

@@ -1,10 +1,17 @@
+# macOS folder metadata
+.DS_Store
+
+# Installed dependencies and build output
 node_modules/
 dist/
-.output/
-.wxt/
-.DS_Store
-*.log
+
+# Verification evidence (screenshots, logs), kept locally: see .claude/skills/verify
+artifacts/
+
+# Secrets never enter the repository
 .env
+
+# Jobs and digests a local run leaves behind, if it is ever pointed at the checkout
 queue/
 done/
 failed/
