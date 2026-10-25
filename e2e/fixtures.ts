@@ -25,6 +25,7 @@ const ROUTES: Record<string, string> = {
   // Another playlist, with the same markup as Watch Later, where no button belongs.
   "/playlist?list=PLexampleList": "watch-later.html",
   "/e2e-pages/youtube.css": "youtube.css",
+  "/e2e-pages/preview.js": "preview.js",
 };
 
 /** What the fake native host answers: a reply, or nothing at all. */

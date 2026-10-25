@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, test } from "vitest";
-import { findCards, videoOf } from "./cards.js";
+import { findCards, videoOf, videoOfPreview } from "./cards.js";
 
 function loadPage(name: string) {
   const html = readFileSync(join(import.meta.dirname, `../../e2e/pages/${name}.html`), "utf8");
@@ -62,5 +62,39 @@ describe("videoOf", () => {
     loadPage("watch-later");
     const [card] = findCards(document, new URL("https://www.youtube.com/playlist?list=WL"));
     expect(card && videoOf(card)).toEqual({ videoId: "laterVideo1", title: "Made-up guide to repotting houseplants" });
+  });
+});
+
+describe("videoOfPreview", () => {
+  function preview() {
+    const element = document.querySelector("ytd-video-preview");
+    if (element === null) throw new Error("The page has no preview");
+    return element;
+  }
+
+  /** As YouTube fills the preview when it plays a card's video. */
+  function play(href: string) {
+    preview().querySelector("a")?.setAttribute("href", href);
+    preview().classList.add("ytdVideoPreviewActive", "ytdVideoPreviewPlaying");
+  }
+
+  test("reads the video the preview plays, with the title of its card", () => {
+    loadPage("search");
+    play("/watch?v=searchVid02&pp=example");
+    expect(videoOfPreview(preview(), document)).toEqual({
+      videoId: "searchVid02",
+      title: "Example explainer on how tides work",
+    });
+  });
+
+  test("reads a video whose card is gone with no title", () => {
+    loadPage("home");
+    play("/watch?v=goneVideo01");
+    expect(videoOfPreview(preview(), document)).toEqual({ videoId: "goneVideo01", title: "" });
+  });
+
+  test("reads no video from a preview that has not played one", () => {
+    loadPage("home");
+    expect(videoOfPreview(preview(), document)).toBeUndefined();
   });
 });

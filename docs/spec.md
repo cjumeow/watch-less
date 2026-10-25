@@ -21,6 +21,9 @@ when the extension is built.
   thumbnail, so it does not cover YouTube's own buttons at the top right. An emoji is not used: its colour cannot be
   changed, and the icon briefly turns into a green check.
 - It is visible only while the pointer is over the card.
+- About a second after the pointer rests on a thumbnail, YouTube may lay its inline preview over the card, so the
+  pointer leaves the card. While the preview shows, the same button sits at the preview's top-left, visible while the
+  pointer is over the preview, and requests the video the preview plays, with the same feedback.
 - There is no text on the button. Its `aria-label` is `Request a digest`, for screen readers.
 - The button looks the same on every card: the extension keeps no record of which videos were requested. Cards on the
   home page and in search results are gone within a day or two, so a record would rarely be seen again, and a repeated

@@ -108,3 +108,29 @@ ytd-thumbnail a#thumbnail {
 .meta {
   color: #aaa;
 }
+/* The inline preview, placed over a thumbnail by preview.js, above every card as YouTube's is; idle, it has no size. */
+.ytdVideoPreviewLoaderVideoPreviewContainer {
+  position: absolute;
+  z-index: 10;
+}
+ytd-video-preview {
+  display: flex;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #212121;
+}
+ytd-video-preview.ytdVideoPreviewActive {
+  height: auto;
+}
+.ytdVideoPreviewVideoPreviewContainer,
+.ytdVideoPreviewMediaContainerLink {
+  display: block;
+  width: 100%;
+}
+ytd-player {
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, #5a3a3a, #3a2626);
+}

@@ -10,6 +10,7 @@
     <meta charset="utf-8" />
     <title>example search - YouTube</title>
     <link rel="stylesheet" href="/e2e-pages/youtube.css" />
+    <script src="/e2e-pages/preview.js" defer></script>
   </head>
   <body>
     <ytd-app>
@@ -119,6 +120,30 @@
             </ytd-two-column-search-results-renderer>
           </ytd-search>
         </ytd-page-manager>
+      </div>
+      <!--
+        YouTube's inline preview, copying the structure of the live markup: one ytd-video-preview for the whole page,
+        outside every card, never removed. Idle, it has no size; while it plays a card's video, YouTube adds
+        ytdVideoPreviewActive, points its link at the video and places its container over the card's thumbnail. It
+        holds no title. preview.js plays YouTube's part.
+      -->
+      <div id="video-preview">
+        <ytd-video-preview-loader class="ytdVideoPreviewLoaderHost">
+          <div class="ytdVideoPreviewLoaderVideoPreviewContainer">
+            <ytd-video-preview class="ytdVideoPreviewHost ytdVideoPreviewHidePlayerControls">
+              <div class="ytdVideoPreviewVideoPreviewContainer">
+                <div class="ytdVideoPreviewMediaContainer">
+                  <a class="yt-simple-endpoint ytdVideoPreviewMediaContainerLink" tabindex="-1"
+                    ><div class="ytdVideoPreviewPlayerContainerWrapper">
+                      <div class="ytdVideoPreviewPlayerContainer"><ytd-player></ytd-player></div></div
+                  ></a>
+                </div>
+                <div class="ytdVideoPreviewPlayerControls"></div>
+                <div class="ytdVideoPreviewMetadata"></div>
+              </div>
+            </ytd-video-preview>
+          </div>
+        </ytd-video-preview-loader>
       </div>
     </ytd-app>
   </body>

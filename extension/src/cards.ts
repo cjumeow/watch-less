@@ -60,9 +60,34 @@ export function thumbnailOf(card: Element): HTMLAnchorElement | null {
 export function videoOf(card: Element): RequestMessage | undefined {
   const link = thumbnailOf(card);
   if (link === null || card.querySelector(COLLECTION) !== null) return undefined;
-  const title = card.querySelector("h3 a")?.textContent.trim() ?? "";
   // A Short in search results is an ordinary card linking to /shorts/<id>, which has no v and so no video ID.
-  const videoId = new URL(link.href, "https://www.youtube.com").searchParams.get("v");
-  const request = parseRequest({ videoId, title });
+  return requestFor(link.getAttribute("href"), card.querySelector("h3 a")?.textContent);
+}
+
+/**
+ * YouTube's inline preview: one element outside every card, which YouTube places over a card's thumbnail about a
+ * second after the pointer rests on it, so the card loses its hover. Its button is added when the pointer reaches it.
+ */
+export const PREVIEW = "ytd-video-preview";
+
+/**
+ * The video the preview plays now, read when the button is pressed: its ID from the preview's watch link, and its
+ * title from the card under `root` showing the same video, since the preview holds no title. A video whose card is
+ * gone is requested with no title.
+ */
+export function videoOfPreview(preview: Element, root: ParentNode): RequestMessage | undefined {
+  const video = requestFor(preview.querySelector('a[href*="watch?v="]')?.getAttribute("href") ?? null, "");
+  if (video === undefined) return undefined;
+  for (const card of root.querySelectorAll(CARD)) {
+    const shown = videoOf(card);
+    if (shown?.videoId === video.videoId) return shown;
+  }
+  return video;
+}
+
+function requestFor(href: string | null, title: string | undefined): RequestMessage | undefined {
+  if (href === null) return undefined;
+  const videoId = new URL(href, "https://www.youtube.com").searchParams.get("v");
+  const request = parseRequest({ videoId, title: title?.trim() ?? "" });
   return request.parsed ? request.value : undefined;
 }
