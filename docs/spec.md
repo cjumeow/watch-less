@@ -23,8 +23,10 @@ verified against YouTube's live markup when the extension is built.
   changed, and the icon briefly turns into a green check.
 - It is visible only while the pointer is over the card.
 - About a second after the pointer rests on a thumbnail, YouTube may lay its inline preview over the card, so the
-  pointer leaves the card. While the preview shows, the same button sits at the preview's top-left, visible while the
-  pointer is over the preview, and requests the video the preview plays, with the same feedback.
+  pointer leaves the card. While the preview shows, the same button sits exactly where the card's button was, though
+  the preview is larger than the thumbnail, so it does not move as the pointer crosses between the preview and the
+  card. It is visible while the pointer is over the preview, and requests the video the preview plays, with the same
+  feedback.
 - There is no text on the button. Its `aria-label` is `Request a digest`, for screen readers.
 - The button looks the same on every card: the extension keeps no record of which videos were requested. Cards on the
   home page and in search results are gone within a day or two, so a record would rarely be seen again, and a repeated

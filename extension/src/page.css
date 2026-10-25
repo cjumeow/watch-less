@@ -21,8 +21,9 @@ ytd-thumbnail > yt-digest-button {
 }
 
 /*
-  YouTube's inline preview, laid over a card's thumbnail, has its own button at its top-left corner. The preview stays
-  on the page when idle, with no size, so its button shows only while it plays.
+  YouTube's inline preview, laid over a card's thumbnail, has its own button. The content script moves it from the
+  preview's top-left corner to exactly where the card's button is, since the preview is larger than the thumbnail.
+  The preview stays on the page when idle, with no size, so its button shows only while it plays.
 */
 ytd-video-preview > yt-digest-button {
   top: 0;

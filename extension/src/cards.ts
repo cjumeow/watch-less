@@ -76,13 +76,24 @@ export const PREVIEW = "ytd-video-preview";
  * gone is requested with no title.
  */
 export function videoOfPreview(preview: Element, root: ParentNode): RequestMessage | undefined {
-  const video = requestFor(preview.querySelector('a[href*="watch?v="]')?.getAttribute("href") ?? null, "");
+  const video = previewedVideo(preview);
   if (video === undefined) return undefined;
-  for (const card of root.querySelectorAll(CARD)) {
-    const shown = videoOf(card);
-    if (shown?.videoId === video.videoId) return shown;
-  }
-  return video;
+  const card = cardOfVideo(video.videoId, root);
+  return (card === undefined ? undefined : videoOf(card)) ?? video;
+}
+
+/** The card under `root` showing the video the preview plays, which the preview lies over. */
+export function cardOfPreview(preview: Element, root: ParentNode): Element | undefined {
+  const video = previewedVideo(preview);
+  return video === undefined ? undefined : cardOfVideo(video.videoId, root);
+}
+
+function previewedVideo(preview: Element): RequestMessage | undefined {
+  return requestFor(preview.querySelector('a[href*="watch?v="]')?.getAttribute("href") ?? null, "");
+}
+
+function cardOfVideo(videoId: string, root: ParentNode): Element | undefined {
+  return [...root.querySelectorAll(CARD)].find((card) => videoOf(card)?.videoId === videoId);
 }
 
 function requestFor(href: string | null, title: string | undefined): RequestMessage | undefined {

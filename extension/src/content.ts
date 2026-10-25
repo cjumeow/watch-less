@@ -3,7 +3,7 @@
 
 import { BUTTON_MESSAGES, type RequestMessage } from "@yt-digest/shared";
 import { type ButtonResult } from "./button-result.js";
-import { findCards, HANDLED, pageOf, PREVIEW, thumbnailOf, videoOf, videoOfPreview } from "./cards.js";
+import { cardOfPreview, findCards, HANDLED, pageOf, PREVIEW, thumbnailOf, videoOf, videoOfPreview } from "./cards.js";
 import { BUTTON_TAG, createButton } from "./digest-button.js";
 import { ANY_PLAYER_CONTROLS, isWatchPage, PLAYER_CONTROLS, videoOfWatchPage } from "./watch-page.js";
 
@@ -73,15 +73,34 @@ document.addEventListener(
   (event) => {
     const preview = event.target instanceof Element ? event.target.closest(PREVIEW) : null;
     if (preview === null) return;
-    const button = preview.querySelector(`:scope > ${BUTTON_TAG}`);
+    let button = preview.querySelector<HTMLElement>(`:scope > ${BUTTON_TAG}`);
     if (pageOf(new URL(location.href)) === undefined) {
       button?.remove();
-    } else if (button === null) {
-      preview.append(createButton(() => request(videoOfPreview(preview, document))));
+      return;
     }
+    if (button === null) {
+      button = createButton(() => request(videoOfPreview(preview, document)));
+      preview.append(button);
+    }
+    // Moving between the preview's own elements, the pointer is still over the same card.
+    if (!(event.relatedTarget instanceof Node && preview.contains(event.relatedTarget))) alignWithCard(button, preview);
   },
   { capture: true, passive: true },
 );
+
+/**
+ * Puts the preview's button exactly over the button of the card the preview covers. The preview is larger than the
+ * card's thumbnail, so at the preview's own corner the button would jump each time the pointer crossed between the
+ * preview and the rest of the card.
+ */
+function alignWithCard(button: HTMLElement, preview: Element) {
+  button.style.translate = "";
+  const cardButton = cardOfPreview(preview, document)?.querySelector(BUTTON_TAG);
+  if (cardButton === null || cardButton === undefined) return;
+  const from = button.getBoundingClientRect();
+  const to = cardButton.getBoundingClientRect();
+  button.style.translate = `${String(to.left - from.left)}px ${String(to.top - from.top)}px`;
+}
 
 // YouTube's content area, which holds every page it renders. It may not exist yet when the script runs.
 const CONTENT_AREA = "ytd-page-manager";

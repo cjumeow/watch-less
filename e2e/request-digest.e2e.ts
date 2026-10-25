@@ -231,9 +231,10 @@ test.describe("while YouTube plays a preview", () => {
 
       const button = preview.locator("yt-digest-button");
       await expect(button).toHaveCSS("opacity", "1");
-      const previewBox = await preview.boundingBox();
+      // The preview is larger than the thumbnail, yet its button sits exactly where the card's button was.
+      const cardButtonBox = await card(page, videoId).locator("yt-digest-button").boundingBox();
       const buttonBox = await button.boundingBox();
-      expect([buttonBox?.x, buttonBox?.y]).toEqual([(previewBox?.x ?? 0) + 8, (previewBox?.y ?? 0) + 8]);
+      expect([buttonBox?.x, buttonBox?.y]).toEqual([cardButtonBox?.x, cardButtonBox?.y]);
 
       await button.click({ position: { x: 16, y: 16 } });
       await expect.poll(async () => (await buttonStates(page)).at(-1)?.icon).toBe("check");
