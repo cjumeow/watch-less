@@ -1,0 +1,200 @@
+<!doctype html>
+<!--
+  A made-up YouTube home page, served at https://www.youtube.com/ in the end-to-end tests. The cards copy the
+  structure of YouTube's markup, checked against the live site: yt-lockup-view-model inside ytd-rich-item-renderer for
+  videos and mixes, ytm-shorts-lockup-view-model in a Shorts shelf. Every video ID, title and channel is invented.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>YouTube</title>
+    <link rel="stylesheet" href="/e2e-pages/youtube.css" />
+  </head>
+  <body>
+    <ytd-app>
+      <div id="content">
+        <ytd-page-manager id="page-manager">
+          <ytd-browse page-subtype="home">
+            <ytd-two-column-browse-results-renderer>
+              <ytd-rich-grid-renderer>
+                <div id="contents">
+                  <ytd-rich-item-renderer>
+                    <yt-lockup-view-model class="ytd-rich-item-renderer lockup ytLockupViewModelWrapper">
+                      <div class="ytLockupViewModelHost ytLockupViewModelVertical content-id-homeVideo01">
+                        <a
+                          href="/watch?v=homeVideo01"
+                          class="ytLockupViewModelContentImage"
+                          tabindex="-1"
+                          aria-hidden="true"
+                        >
+                          <yt-thumbnail-view-model class="ytThumbnailViewModelHost"
+                            ><span class="badge">12:01</span></yt-thumbnail-view-model
+                          >
+                        </a>
+                        <div class="ytLockupViewModelMetadata">
+                          <yt-lockup-metadata-view-model class="ytLockupMetadataViewModelHost">
+                            <div class="ytLockupMetadataViewModelTextContainer">
+                              <h3 class="ytLockupMetadataViewModelHeadingReset">
+                                <a href="/watch?v=homeVideo01" class="ytLockupMetadataViewModelTitle"
+                                  ><span class="ytAttributedStringHost"
+                                    >A made-up talk about sourdough starters</span
+                                  ></a
+                                >
+                              </h3>
+                              <div class="meta">Example Channel · 2K views</div>
+                            </div>
+                          </yt-lockup-metadata-view-model>
+                        </div>
+                      </div>
+                    </yt-lockup-view-model>
+                  </ytd-rich-item-renderer>
+                  <ytd-rich-item-renderer>
+                    <yt-lockup-view-model class="ytd-rich-item-renderer lockup ytLockupViewModelWrapper">
+                      <div class="ytLockupViewModelHost ytLockupViewModelVertical content-id-homeVideo02">
+                        <a
+                          href="/watch?v=homeVideo02&amp;pp=exampleTrackingValue"
+                          class="ytLockupViewModelContentImage"
+                          tabindex="-1"
+                          aria-hidden="true"
+                        >
+                          <yt-thumbnail-view-model class="ytThumbnailViewModelHost"
+                            ><span class="badge">8:42</span></yt-thumbnail-view-model
+                          >
+                        </a>
+                        <div class="ytLockupViewModelMetadata">
+                          <yt-lockup-metadata-view-model class="ytLockupMetadataViewModelHost">
+                            <div class="ytLockupMetadataViewModelTextContainer">
+                              <h3 class="ytLockupMetadataViewModelHeadingReset">
+                                <a
+                                  href="/watch?v=homeVideo02&amp;pp=exampleTrackingValue"
+                                  class="ytLockupMetadataViewModelTitle"
+                                  ><span class="ytAttributedStringHost"
+                                    >Example lecture: why bridges hum in the wind</span
+                                  ></a
+                                >
+                              </h3>
+                              <div class="meta">Example Channel · 3K views</div>
+                            </div>
+                          </yt-lockup-metadata-view-model>
+                        </div>
+                      </div>
+                    </yt-lockup-view-model>
+                  </ytd-rich-item-renderer>
+                  <ytd-rich-item-renderer>
+                    <yt-lockup-view-model class="ytd-rich-item-renderer lockup ytLockupViewModelWrapper">
+                      <div
+                        class="ytLockupViewModelHost ytLockupViewModelVertical ytLockupViewModelCollectionStack2 content-id-homeMixVid1"
+                      >
+                        <a
+                          href="/watch?v=homeMixVid1&amp;list=RDhomeMixVid1"
+                          class="ytLockupViewModelContentImage"
+                          tabindex="-1"
+                          aria-hidden="true"
+                        >
+                          <yt-collection-thumbnail-view-model class="ytCollectionThumbnailViewModelHost">
+                            <yt-collections-stack class="ytCollectionsStackHost"
+                              ><span class="badge">Mix</span></yt-collections-stack
+                            >
+                          </yt-collection-thumbnail-view-model>
+                        </a>
+                        <div class="ytLockupViewModelMetadata">
+                          <yt-lockup-metadata-view-model class="ytLockupMetadataViewModelHost">
+                            <div class="ytLockupMetadataViewModelTextContainer">
+                              <h3 class="ytLockupMetadataViewModelHeadingReset">
+                                <a
+                                  href="/watch?v=homeMixVid1&amp;list=RDhomeMixVid1"
+                                  class="ytLockupMetadataViewModelTitle"
+                                  ><span class="ytAttributedStringHost"
+                                    >Mix – a made-up playlist of example songs</span
+                                  ></a
+                                >
+                              </h3>
+                              <div class="meta">Example Channel and more</div>
+                            </div>
+                          </yt-lockup-metadata-view-model>
+                        </div>
+                      </div>
+                    </yt-lockup-view-model>
+                  </ytd-rich-item-renderer>
+                  <ytd-rich-shelf-renderer is-shorts="">
+                    <h2>Shorts</h2>
+                    <div id="contents">
+                      <ytd-rich-item-renderer is-slim-media="">
+                        <ytm-shorts-lockup-view-model-v2 class="shortsLockupViewModelHost">
+                          <ytm-shorts-lockup-view-model class="shortsLockupViewModelHost">
+                            <a
+                              href="/shorts/homeShort01"
+                              class="shortsLockupViewModelHostEndpoint reel-item-endpoint"
+                              tabindex="-1"
+                              aria-hidden="true"
+                            ></a>
+                            <div class="shortsLockupViewModelHostOutsideMetadata">
+                              <h3 class="shortsLockupViewModelHostMetadataTitle">
+                                <a href="/shorts/homeShort01" class="shortsLockupViewModelHostEndpoint"
+                                  ><span>A made-up Short about folding towels</span></a
+                                >
+                              </h3>
+                            </div>
+                          </ytm-shorts-lockup-view-model>
+                        </ytm-shorts-lockup-view-model-v2>
+                      </ytd-rich-item-renderer>
+                      <ytd-rich-item-renderer is-slim-media="">
+                        <ytm-shorts-lockup-view-model-v2 class="shortsLockupViewModelHost">
+                          <ytm-shorts-lockup-view-model class="shortsLockupViewModelHost">
+                            <a
+                              href="/shorts/homeShort02"
+                              class="shortsLockupViewModelHostEndpoint reel-item-endpoint"
+                              tabindex="-1"
+                              aria-hidden="true"
+                            ></a>
+                            <div class="shortsLockupViewModelHostOutsideMetadata">
+                              <h3 class="shortsLockupViewModelHostMetadataTitle">
+                                <a href="/shorts/homeShort02" class="shortsLockupViewModelHostEndpoint"
+                                  ><span>An example Short of a cat and a box</span></a
+                                >
+                              </h3>
+                            </div>
+                          </ytm-shorts-lockup-view-model>
+                        </ytm-shorts-lockup-view-model-v2>
+                      </ytd-rich-item-renderer>
+                    </div>
+                  </ytd-rich-shelf-renderer>
+                  <ytd-rich-item-renderer>
+                    <yt-lockup-view-model class="ytd-rich-item-renderer lockup ytLockupViewModelWrapper">
+                      <div class="ytLockupViewModelHost ytLockupViewModelVertical content-id-homeVideo03">
+                        <a
+                          href="/watch?v=homeVideo03"
+                          class="ytLockupViewModelContentImage"
+                          tabindex="-1"
+                          aria-hidden="true"
+                        >
+                          <yt-thumbnail-view-model class="ytThumbnailViewModelHost"
+                            ><span class="badge">21:13</span></yt-thumbnail-view-model
+                          >
+                        </a>
+                        <div class="ytLockupViewModelMetadata">
+                          <yt-lockup-metadata-view-model class="ytLockupMetadataViewModelHost">
+                            <div class="ytLockupMetadataViewModelTextContainer">
+                              <h3 class="ytLockupMetadataViewModelHeadingReset">
+                                <a href="/watch?v=homeVideo03" class="ytLockupMetadataViewModelTitle"
+                                  ><span class="ytAttributedStringHost"
+                                    >Placeholder review of a fictional laptop</span
+                                  ></a
+                                >
+                              </h3>
+                              <div class="meta">Another Example Channel · 4K views</div>
+                            </div>
+                          </yt-lockup-metadata-view-model>
+                        </div>
+                      </div>
+                    </yt-lockup-view-model>
+                  </ytd-rich-item-renderer>
+                </div>
+              </ytd-rich-grid-renderer>
+            </ytd-two-column-browse-results-renderer>
+          </ytd-browse>
+        </ytd-page-manager>
+      </div>
+    </ytd-app>
+  </body>
+</html>

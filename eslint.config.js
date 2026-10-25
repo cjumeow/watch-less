@@ -15,7 +15,7 @@ export default defineConfig(
     },
   },
   {
-    files: ["scripts/**", "*.js"],
+    files: ["scripts/**", "*.js", "**/*.mjs"],
     languageOptions: { globals: globals.node },
   },
   // Last, so formatting is Prettier's job and no lint rule fights it.

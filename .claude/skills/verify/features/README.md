@@ -5,5 +5,4 @@ Every user-facing feature of yt-digest, with a file that says how to reach it, d
 
 | Feature | File | Surfaces | Status |
 |---|---|---|---|
-
-No feature exists yet: the first rows come with the spec, `docs/spec.md`.
+| Request a digest from a thumbnail | [request-digest-from-thumbnail.md](request-digest-from-thumbnail.md) | button, native host | built |
