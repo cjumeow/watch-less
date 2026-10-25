@@ -8,6 +8,9 @@ checkout, so every entry is under Unreleased.
 
 ### Added
 
+- Digests delivered to Heptabase with an embedded video, the `yt-digest` tag and the Created by AI mark; the worker
+  starts Heptabase once and retries when it cannot connect.
+
 - A worker that takes the queue oldest first, skips a video already digested, writes each digest under a header with
   the video's link and details, and sends a `Digest ready` or `Digest failed` notification; its steps come next.
 - The digest prompt: a digest in Traditional Chinese with a conclusion, the main arguments linked to their moment in
