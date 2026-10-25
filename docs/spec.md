@@ -1,8 +1,8 @@
 # yt-digest spec
 
-What the first version of yt-digest does. The terms are defined in [`GLOSSARY.md`](../GLOSSARY.md). Sections are
-added as they are decided; the pipeline that turns a request into a digest (the transcript, the model, the
-destination) is not specified yet, and until it is, the architecture in `README.md` stands.
+What the first version of yt-digest does. The terms are defined in [`GLOSSARY.md`](../GLOSSARY.md). A request
+travels from the button through the native host into the queue, and the worker turns it into a digest, delivers it
+to the destination and notifies the developer.
 
 ## The button
 
@@ -29,12 +29,24 @@ when the extension is built.
 ### Pressing it
 
 1. The extension sends the video's ID and title to the native host and waits for its reply. The click does not reach
-   YouTube: it neither opens the video nor starts its preview. Until the reply comes, the button cannot be pressed
-   again.
+   YouTube: it neither opens the video nor starts its preview. Until the reply comes, the icon is dimmed and the
+   button cannot be pressed again.
 2. When the host replies `ok`, the icon turns into a green check for about 1.5 seconds, then back into the grey note.
-3. When the host does not reply `ok` (it is not installed, it fails, or it does not reply in time), a short message
-   in English appears next to the icon for 3 seconds, such as `yt-digest is not installed`, then the icon is the grey
-   note again. It is the only text the button ever shows. `alert()` is not used, since it blocks the page.
+3. When the host does not reply `ok`, a short message in English appears next to the icon for 3 seconds, then the
+   icon is the grey note again:
+
+   | Case | Message |
+   |---|---|
+   | The host is not installed | `yt-digest is not installed` |
+   | No reply within 5 seconds | `yt-digest did not respond` |
+   | The host replies with an error | `yt-digest failed` |
+
+   The message lives in the button's own shadow root, with `role="status"` for screen readers. It is the only text
+   the button ever shows. `alert()` is not used, since it blocks the page, and neither are system notifications,
+   which are kept for the digest's result.
+
+While the check or the message shows, the button stays visible even when the pointer leaves the card. Pressing it
+again ends that feedback at once and sends a new request.
 
 The button reports only whether the request was sent. A digest that fails later, after the green check, is reported
 by a notification (see below), never on the button.
@@ -85,3 +97,95 @@ Every card on a page gets its own button, so the cost per card stays small:
 - A `MutationObserver` on YouTube's content area, not on the whole document, batches its changes into one scan per
   animation frame, and marks the cards it has handled so it never handles one twice.
 - The extension stores nothing, so drawing a button reads no storage.
+
+## The native host
+
+Chrome starts the native host for each message and it exits after replying. It does one thing: it puts the request
+in the queue.
+
+- The message is `{ videoId, title }`. A `videoId` that is not 11 characters of `A-Z`, `a-z`, `0-9`, `_` or `-` is
+  refused, since it becomes a file name.
+- It writes `{ videoId, title, requestedAt }` to `<videoId>.json` in the queue folder, first under another name and
+  then renamed, so the worker never reads half a file. A request for a video already queued replaces the same file.
+- It replies `{ ok: true }`, or `{ ok: false, error }` with `error` either `invalid-request` or `queue-unwritable`.
+- It never looks in the done folder and never starts the worker.
+
+## Where the data lives
+
+The queue folder, the done folder and the worker's log live in `~/Library/Application Support/yt-digest/`, outside
+the checkout, so what the developer watches cannot be committed and every worktree shares one queue. An environment
+variable points the programs at another folder, which tests and checks always do.
+
+## The worker
+
+launchd starts the worker when the queue folder changes, at login, and every 30 minutes; launchd never runs two at
+once. The worker takes the queued requests one at a time, oldest first, and exits when the queue is empty. For each
+request, after the done-folder check in [Repeated requests](#repeated-requests):
+
+1. **Check the video.** It reads the video's details without downloading it, and fails the digest with a reason when
+   the video is live or an unaired premiere, private, members-only, age-restricted, or longer than one hour.
+2. **Get the transcript,** from the first source that has one: subtitles written for the video in its own language,
+   then YouTube's automatic captions in that language, then the audio transcribed with Whisper
+   (`mlx-community/whisper-large-v3-turbo`). Machine-translated subtitles are never used, since their errors would
+   read as the video's claims.
+3. **Write the digest** with `claude -p` (see [Running the model](#running-the-model)).
+4. **Deliver it** to the destination, then move the file into the done folder and send the finished notification.
+
+A failure at any step removes the request, logs the details and sends the failed notification, as in
+[Repeated requests](#repeated-requests).
+
+### Running the model
+
+The transcript is untrusted, so the model gets only what writing the digest needs:
+
+- the prompt in `prompt/digest.md` as its system prompt, and the transcript on stdin;
+- one tool, WebSearch; no file access, no shell, no WebFetch, and `--permission-mode dontAsk`, so anything else is
+  refused without stopping to ask;
+- no settings, hooks, `CLAUDE.md` or MCP servers (`--setting-sources ""`, `--strict-mcp-config`), and no saved
+  session (`--no-session-persistence`);
+- an empty temporary folder as its working folder, and only `HOME` and `PATH` in its environment;
+- the Opus model, set in one place.
+
+It runs on the developer's Claude subscription. The worker reads its answer from `--output-format json`, and fails
+the digest (`The digest was incomplete`) when a section heading of [The digest](#the-digest) is missing, or when the
+model runs for more than 10 minutes. Whether the digest is good is the prompt's job, not the worker's.
+
+When the answer says the subscription's usage limit is reached, the digest is postponed, not failed: the request
+stays in the queue with no notification, and the next start of the worker tries again. Any other error, including
+one the worker does not recognise, fails the digest. The exact wording of the usage-limit error is checked against
+the real one the first time it appears.
+
+## The digest
+
+A digest is written in Traditional Chinese, whatever the video's language. Words quoted from the video stay in their
+own language, with a link to the moment they are said (`&t=754s`).
+
+It starts with a header the worker writes, never the model, so the transcript cannot change it: the video's link on
+a line of its own, then its title, channel, length, when it was requested, the transcript's source (subtitles,
+automatic captions or Whisper) and the model. The model writes four sections:
+
+1. **Conclusion:** a short paragraph on what the video says and whether it is worth watching.
+2. **Main arguments:** each with the time range it covers (`12:34–15:10`), linked to that moment in the video.
+3. **The video's sources:** the studies, data, books or people the video cites, or that it cites none.
+4. **Assessment:** what is worth learning and what is exaggerated or unsupported. Every claim the model adds comes
+   with the source it found; a judgment it found no source for says it is unverified.
+
+## The destination
+
+The first destination is Heptabase. The digest does not depend on it: deduplication uses the done folder, and the
+digest's Markdown carries nothing Heptabase-specific.
+
+- The worker creates a note from the digest with the `heptabase` CLI; the digest's first line, `# <title>`, becomes
+  the card's title, and the video's link becomes an embedded player (`{{youtube <link>}}`, Heptabase's own syntax).
+- It tags the card `yt-digest`, and leaves Heptabase's Created by AI mark on it.
+- When Heptabase is not running, the worker starts it with `heptabase start`; if delivery still fails, the digest
+  fails.
+
+## Notifications
+
+macOS notifications in English, sent with `osascript`:
+
+| When | Title | Text |
+|---|---|---|
+| A digest is delivered | `Digest ready` | the video's title |
+| A digest fails | `Digest failed` | the video's title and the reason, such as `No transcript available` |

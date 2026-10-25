@@ -6,8 +6,7 @@ sends the request through a Native Messaging host; a worker on this Mac fetches 
 the digest, and delivers it.
 
 Status: the repository's skeleton (toolchain, checks, CI, skills) exists; no program does yet. What the first version
-does is in the spec, `docs/spec.md`, and the features are built from it. The spec covers the button so far; for the
-rest, the agreed architecture and the digest's sections are in `README.md` until the spec replaces them.
+does is in the spec, `docs/spec.md`, and the features are built from it.
 
 ## A learning project
 
@@ -64,7 +63,7 @@ Update this table when the layout changes. Rows marked (planned) do not exist ye
 | Design decisions | `docs/adr/` |
 | Clickable prototypes the developer tries before a UI is built, one HTML file each that opens in a browser | `docs/prototypes/` |
 | The domain's terms, one name each | `GLOSSARY.md` |
-| The spec: the button so far | `docs/spec.md` |
+| The spec: what the first version does, from the button to the notification | `docs/spec.md` |
 | GitHub workflows | `.github/workflows/<verb>-<object>.yml` |
 
 ### Shared code

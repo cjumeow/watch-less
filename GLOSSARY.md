@@ -18,4 +18,18 @@ The developer handing one video to this computer for a digest, by pressing its b
 number of times; the extension does not remember that it was.
 _Avoid_: click, job, order
 
+**Queue**:
+The requests received and not yet turned into a digest, oldest first.
+_Avoid_: jobs, tasks, backlog
+
+**Transcript**:
+The words of a video with their timestamps, from its subtitles, its automatic captions, or its audio transcribed by
+Whisper.
+_Avoid_: subtitles, captions (each is one source of a transcript)
+
+**Usage limit**:
+How much the developer's Claude subscription allows in a period. A digest that meets it is **postponed**: it waits
+in the queue and runs later, which is not a failure.
+_Avoid_: quota, rate limit
+
 More terms are added here as the spec decides them, with `domain-modeling`.
