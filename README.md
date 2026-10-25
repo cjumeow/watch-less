@@ -15,8 +15,8 @@ The digest includes a short conclusion, the video's main arguments linked to the
 and an assessment of what is worth learning and what is exaggerated or unsupported. Claims the assessment adds
 carry a source or are marked unverified. The details are in [`docs/spec.md`](docs/spec.md).
 
-**Work in progress:** the extension, native host, transcript step and Heptabase destination are built. The model step
-is still to come, so the complete flow is not ready to use yet.
+**Work in progress:** the extension, native host and all worker steps are built. Installation and a real end-to-end
+run still need to be verified before the complete flow is ready to use.
 
 ## How it runs
 

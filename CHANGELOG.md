@@ -8,6 +8,9 @@ checkout, so every entry is under Unreleased.
 
 ### Added
 
+- The worker writes digests with an isolated Opus model, rejects incomplete answers, and postpones requests when a
+  known Claude usage limit is reached; model runs stop after ten minutes.
+
 - The worker checks a video before processing it, then uses its original-language subtitles, automatic captions or
   local Whisper transcription; rolling automatic captions no longer repeat displayed lines.
 

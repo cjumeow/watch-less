@@ -72,9 +72,12 @@ function runModel(transcript) {
     "WebSearch",
     "--permission-mode",
     "dontAsk",
+    "--safe-mode",
     "--setting-sources",
     "",
     "--strict-mcp-config",
+    "--mcp-config",
+    '{"mcpServers":{}}',
     "--no-session-persistence",
     // stream-json carries the same final result as the worker's json, plus each search the model made.
     "--output-format",

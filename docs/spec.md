@@ -141,8 +141,9 @@ The transcript is untrusted, so the model gets only what writing the digest need
 - the prompt in `prompt/digest.md` as its system prompt, and the transcript on stdin;
 - one tool, WebSearch; no file access, no shell, no WebFetch, and `--permission-mode dontAsk`, so anything else is
   refused without stopping to ask;
-- no settings, hooks, `CLAUDE.md` or MCP servers (`--setting-sources ""`, `--strict-mcp-config`), and no saved
-  session (`--no-session-persistence`);
+- no user/project customizations, hooks or `CLAUDE.md` (`--safe-mode`, `--setting-sources ""`), no MCP servers
+  (`--strict-mcp-config --mcp-config '{"mcpServers":{}}'`), and no saved session (`--no-session-persistence`);
+  Claude Code's administrator-managed policy still applies;
 - an empty temporary folder as its working folder, and only `HOME`, `PATH` and `USER` in its environment, so no token or
   key reaches it (`claude` needs `USER` to find its login in the macOS keychain);
 - the Opus model, set in one place.

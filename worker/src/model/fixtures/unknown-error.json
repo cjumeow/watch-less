@@ -1,0 +1,6 @@
+{
+  "type": "result",
+  "subtype": "error_during_execution",
+  "is_error": true,
+  "errors": ["A made-up execution error"]
+}
