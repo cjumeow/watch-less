@@ -3,3 +3,4 @@ artifacts/
 package-lock.json
 # Markdown is wrapped by hand at 120 columns; Prettier would re-pad every table.
 *.md
+.claude/worktrees/

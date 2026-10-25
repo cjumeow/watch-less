@@ -101,7 +101,8 @@ Every card on a page gets its own button, so the cost per card stays small:
 ## The native host
 
 Chrome starts the native host for each message and it exits after replying. It does one thing: it puts the request
-in the queue.
+in the queue. Its native messaging name is `com.yt_digest.host`, which the extension calls and the host's manifest
+declares, and the manifest allows only the extension's ID, fixed by the `key` in the extension's manifest.
 
 - The message is `{ videoId, title }`. A `videoId` that is not 11 characters of `A-Z`, `a-z`, `0-9`, `_` or `-` is
   refused, since it becomes a file name.
@@ -113,8 +114,15 @@ in the queue.
 ## Where the data lives
 
 The queue folder, the done folder and the worker's log live in `~/Library/Application Support/yt-digest/`, outside
-the checkout, so what the developer watches cannot be committed and every worktree shares one queue. An environment
-variable points the programs at another folder, which tests and checks always do.
+the checkout, so what the developer watches cannot be committed and every worktree shares one queue. The environment
+variable `YT_DIGEST_DATA_DIR` points the programs at another folder, which tests and checks always do.
+
+| Folder | Holds |
+|---|---|
+| `queue/` | `<videoId>.json`, one per request, written by the native host |
+| `drafts/` | a digest being written, moved into `done/` once delivered |
+| `done/` | `<videoId>.md`, one per finished digest |
+| `logs/` | `worker.log` |
 
 ## The worker
 

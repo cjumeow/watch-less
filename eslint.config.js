@@ -5,7 +5,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig(
-  { ignores: ["**/dist/", "artifacts/"] },
+  { ignores: ["**/dist/", "artifacts/", ".claude/worktrees/"] },
   js.configs.recommended,
   {
     files: ["**/*.ts"],
