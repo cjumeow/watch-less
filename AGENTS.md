@@ -61,6 +61,7 @@ Update this table when the layout changes. Rows marked (planned) do not exist ye
 | How to prove a change, and the map of user-facing features | `.claude/skills/verify/`, `.claude/skills/verify/features/` |
 | Verification evidence files, kept on this computer and ignored by git | `artifacts/<branch>/` |
 | Design decisions | `docs/adr/` |
+| Clickable prototypes the developer tries before a UI is built, one HTML file each that opens in a browser | `docs/prototypes/` |
 | The domain's terms, one name each | `GLOSSARY.md` |
 | The spec (planned) | `docs/spec.md` |
 | GitHub workflows | `.github/workflows/<verb>-<object>.yml` |
