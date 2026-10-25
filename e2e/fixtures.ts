@@ -26,6 +26,8 @@ const ROUTES: Record<string, string> = {
   "/playlist?list=PLexampleList": "watch-later.html",
   "/e2e-pages/youtube.css": "youtube.css",
   "/e2e-pages/preview.js": "preview.js",
+  "/watch?v=watchVideo1": "watch.html",
+  "/e2e-pages/watch.js": "watch.js",
 };
 
 /** What the fake native host answers: a reply, or nothing at all. */

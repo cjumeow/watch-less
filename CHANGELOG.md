@@ -20,6 +20,9 @@ checkout, so every entry is under Unreleased.
 
 ### Added
 
+- A note button on the watch page, first of the player's right-hand controls, which requests the video playing, also
+  in theater mode and fullscreen and after moving to another video.
+
 - The worker writes digests with an isolated Opus model, rejects incomplete answers, and postpones requests when a
   known Claude usage limit is reached; model runs stop after ten minutes.
 

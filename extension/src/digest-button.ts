@@ -1,5 +1,6 @@
 // The button on one card, as confirmed in docs/prototypes/button.html: a grey note icon that turns into a green check
-// for 1.5 seconds when the request is queued, or shows one message for 3 seconds when it is not.
+// for 1.5 seconds when the request is queued, or shows one message for 3 seconds when it is not. In the watch page's
+// player it looks like the player's own controls, with the message above it, as in docs/prototypes/watch-button.html.
 //
 // A content script has no custom element registry, so the button is a plain element with a custom tag name and a
 // closed shadow root, not a defined custom element.
@@ -25,6 +26,9 @@ const FOCUSED = "data-focused";
 
 // Pointer events that would otherwise reach the card and open the video or start its preview.
 const KEPT_FROM_YOUTUBE = ["click", "auxclick", "dblclick", "mousedown", "mouseup", "pointerdown", "pointerup"];
+
+// The keys that press the button, which would otherwise also reach the player's shortcuts: Space pauses the video.
+const PRESS_KEYS = [" ", "Enter"];
 
 // One stylesheet for every button on the page: parsed once, adopted by each shadow root.
 let sheet: CSSStyleSheet | undefined;
@@ -52,14 +56,26 @@ function buttonSheet(): CSSStyleSheet {
       .message:empty {
         position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%);
       }
+      :host([data-look="player"]) { position: relative; }
+      :host([data-look="player"]) button { width: 40px; height: 40px; background: transparent; color: #fff; }
+      :host([data-look="player"]) button:hover { background: rgb(255 255 255 / 15%); }
+      :host([data-look="player"]) button.done { color: #2ba640; }
+      :host([data-look="player"]) svg { width: 24px; height: 24px; }
+      :host([data-look="player"]) .message {
+        position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%);
+      }
     `);
   }
   return sheet;
 }
 
+/** Where a button sits: on a thumbnail or the preview, or in the watch page's player controls. */
+export type ButtonLook = "thumbnail" | "player";
+
 /** Makes a button that calls `request` on each press and shows its result. */
-export function createButton(request: () => Promise<ButtonResult>): HTMLElement {
+export function createButton(request: () => Promise<ButtonResult>, look: ButtonLook = "thumbnail"): HTMLElement {
   const host = document.createElement(BUTTON_TAG);
+  host.dataset.look = look;
   const root = host.attachShadow({ mode: "closed" });
   root.adoptedStyleSheets = [buttonSheet()];
 
@@ -82,6 +98,10 @@ export function createButton(request: () => Promise<ButtonResult>): HTMLElement 
   for (const type of KEPT_FROM_YOUTUBE)
     host.addEventListener(type, (event) => {
       event.stopPropagation();
+    });
+  for (const type of ["keydown", "keyup"])
+    host.addEventListener(type, (event) => {
+      if (event instanceof KeyboardEvent && PRESS_KEYS.includes(event.key)) event.stopPropagation();
     });
   button.addEventListener("focus", () => {
     host.toggleAttribute(FOCUSED, button.matches(":focus-visible"));

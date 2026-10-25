@@ -8,7 +8,8 @@ notification, never on the button.
 ## Sub-features
 
 - `appears`: a button on every ordinary video's card on the home page, in search results and in Watch Later; none on
-  Shorts, mixes, playlists, other playlists or any other page.
+  Shorts, mixes, playlists, other playlists or any other page; the watch page has its own button, in
+  [request-digest-from-watch-page.md](request-digest-from-watch-page.md).
 - `hover`: the button shows only while the pointer is over its card, or while it has the keyboard's focus.
 - `preview`: when YouTube's inline preview covers the card, the same button at the preview's top-left requests the
   video the preview plays.
@@ -35,7 +36,8 @@ Never the developer's Chrome: the tests launch Playwright's own Chromium with a 
 
 1. **Build the extension.** `npm run build`. `extension/dist/` holds `manifest.json`, `content.js`,
    `background.js` and `page.css`.
-2. **Run the end-to-end tests.** `npm run test:e2e`. Each test starts Chromium with `extension/dist/` loaded, serves
+2. **Run the end-to-end tests.** `npx playwright test -c e2e request-digest.e2e.ts`, or `npm run test:e2e` for every
+   feature. Each test starts Chromium with `extension/dist/` loaded, serves
    the made-up pages in `e2e/pages/` at YouTube's URLs, blocks every other request, and installs a fake native host
    (`e2e/fake-native-host.mjs`) in the temporary profile's `NativeMessagingHosts` folder. The run ends with
    `15 passed`, one test per sub-feature and page.

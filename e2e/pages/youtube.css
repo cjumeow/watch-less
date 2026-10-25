@@ -134,3 +134,66 @@ ytd-player {
   aspect-ratio: 16 / 9;
   background: linear-gradient(135deg, #5a3a3a, #3a2626);
 }
+/* The watch page: the player, with its control bar at the bottom, which hides when YouTube adds ytp-autohide. */
+#columns {
+  display: flex;
+  gap: 24px;
+}
+#primary {
+  flex: 1;
+}
+#secondary {
+  width: 400px;
+}
+#secondary .ytLockupViewModelContentImage {
+  width: 168px;
+}
+#movie_player {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2b2b2b, #111);
+}
+#player-full-bleed-container #movie_player {
+  border-radius: 0;
+}
+.ytp-chrome-bottom {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  left: 12px;
+  transition: opacity 0.25s;
+}
+.ytp-autohide .ytp-chrome-bottom {
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.ytp-progress-bar {
+  height: 3px;
+  background: #f00;
+}
+.ytp-chrome-controls,
+.ytp-left-controls,
+.ytp-right-controls,
+.ytp-right-controls-left,
+.ytp-right-controls-right {
+  display: flex;
+  align-items: center;
+}
+.ytp-chrome-controls {
+  justify-content: space-between;
+  height: 56px;
+}
+.ytp-button {
+  width: 48px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 18px;
+}
+/* Shown only when the player is narrow. */
+.ytp-expand-right-bottom-section-button {
+  display: none;
+}

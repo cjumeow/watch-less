@@ -6,4 +6,5 @@ Every user-facing feature of yt-digest, with a file that says how to reach it, d
 | Feature | File | Surfaces | Status |
 |---|---|---|---|
 | Request a digest from a thumbnail | [request-digest-from-thumbnail.md](request-digest-from-thumbnail.md) | button, native host | built |
+| Request a digest from the watch page | [request-digest-from-watch-page.md](request-digest-from-watch-page.md) | button, native host | built |
 | Find a digest in Heptabase | [find-digest-in-heptabase.md](find-digest-in-heptabase.md) | worker, Heptabase | built |
