@@ -8,7 +8,8 @@
     "node": ">=24"
   },
   "workspaces": [
-    "shared"
+    "shared",
+    "worker"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",

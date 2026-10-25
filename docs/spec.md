@@ -160,9 +160,11 @@ the real one the first time it appears.
 A digest is written in Traditional Chinese, whatever the video's language. Words quoted from the video stay in their
 own language, with a link to the moment they are said (`&t=754s`).
 
-It starts with a header the worker writes, never the model, so the transcript cannot change it: the video's link on
-a line of its own, then its title, channel, length, when it was requested, the transcript's source (subtitles,
-automatic captions or Whisper) and the model. The model writes four sections:
+It starts with a header the worker writes, never the model, so the transcript cannot change it: the title as the
+first line, `# <title>`, which the destination makes the card's title, then the video's link on a line of its own,
+then its channel, length, when it was requested, the transcript's source (subtitles, automatic captions or Whisper)
+and the model, labelled in Traditional Chinese. The title is the one YouTube gives, or the one the extension sent
+when YouTube gives none. The model writes four sections:
 
 1. **Conclusion:** a short paragraph on what the video says and whether it is worth watching.
 2. **Main arguments:** each with the time range it covers (`12:34–15:10`), linked to that moment in the video.
