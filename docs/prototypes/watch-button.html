@@ -79,8 +79,49 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 48px;
+        padding: 0 12px 8px;
         background: linear-gradient(transparent, rgb(0 0 0 / 70%));
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      /* YouTube shows its controls while the pointer is over the player, and keeps them while a control is busy. */
+      .player:hover .bar,
+      .player .bar:has([data-active]) {
+        opacity: 1;
+      }
+      .progress {
+        height: 3px;
+        margin-bottom: 8px;
+        background: rgb(255 255 255 / 30%);
+      }
+      .progress::before {
+        content: "";
+        display: block;
+        width: 35%;
+        height: 100%;
+        background: #f00;
+      }
+      .controls-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .chapter,
+      .right-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 48px;
+        padding: 0 12px;
+        border-radius: 24px;
+        background: rgb(0 0 0 / 35%);
+        color: #fff;
+        font-weight: 500;
+      }
+      .ytp-icon {
+        width: 40px;
+        text-align: center;
+        font-size: 18px;
       }
       h1 {
         margin: 12px 0 8px;
@@ -147,16 +188,16 @@
       }
 
       /* Placement "player": on the player's top left, shown while the pointer is over the player. */
-      .player yt-digest-watch-button {
+      .player > yt-digest-watch-button {
         position: absolute;
         top: 12px;
         left: 12px;
         opacity: 0;
         transition: opacity 0.1s;
       }
-      .player:hover yt-digest-watch-button,
-      .player yt-digest-watch-button:focus-within,
-      .player yt-digest-watch-button[data-active] {
+      .player:hover > yt-digest-watch-button,
+      .player > yt-digest-watch-button:focus-within,
+      .player > yt-digest-watch-button[data-active] {
         opacity: 1;
       }
     </style>
@@ -166,6 +207,7 @@
       <label>
         Placement
         <select id="placement">
+          <option value="bar">D. In the player control bar, with the other controls</option>
           <option value="pill">A. Pill with a label, in the action row</option>
           <option value="icon">B. Round icon, in the action row</option>
           <option value="player">C. On the player, on hover</option>
@@ -186,7 +228,16 @@
     <main>
       <div class="player" id="player">
         A made-up video playing
-        <div class="bar"></div>
+        <div class="bar">
+          <div class="progress"></div>
+          <div class="controls-row">
+            <span class="chapter">Introduction ›</span>
+            <span class="right-controls" id="right-controls">
+              <span class="ytp-icon">⏯</span><span class="ytp-icon">CC</span><span class="ytp-icon">⚙</span
+              ><span class="ytp-icon">▭</span><span class="ytp-icon">⛶</span>
+            </span>
+          </div>
+        </div>
       </div>
       <h1>Example lecture: why bridges hum in the wind</h1>
       <div class="row">
@@ -245,6 +296,13 @@
           font: 500 12px/1.4 Roboto, Arial, sans-serif; white-space: nowrap;
         }
         :host([data-placement="player"]) .message { position: static; }
+        :host([data-placement="bar"]) button {
+          width: 40px; height: 40px; border-radius: 50%; background: transparent; color: #fff;
+        }
+        :host([data-placement="bar"]) button:hover { background: rgb(255 255 255 / 15%); }
+        :host([data-placement="bar"]) svg { width: 24px; height: 24px; }
+        :host([data-placement="bar"]) .label { display: none; }
+        :host([data-placement="bar"]) .message { top: auto; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%); }
         .message[hidden] { display: none; }
       `);
 
@@ -324,6 +382,7 @@
       function place(placement) {
         button.dataset.placement = placement;
         if (placement === "player") document.querySelector("#player").append(button);
+        else if (placement === "bar") document.querySelector("#right-controls").prepend(button);
         else document.querySelector("#actions").prepend(button);
       }
 
@@ -331,7 +390,7 @@
       document.querySelector("#light").addEventListener("change", (event) => {
         document.documentElement.dataset.theme = event.target.checked ? "light" : "dark";
       });
-      place("pill");
+      place("bar");
     </script>
   </body>
 </html>
