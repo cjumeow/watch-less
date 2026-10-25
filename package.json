@@ -21,7 +21,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run test:e2e",
-    "test:e2e": "playwright test -c e2e"
+    "test:e2e": "playwright test -c e2e",
+    "install-local": "sh scripts/install-local.sh"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
