@@ -8,6 +8,9 @@ checkout, so every entry is under Unreleased.
 
 ### Added
 
+- The worker checks a video before processing it, then uses its original-language subtitles, automatic captions or
+  local Whisper transcription; rolling automatic captions no longer repeat displayed lines.
+
 - Digests delivered to Heptabase with an embedded video, the `yt-digest` tag and the Created by AI mark; the worker
   starts Heptabase once and retries when it cannot connect.
 
