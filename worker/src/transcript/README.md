@@ -2,7 +2,8 @@
 
 `createTranscriptStep()` implements the worker's existing `TranscriptStep` interface. It reads metadata without
 media downloads, checks eligibility, then returns a checked video whose `getTranscript()` obtains timed lines.
-The model step remains separate; this adapter never judges the video's claims.
+The checked video's details include its description as yt-dlp gives it, or an empty one, for the model step to
+send as untrusted data. The model step remains separate; this adapter never judges the video's claims.
 
 ## Runtime tools
 

@@ -12,7 +12,7 @@ test("prefers subtitles in the original language before original automatic capti
       automatic_captions: { "en-orig": track("en") },
     }),
   ).toEqual({
-    details: { title: "A made-up video", channel: "A made-up channel", durationSeconds: 600 },
+    details: { title: "A made-up video", channel: "A made-up channel", durationSeconds: 600, description: "" },
     language: "en",
     captions: [
       { source: "subtitles", language: "en", tracks: track("en") },

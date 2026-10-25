@@ -8,6 +8,7 @@ export const metadata = {
   id: "aaaaaaaaaaa",
   title: "A made-up video",
   channel: "A made-up channel",
+  description: "A made-up description.\nThe made-up repo: https://github.com/example/made-up",
   duration: 10,
   language: "en",
   formats: [{ format_id: "fake", url: "https://example.invalid/audio", ext: "m4a", acodec: "aac", vcodec: "none" }],
@@ -72,9 +73,19 @@ async function calls(): Promise<Call[]> {
     .map((line) => JSON.parse(line) as Call);
 }
 
+test.each([undefined, null, 42])("gives an empty description when yt-dlp gives %s", async (description) => {
+  await scenario({ metadata: { ...metadata, description } });
+  expect((await createTranscriptStep().checkVideo("aaaaaaaaaaa")).details.description).toBe("");
+});
+
 test("checks a video without downloading and returns the original-language subtitles", async () => {
   const checked = await createTranscriptStep().checkVideo("aaaaaaaaaaa");
-  expect(checked.details).toEqual({ title: "A made-up video", channel: "A made-up channel", durationSeconds: 10 });
+  expect(checked.details).toEqual({
+    title: "A made-up video",
+    channel: "A made-up channel",
+    durationSeconds: 10,
+    description: "A made-up description.\nThe made-up repo: https://github.com/example/made-up",
+  });
   expect(await checked.getTranscript()).toEqual({
     source: "subtitles",
     lines: [{ startSeconds: 1, text: "A made-up line" }],

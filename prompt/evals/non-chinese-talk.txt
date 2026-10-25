@@ -1,5 +1,6 @@
 Video: https://www.youtube.com/watch?v=xEvalPomodo
 Title: I tried the Pomodoro Technique for 30 days. Here's what actually happened
+Description:
 Transcript:
 [0:00] Hey everyone. For the last thirty days I worked almost exclusively in Pomodoros, and today I want to tell you how it went.
 [0:09] Quick background first. The Pomodoro Technique was invented by Francesco Cirillo in the late 1980s, when he was a university student.

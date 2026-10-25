@@ -1,13 +1,15 @@
 // The interface of the worker's first two steps: check the video, then get its transcript. The worker calls
 // `checkVideo` and then, only for a video that passed, `getTranscript` on what it returned.
 
-/** What the digest's header shows about a video, read without downloading it. */
+/** What the worker reads about a video without downloading it: what the digest's header shows, and its description. */
 export interface VideoDetails {
   /** The title YouTube gives; empty when it gives none, and the worker then uses the queue file's. */
   title: string;
   channel: string;
   /** As yt-dlp reports it; the header rounds it to whole seconds. */
   durationSeconds: number;
+  /** The text under the video, as its uploader wrote it, links included; empty when it has none. Untrusted, like the transcript. */
+  description: string;
 }
 
 /** Where a transcript came from, the first of these that has one. */

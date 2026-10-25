@@ -160,9 +160,9 @@ A failure at any step removes the request, logs the details and sends the failed
 
 ### Running the model
 
-The transcript is untrusted, so the model gets only what writing the digest needs:
+The transcript and the description are untrusted, so the model gets only what writing the digest needs:
 
-- the prompt in `prompt/digest.md` as its system prompt, and the transcript on stdin;
+- the prompt in `prompt/digest.md` as its system prompt, and the video's title, description and transcript on stdin;
 - one tool, WebSearch; no file access, no shell, no WebFetch, and `--permission-mode dontAsk`, so anything else is
   refused without stopping to ask;
 - no user/project customizations, hooks or `CLAUDE.md` (`--safe-mode`, `--setting-sources ""`), no MCP servers
@@ -194,7 +194,10 @@ when YouTube gives none. The model writes four sections:
 
 1. **Conclusion:** a short paragraph on what the video says and whether it is worth watching.
 2. **Main arguments:** each with the time range it covers (`12:34–15:10`), linked to that moment in the video.
-3. **The video's sources:** the studies, data, books or people the video cites, or that it cites none.
+3. **References:** what the video mentions that the reader could look up, such as articles, papers, GitHub
+   repositories, books and tools, each with the moment it is mentioned and a link, or that it mentions none. A link
+   comes from the video's description or from WebSearch, is never guessed, and is `找不到連結` when none is found.
+   Sponsor, affiliate, merchandise and social links are left out, and so is anything the video never mentions.
 4. **Assessment:** what is worth learning and what is exaggerated or unsupported. Every claim the model adds comes
    with the source it found; a judgment it found no source for says it is unverified.
 

@@ -27,6 +27,17 @@ The words of a video with their timestamps, from its subtitles, its automatic ca
 Whisper.
 _Avoid_: subtitles, captions (each is one source of a transcript)
 
+**Description**:
+The text the uploader wrote under a video, links included, as yt-dlp gives it. The worker sends it to the model as
+untrusted data, like the transcript, so the model can find the links of the video's references.
+_Avoid_: show notes, about, info
+
+**Reference**:
+Something a video mentions that the reader could look up, such as an article, a paper, a GitHub repository, a book or
+a tool, listed in the digest's 參考資料 section with the moment it is mentioned and a link, or 找不到連結. A sponsor, an
+affiliate or social link, and anything the video never mentions, is not a reference.
+_Avoid_: source (the assessment's word for a page that backs a claim), citation, resource
+
 **Usage limit**:
 How much the developer's Claude subscription allows in a period. A digest that meets it is **postponed**: it waits
 in the queue and runs later, which is not a failure.

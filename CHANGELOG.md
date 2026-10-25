@@ -6,6 +6,11 @@ checkout, so every entry is under Unreleased.
 
 ## [Unreleased]
 
+### Changed
+
+- A digest's third section is now 參考資料 (references): what the video mentions, such as papers, repositories and
+  tools, each with its moment and a link from the description or a search, or 找不到連結, without sponsor links.
+
 ### Fixed
 
 - The note button stays usable while YouTube plays a video's inline preview: the preview has the same button, which

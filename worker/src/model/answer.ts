@@ -33,7 +33,7 @@ export function readModelAnswer(stdout: string, exitCode: number): ModelAnswer {
     value.is_error !== false
   )
     throw new DigestFailure("The model failed to write a digest");
-  const headings = ["## 結論", "## 主要論點", "## 影片的來源", "## 評估"];
+  const headings = ["## 結論", "## 主要論點", "## 參考資料", "## 評估"];
   const lines = value.result.split(/\r?\n/).map((line) => line.trim());
   if (headings.some((heading) => !lines.includes(heading))) throw new DigestFailure("The digest was incomplete");
   return { outcome: "written", sections: value.result, model: MODEL };
