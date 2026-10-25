@@ -13,6 +13,8 @@ checkout, so every entry is under Unreleased.
 
 ### Fixed
 
+- The note button no longer jumps while YouTube plays a video's inline preview: the preview's button sits exactly
+  where the card's button is, though the preview is larger than the thumbnail.
 - The note button stays usable while YouTube plays a video's inline preview: the preview has the same button, which
   requests the video it plays.
 - Install and update yt-digest with `npm run install-local`, which installs the last commit outside the checkout, so

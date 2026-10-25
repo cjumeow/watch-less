@@ -10,6 +10,8 @@ const THUMBNAIL = "a.ytLockupViewModelContentImage, ytd-thumbnail a#thumbnail";
 const preview = document.querySelector("ytd-video-preview");
 const container = preview.closest(".ytdVideoPreviewLoaderVideoPreviewContainer");
 const PLAYING = ["ytdVideoPreviewActive", "ytdVideoPreviewPlaying"];
+// The preview is larger than the thumbnail it covers: it reaches this far past the thumbnail's left, right and top.
+const GROWTH = 12;
 let timer;
 
 document.addEventListener("pointerover", (event) => {
@@ -22,9 +24,9 @@ document.addEventListener("pointerover", (event) => {
 function show(thumbnail) {
   preview.querySelector("a").setAttribute("href", thumbnail.getAttribute("href"));
   const box = thumbnail.getBoundingClientRect();
-  container.style.left = `${box.left + scrollX}px`;
-  container.style.top = `${box.top + scrollY}px`;
-  preview.style.width = `${box.width}px`;
+  container.style.left = `${box.left + scrollX - GROWTH}px`;
+  container.style.top = `${box.top + scrollY - GROWTH}px`;
+  preview.style.width = `${box.width + 2 * GROWTH}px`;
   preview.classList.add(...PLAYING);
 }
 
