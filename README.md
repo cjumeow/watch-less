@@ -34,6 +34,22 @@ YouTube thumbnail button
 The worker uses the done folder to skip a video already digested. A failed digest can be requested again from its
 thumbnail. This is a personal tool, not a hosted service.
 
+## Installing
+
+On this Mac, from a checkout, with Node.js 24, `yt-dlp`, `claude` and the `heptabase` CLI on `PATH`:
+
+```bash
+npm install
+npm run install-local
+```
+
+It builds the last commit and installs it in `~/Library/Application Support/yt-digest/app/`, registers the native
+host with Chrome and loads the worker's launchd agent. Then, once, in `chrome://extensions`, turn on Developer mode,
+press Load unpacked and pick `~/Library/Application Support/yt-digest/app/extension/dist` (press ⌘⇧G in the picker to
+type the path).
+
+To update, commit and run `npm run install-local` again, then press Reload on yt-digest in `chrome://extensions`.
+
 ## Development
 
 How the repository is organized, its conventions and the skills agents use are in [`AGENTS.md`](AGENTS.md).

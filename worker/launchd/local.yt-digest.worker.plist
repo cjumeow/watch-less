@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  The worker's launchd agent. scripts/install-launchd-agent.sh fills in the @...@ placeholders and loads it; nothing
+  The worker's launchd agent. scripts/install-local.sh fills in the @...@ placeholders and loads it; nothing
   else installs it. launchd starts the worker when the queue folder changes, at login and every 30 minutes, and never
   runs two at once.
 -->

@@ -10,6 +10,8 @@ checkout, so every entry is under Unreleased.
 
 - The note button stays usable while YouTube plays a video's inline preview: the preview has the same button, which
   requests the video it plays.
+- Install and update yt-digest with `npm run install-local`, which installs the last commit outside the checkout, so
+  Chrome can start the native host and switching branches no longer changes the yt-digest in use.
 
 ### Added
 
@@ -26,7 +28,6 @@ checkout, so every entry is under Unreleased.
   the video's link and details, and sends a `Digest ready` or `Digest failed` notification; its steps come next.
 - The digest prompt: a digest in Traditional Chinese with a conclusion, the main arguments linked to their moment in
   the video, the video's sources, and an assessment whose added claims carry a source or say 未經查證 (unverified).
-- A native host that puts each requested video in the queue folder and answers the extension; register it with
-  `native-host/install.sh <extension-id>` after `npm run build`.
+- A native host that puts each requested video in the queue folder and answers the extension.
 - A note button on the thumbnails of the home page, search results and Watch Later, shown on hover, that requests a
   digest of the video; it turns into a green check when the request is queued, or says why it was not.

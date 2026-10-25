@@ -50,11 +50,11 @@ Update this table when the layout changes. Rows marked (planned) do not exist ye
 | Code the programs share, exported from `src/index.ts`: the request, the reply and the queue file with their parsers (`parseRequest`, `parseReply`, `parseQueueFile`), and the button's messages (`BUTTON_MESSAGES`) | `shared/` |
 | The Chrome extension: the button on thumbnails, its content script, and the service worker that sends the request to the native host | `extension/` |
 | End-to-end tests: the built extension in Playwright's Chromium on made-up pages copying YouTube's markup, with a fake native host | `e2e/` |
-| The Native Messaging host, its Chrome manifest template and the install script that registers it | `native-host/` |
+| The Native Messaging host and its Chrome manifest template | `native-host/` |
 | The worker that turns a queued video into a digest: the loop in `src/run-queue.ts`, each step's interface in `src/transcript/`, `src/model/` and `src/destination/`, and its launchd agent | `worker/` |
 | The digest prompt, the contract with the worker, and the evaluations | `prompt/` |
 | Shared TypeScript settings, lint and format rules | `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json` |
-| Repository checks that are not lint rules, and the scripts hooks run, with their tests | `scripts/` |
+| Repository checks that are not lint rules, the scripts hooks run, and `install-local.sh`, which installs yt-digest for this account, with their tests | `scripts/` |
 | Claude Code hooks for every agent in this repository: Prettier formats each file an agent writes or edits | `.claude/settings.json` |
 | Skills for developing this repository | `.claude/skills/<name>/SKILL.md` (other agents read them through the `.agents/skills` link) |
 | Where each third-party skill came from, at which commit | `.claude/skills/THIRD_PARTY.md` |
@@ -155,6 +155,12 @@ npm run lint             # ESLint with type-aware rules
 npm run typecheck        # tsc in every workspace
 npm test                 # Vitest
 npm run build            # every workspace that has a build
+npm run install-local    # the developer's step: install the last commit outside the checkout, or update it
+npm run install-local -- --dry-run   # the same into a new temporary home, with no launchctl: safe for agents
 ```
+
+`install-local` builds the commit, not the working tree, and copies what runs into
+`~/Library/Application Support/yt-digest/app/`, because Chrome cannot start a host from `~/Desktop`, which macOS
+protects, and because a branch switched or rebuilt in the checkout must not change the yt-digest in use.
 
 Dependencies are pinned to exact versions.
