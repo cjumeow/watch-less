@@ -1,32 +1,38 @@
-# yt-digest
+![You don't have to watch it all. A tangle of video cards resolves into one clear digest.](docs/readme-cover.png)
 
-Hover a YouTube thumbnail, press its note button, and get a neutral, evidence-backed Markdown summary of the video in
-Heptabase, without opening the video. What it does is specified in [`docs/spec.md`](docs/spec.md).
+Another framework. Another “must-watch” talk. Another video saved for later.
+Keeping up with technology can start to feel like a watch list you will never finish.
 
-## Architecture
+Get a neutral, evidence-backed **digest** before giving a video your time. Read its main arguments, see what supports
+them, and decide whether the full video is worth watching. Stay curious without treating every recommendation as homework.
 
+## From a thumbnail to a digest
+
+Hover a YouTube thumbnail and press its note button. The video becomes a Markdown digest in Heptabase, written in
+Traditional Chinese, without opening the video.
+
+The digest includes a short conclusion, the video's main arguments linked to their moments, the sources it cites,
+and an assessment of what is worth learning and what is exaggerated or unsupported. Claims the assessment adds
+carry a source or are marked unverified. The details are in [`docs/spec.md`](docs/spec.md).
+
+**Work in progress:** the extension, native host, transcript step and Heptabase destination are built. The model step
+is still to come, so the complete flow is not ready to use yet.
+
+## How it runs
+
+Everything runs on this Mac, using the developer's own Claude subscription. Video details, transcripts and digests
+stay outside the repository. The extension remembers no watch history, and Watch Later stays untouched.
+
+```text
+YouTube thumbnail button
+  → Native Messaging host → local queue
+  → worker, started by launchd
+      → original-language subtitles, automatic captions or local Whisper transcription
+      → claude -p → digest in Heptabase → macOS notification
 ```
-YouTube thumbnail hover button (Chrome extension content script, Shadow DOM)
-  → service worker
-  → Native Messaging host (writes the request to the queue, replies immediately)
-  → queue folder (one JSON file per video)
-  → worker (started by launchd, one at a time)
-      → get transcript (yt-dlp subtitles; fallback: audio + mlx-whisper)
-      → claude -p (subscription; tools restricted; prompt in prompt/digest.md)
-      → Heptabase CLI (tag yt-digest) → done folder
-      → macOS notification
-```
 
-## The digest
-
-A short conclusion, the video's main arguments with their time ranges, the sources it cites, and an assessment of
-what is worth learning and what is exaggerated, with sources for every claim the assessment adds. The details are in
-[`docs/spec.md`](docs/spec.md).
-
-## Notes
-
-- YouTube's Watch Later list is not readable through the API, so the button replaces Watch Later.
-- Personal, local use only: `claude -p` runs on my own machine with my own subscription.
+The worker uses the done folder to skip a video already digested. A failed digest can be requested again from its
+thumbnail. This is a personal tool, not a hosted service.
 
 ## Development
 
