@@ -103,9 +103,17 @@ needs a seam the issue does not list asks before testing there.
 
 ## Workflow
 
-- Work on a branch from `main`, one issue per branch, and open a pull request. Pull requests are squash-merged, so the
-  title becomes the commit on `main`. How to write branches, commits, the changelog and pull requests is in
+- Every change ends as a pull request: work on a branch from `main`, one issue per branch, then push it and open the
+  pull request yourself when the change is ready. The developer reviews and merges. Pull requests are squash-merged,
+  so the title becomes the commit on `main`. How to write branches, commits, the changelog and pull requests is in
   [`commit-and-pull-request-convention`](.claude/skills/commit-and-pull-request-convention/SKILL.md).
+- Issues are written so several sessions can implement them at once, each in its own worktree: an issue owns a
+  folder or set of files that no other open issue touches, names the issues it waits for, and lists the seams `tdd`
+  may test. Types two programs share are their own issue in `shared/`, done first, so the issues that use them can
+  run side by side.
+- A change to what the developer sees (the button, a notification, a digest's layout) starts from a prototype the
+  developer tries and confirms; it is built only after that.
+- Pick the skills in the table above yourself, for design as for code; the developer does not need to name them.
 - Keep pull requests small enough to read in one sitting. Never merge code you cannot explain.
 - A change to what a document in `docs/` describes updates that document in the same pull request.
 - Ask the developer before anything that needs their credentials or changes their system settings (installing a

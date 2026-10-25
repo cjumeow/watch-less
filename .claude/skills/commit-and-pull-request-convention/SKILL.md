@@ -18,7 +18,7 @@ changelog entry of a `feat` or `fix`. The rest is for you and the reviewer.
   `feat/thumbnail-button`, `fix/rolling-captions`.
 - Commit locally as you go. Before pushing, squash the work-in-progress commits into the ones a reviewer should read
   (usually one, whose message is the one `main` should get), and run the commands in `AGENTS.md`.
-- Ask the developer before pushing a branch.
+- When the change is ready, push the branch and open its pull request without asking first.
 - Nothing private enters the repository, in code, fixtures, commit messages or pull requests: what the developer
   watches (video IDs, titles, channels), their Heptabase cards, transcripts of real videos, local paths with their
   user name, tokens. The repository is public, a watch list shows what a person reads, and a real transcript is
