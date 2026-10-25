@@ -51,7 +51,7 @@ Update this table when the layout changes. Rows marked (planned) do not exist ye
 | The Chrome extension (planned) | `extension/` |
 | The Native Messaging host (planned) | `native-host/` |
 | The worker that turns a queued video into a digest: the loop in `src/run-queue.ts`, each step's interface in `src/transcript/`, `src/model/` and `src/destination/`, and its launchd agent | `worker/` |
-| The digest prompt and its evaluations (planned) | `prompt/` |
+| The digest prompt, the contract with the worker, and the evaluations | `prompt/` |
 | Shared TypeScript settings, lint and format rules | `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json` |
 | Repository checks that are not lint rules, and the scripts hooks run, with their tests | `scripts/` |
 | Claude Code hooks for every agent in this repository: Prettier formats each file an agent writes or edits | `.claude/settings.json` |

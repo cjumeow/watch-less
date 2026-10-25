@@ -143,7 +143,8 @@ The transcript is untrusted, so the model gets only what writing the digest need
   refused without stopping to ask;
 - no settings, hooks, `CLAUDE.md` or MCP servers (`--setting-sources ""`, `--strict-mcp-config`), and no saved
   session (`--no-session-persistence`);
-- an empty temporary folder as its working folder, and only `HOME` and `PATH` in its environment;
+- an empty temporary folder as its working folder, and only `HOME`, `PATH` and `USER` in its environment, so no token or
+  key reaches it (`claude` needs `USER` to find its login in the macOS keychain);
 - the Opus model, set in one place.
 
 It runs on the developer's Claude subscription. The worker reads its answer from `--output-format json`, and fails

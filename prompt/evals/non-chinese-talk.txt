@@ -1,0 +1,22 @@
+Video: https://www.youtube.com/watch?v=xEvalPomodo
+Title: I tried the Pomodoro Technique for 30 days. Here's what actually happened
+Transcript:
+[0:00] Hey everyone. For the last thirty days I worked almost exclusively in Pomodoros, and today I want to tell you how it went.
+[0:09] Quick background first. The Pomodoro Technique was invented by Francesco Cirillo in the late 1980s, when he was a university student.
+[0:20] He named it after the tomato-shaped kitchen timer he used. Pomodoro is Italian for tomato.
+[0:29] He later wrote a book about it, simply called The Pomodoro Technique, which I read before starting.
+[0:38] The basic rule is twenty-five minutes of focused work, then a five-minute break. After four of those, you take a longer break.
+[0:50] Cirillo is pretty strict in the book: a Pomodoro is indivisible. If you get interrupted for real, the Pomodoro doesn't count.
+[1:02] So, week one. Honestly, it was annoying. The timer would ring right when I was getting into the flow.
+[1:12] I was writing code most days, and twenty-five minutes felt way too short for debugging.
+[1:21] Week two, I switched to fifty minutes on, ten minutes off. Purists will hate that, but it worked much better for me.
+[1:32] The big win was email. I stopped checking it during a work block, and I just batched it into the breaks.
+[1:42] Week three is where I noticed something: I was way less tired at the end of the day.
+[1:50] There's actually research on breaks. A 2011 study by Ariga and Lleras in the journal Cognition found that brief diversions from a task kept performance from dropping over a long vigilance task.
+[2:06] Now, that study wasn't about Pomodoro specifically, so I don't want to overclaim here.
+[2:13] And I'll be honest, a lot of the productivity claims you see online, like "Pomodoro triples your output", I couldn't find any evidence for those.
+[2:24] Week four, I tracked my numbers. I averaged about eleven Pomodoros a day, which is roughly five and a half hours of real focused work at twenty-five minutes, or more with my longer blocks.
+[2:38] Before the experiment, my time tracker said I did around four hours of focused work. So for me personally, that's an improvement, but it's one person, me, and I knew I was being measured.
+[2:52] My verdict: the exact numbers don't matter much. What matters is deciding in advance when you work and when you rest.
+[3:03] If you have a job full of meetings and interruptions, honestly, this might not fit you at all.
+[3:10] That's it for today. Let me know in the comments if you've tried it. See you next week.
