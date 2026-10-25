@@ -1,0 +1,366 @@
+<!doctype html>
+<!--
+  A clickable prototype of the thumbnail button in docs/spec.md, for the developer to try before the extension is
+  built. Open it in a browser; nothing is sent anywhere. The page imitates YouTube's card layouts with made-up videos,
+  and the panel at the top picks what the native host would reply.
+
+  The button is built the way the extension will build it: a custom element with a closed shadow root, an inline SVG
+  icon, and one constructable stylesheet shared by every button.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Button prototype</title>
+    <style>
+      :root {
+        --page: #0f0f0f;
+        --text: #f1f1f1;
+        --muted: #aaa;
+        --panel: #212121;
+        --thumb-a: #3a3a3a;
+        --thumb-b: #262626;
+      }
+      :root[data-theme="light"] {
+        --page: #fff;
+        --text: #0f0f0f;
+        --muted: #606060;
+        --panel: #f2f2f2;
+        --thumb-a: #d9d9d9;
+        --thumb-b: #c4c4c4;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: var(--page);
+        color: var(--text);
+        font:
+          14px/1.4 Roboto,
+          Arial,
+          sans-serif;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        align-items: center;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+        background: var(--panel);
+      }
+      .controls label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      h2 {
+        margin: 32px 0 12px;
+        font-size: 18px;
+      }
+      h2 small {
+        color: var(--muted);
+        font-weight: normal;
+        font-size: 13px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px 16px;
+      }
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        max-width: 900px;
+      }
+      .list .card {
+        display: grid;
+        grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 600px) {
+        .list .card {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 0;
+        }
+      }
+      .card {
+        display: block;
+        color: inherit;
+        text-decoration: none;
+      }
+      .thumb {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--thumb-a), var(--thumb-b));
+      }
+      .duration {
+        position: absolute;
+        right: 6px;
+        bottom: 6px;
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: rgb(0 0 0 / 80%);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      /* YouTube's own hover buttons (Watch later, Add to queue), which the note must not cover. */
+      .yt-actions {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .yt-actions span {
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+        background: rgb(0 0 0 / 80%);
+      }
+      .card:hover .yt-actions {
+        display: flex;
+      }
+      .title {
+        margin: 10px 0 2px;
+        font-weight: 500;
+        font-size: 16px;
+      }
+      .meta {
+        color: var(--muted);
+      }
+      .shorts {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+      }
+      .shorts .card {
+        flex: none;
+      }
+      .shorts .thumb {
+        width: 160px;
+        aspect-ratio: 9 / 16;
+      }
+      .clicked {
+        color: var(--muted);
+        margin-top: 8px;
+        min-height: 1.4em;
+      }
+
+      /* Where the extension places the button, and when it shows. Injected into the page, outside the shadow root. */
+      yt-digest-button {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        z-index: 1;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.1s;
+      }
+      .card:hover yt-digest-button,
+      yt-digest-button:focus-within,
+      yt-digest-button[data-active] {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <label>
+        Host reply
+        <select id="reply">
+          <option value="ok">ok</option>
+          <option value="not-installed">not installed</option>
+          <option value="error">host error</option>
+          <option value="no-reply">no reply (times out)</option>
+        </select>
+      </label>
+      <label>
+        Reply after
+        <select id="latency">
+          <option value="50">50 ms (typical)</option>
+          <option value="1000">1 s</option>
+          <option value="3000">3 s</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="light" /> Light theme</label>
+    </div>
+
+    <h2>Home <small>grid of cards</small></h2>
+    <div class="grid" id="home"></div>
+
+    <h2>Shorts shelf <small>no button</small></h2>
+    <div class="shorts" id="shorts"></div>
+
+    <h2>Search results <small>list of cards</small></h2>
+    <div class="list" id="search"></div>
+
+    <h2>Watch Later <small>list of cards</small></h2>
+    <div class="list" id="later"></div>
+
+    <p class="clicked" id="clicked"></p>
+
+    <script type="module">
+      // --- The button: what the extension's content script will contain. ---
+
+      const NOTE_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5M8 12h8M8 15.5h8M8 19h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      const CHECK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      const CHECK_MS = 1500;
+      const MESSAGE_MS = 3000;
+
+      // One stylesheet for every button on the page: parsed once, adopted by each shadow root.
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(`
+        :host { display: flex; align-items: center; gap: 6px; }
+        button {
+          all: unset; box-sizing: border-box; width: 32px; height: 32px; border-radius: 50%;
+          display: grid; place-items: center; cursor: pointer;
+          background: rgb(0 0 0 / 60%); color: #d0d0d0;
+        }
+        button:hover { background: rgb(0 0 0 / 80%); color: #fff; }
+        button:focus-visible { outline: 2px solid #3ea6ff; outline-offset: 2px; }
+        button[aria-disabled="true"] { cursor: default; opacity: 0.6; }
+        button.done { color: #2ba640; background: rgb(0 0 0 / 80%); }
+        svg { width: 20px; height: 20px; }
+        .message {
+          padding: 4px 8px; border-radius: 4px; background: rgb(0 0 0 / 80%); color: #fff;
+          font: 500 12px/1.4 Roboto, Arial, sans-serif; white-space: nowrap;
+        }
+        .message[hidden] { display: none; }
+      `);
+
+      class DigestButton extends HTMLElement {
+        #button;
+        #message;
+
+        constructor() {
+          super();
+          const root = this.attachShadow({ mode: "closed" });
+          root.adoptedStyleSheets = [sheet];
+          root.innerHTML = `<button type="button" aria-label="Request a digest">${NOTE_ICON}</button><span class="message" role="status" hidden></span>`;
+          this.#button = root.querySelector("button");
+          this.#message = root.querySelector(".message");
+          this.#button.addEventListener("click", (event) => this.#press(event));
+        }
+
+        #feedback;
+
+        async #press(event) {
+          // The click never reaches YouTube: it does not open the video or start its preview.
+          event.preventDefault();
+          event.stopPropagation();
+          if (this.#button.getAttribute("aria-disabled") === "true") return;
+
+          // A new press ends the previous press's feedback at once.
+          clearTimeout(this.#feedback);
+          this.#showNote();
+          // Keep the button visible until its feedback ends, even if the pointer leaves the card.
+          this.dataset.active = "";
+          this.#button.setAttribute("aria-disabled", "true");
+          const reply = await requestDigest({ videoId: this.dataset.videoId, title: this.dataset.title });
+          this.#button.removeAttribute("aria-disabled");
+
+          if (reply.ok) {
+            this.#button.innerHTML = CHECK_ICON;
+            this.#button.classList.add("done");
+          } else {
+            this.#message.textContent = reply.message;
+            this.#message.hidden = false;
+          }
+          this.#feedback = setTimeout(
+            () => {
+              this.#showNote();
+              delete this.dataset.active;
+            },
+            reply.ok ? CHECK_MS : MESSAGE_MS,
+          );
+        }
+
+        #showNote() {
+          this.#button.innerHTML = NOTE_ICON;
+          this.#button.classList.remove("done");
+          this.#message.hidden = true;
+        }
+      }
+      customElements.define("yt-digest-button", DigestButton);
+
+      // --- A stand-in for the native host, driven by the panel at the top. ---
+
+      const TIMEOUT_MS = 5000;
+      const FAILURES = {
+        "not-installed": "yt-digest is not installed",
+        error: "yt-digest could not take the request",
+        "no-reply": "yt-digest did not respond",
+      };
+
+      async function requestDigest(request) {
+        const reply = document.querySelector("#reply").value;
+        const latency = Number(document.querySelector("#latency").value);
+        await sleep(reply === "no-reply" ? TIMEOUT_MS : latency);
+        console.log("request", request, "→", reply);
+        return reply === "ok" ? { ok: true } : { ok: false, message: FAILURES[reply] };
+      }
+
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      // --- Made-up cards in YouTube's layouts. ---
+
+      const TITLES = [
+        "A made-up talk about sourdough starters",
+        "Example lecture: why bridges hum in the wind",
+        "Placeholder review of a fictional laptop",
+        "Sample interview with an imaginary economist",
+        "Made-up guide to repotting houseplants",
+        "Example explainer on how tides work",
+      ];
+
+      function card(index, withButton) {
+        const title = TITLES[index % TITLES.length];
+        const link = document.createElement("a");
+        link.className = "card";
+        link.href = "#";
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          document.querySelector("#clicked").textContent =
+            `The card was opened: "${title}". The button must not do this.`;
+        });
+        link.innerHTML = `
+          <div class="thumb">
+            <span class="duration">${10 + index}:0${index % 10}</span>
+            <div class="yt-actions"><span></span><span></span></div>
+          </div>
+          <div><p class="title">${title}</p><p class="meta">Example Channel · ${index + 2}K views</p></div>`;
+        if (withButton) {
+          const button = document.createElement("yt-digest-button");
+          button.dataset.videoId = `example${index}`;
+          button.dataset.title = title;
+          link.querySelector(".thumb").append(button);
+        }
+        return link;
+      }
+
+      for (let i = 0; i < 6; i++) document.querySelector("#home").append(card(i, true));
+      for (let i = 0; i < 3; i++) document.querySelector("#search").append(card(i + 1, true));
+      for (let i = 0; i < 3; i++) document.querySelector("#later").append(card(i + 3, true));
+      for (let i = 0; i < 4; i++) {
+        const short = card(i, false);
+        short.querySelector(".duration").remove();
+        short.querySelector(".meta").remove();
+        document.querySelector("#shorts").append(short);
+      }
+
+      document.querySelector("#light").addEventListener("change", (event) => {
+        document.documentElement.dataset.theme = event.target.checked ? "light" : "dark";
+      });
+    </script>
+  </body>
+</html>
