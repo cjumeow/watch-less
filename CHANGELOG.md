@@ -6,6 +6,11 @@ checkout, so every entry is under Unreleased.
 
 ## [Unreleased]
 
+### Fixed
+
+- The note button stays usable while YouTube plays a video's inline preview: the preview has the same button, which
+  requests the video it plays.
+
 ### Added
 
 - The worker writes digests with an isolated Opus model, rejects incomplete answers, and postpones requests when a

@@ -2,8 +2,8 @@
   Where the button sits on a card and when it shows. Chrome injects this file into YouTube's pages with the content
   script; the button's own look is in its shadow root.
 
-  The button is placed just before the thumbnail link. Absolutely positioned with no offsets, it stays where it would
-  have been: at the thumbnail's top-left corner in a lockup, whatever padding its card has.
+  On a card, the button is placed just before the thumbnail link. Absolutely positioned with no offsets, it stays where
+  it would have been: at the thumbnail's top-left corner in a lockup, whatever padding its card has.
 */
 yt-digest-button {
   position: absolute;
@@ -20,7 +20,19 @@ ytd-thumbnail > yt-digest-button {
   left: 0;
 }
 
-:is(yt-lockup-view-model, ytd-video-renderer):hover yt-digest-button,
+/*
+  YouTube's inline preview, laid over a card's thumbnail, has its own button at its top-left corner. The preview stays
+  on the page when idle, with no size, so its button shows only while it plays.
+*/
+ytd-video-preview > yt-digest-button {
+  top: 0;
+  left: 0;
+}
+ytd-video-preview:not(.ytdVideoPreviewActive) > yt-digest-button {
+  display: none;
+}
+
+:is(yt-lockup-view-model, ytd-video-renderer, ytd-video-preview):hover yt-digest-button,
 yt-digest-button[data-focused],
 yt-digest-button[data-active] {
   opacity: 1;

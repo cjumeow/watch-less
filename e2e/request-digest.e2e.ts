@@ -207,6 +207,48 @@ test.describe("pressing the button", () => {
   });
 });
 
+test.describe("while YouTube plays a preview", () => {
+  for (const [name, url, videoId, title] of [
+    ["the home page", HOME, "homeVideo03", "Placeholder review of a fictional laptop"],
+    ["search results", SEARCH, "searchVid01", "Sample interview with an imaginary economist"],
+  ] as const) {
+    test(`on ${name}, the preview has the button, which requests the video it plays`, async ({
+      page,
+      host,
+    }, testInfo) => {
+      await host.answer({ reply: { ok: true } });
+      await page.goto(url);
+      const preview = page.locator("ytd-video-preview");
+      await card(page, videoId).locator("a.ytLockupViewModelContentImage, a#thumbnail").hover();
+      await expect(preview).toBeVisible();
+      // A resting pointer still moves a little, which tells Chromium that it is over the preview now.
+      const thumbnailBox = await card(page, videoId)
+        .locator("a.ytLockupViewModelContentImage, a#thumbnail")
+        .boundingBox();
+      await page.mouse.move((thumbnailBox?.x ?? 0) + 100, (thumbnailBox?.y ?? 0) + 60);
+      // The preview covers the card, which loses its hover and hides the card's own button.
+      await expect(card(page, videoId).locator("yt-digest-button")).toHaveCSS("opacity", "0");
+
+      const button = preview.locator("yt-digest-button");
+      await expect(button).toHaveCSS("opacity", "1");
+      const previewBox = await preview.boundingBox();
+      const buttonBox = await button.boundingBox();
+      expect([buttonBox?.x, buttonBox?.y]).toEqual([(previewBox?.x ?? 0) + 8, (previewBox?.y ?? 0) + 8]);
+
+      await button.click({ position: { x: 16, y: 16 } });
+      await expect.poll(async () => (await buttonStates(page)).at(-1)?.icon).toBe("check");
+      await page.screenshot({ path: testInfo.outputPath(`preview-${name.replaceAll(" ", "-")}.png`) });
+      expect(await host.requests()).toEqual([{ videoId, title }]);
+      expect(page.url()).toBe(url);
+
+      // Idle, the preview stays on the page with no size, and its button does not show, even during the check.
+      await page.mouse.move(1, 1);
+      await expect(preview).toBeHidden();
+      await expect(button).toBeHidden();
+    });
+  }
+});
+
 test.describe("without the native host", () => {
   test.use({ hostInstalled: false });
 

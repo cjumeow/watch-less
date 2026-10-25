@@ -10,6 +10,8 @@ notification, never on the button.
 - `appears`: a button on every ordinary video's card on the home page, in search results and in Watch Later; none on
   Shorts, mixes, playlists, other playlists or any other page.
 - `hover`: the button shows only while the pointer is over its card, or while it has the keyboard's focus.
+- `preview`: when YouTube's inline preview covers the card, the same button at the preview's top-left requests the
+  video the preview plays.
 - `later-cards`: cards YouTube adds as the page scrolls get a button too.
 - `queued`: a press sends `{ videoId, title }` to the native host and shows the green check for about 1.5 seconds,
   without opening the video.
@@ -23,6 +25,8 @@ notification, never on the button.
 - The note button at the top-left of a video's thumbnail on `https://www.youtube.com/` (home).
 - The same on `https://www.youtube.com/results?search_query=...` (search results).
 - The same on `https://www.youtube.com/playlist?list=WL` (Watch Later).
+- The note button at the top-left of YouTube's inline preview, about a second after the pointer rests on a thumbnail
+  on the home page or in search results.
 
 ## Driving it
 
@@ -34,10 +38,11 @@ Never the developer's Chrome: the tests launch Playwright's own Chromium with a 
 2. **Run the end-to-end tests.** `npm run test:e2e`. Each test starts Chromium with `extension/dist/` loaded, serves
    the made-up pages in `e2e/pages/` at YouTube's URLs, blocks every other request, and installs a fake native host
    (`e2e/fake-native-host.mjs`) in the temporary profile's `NativeMessagingHosts` folder. The run ends with
-   `13 passed`, one test per sub-feature and page.
+   `15 passed`, one test per sub-feature and page.
 3. **Look at the button.** The tests save screenshots under `artifacts/e2e/<test>/`: the button on a hovered card on
    each page (`the-home-page.png`, `search-results.png`, `Watch-Later.png`), the check (`check.png`) and each message
-   (`failed.png`, `no-response.png`, `not-installed.png`).
+   (`failed.png`, `no-response.png`, `not-installed.png`), and the check on the preview's button on each page
+   (`preview-the-home-page.png`, `preview-search-results.png`).
 4. **Proof:** the test run's output with every test passing, the screenshots of the button on the three pages and in
    each state, and the messages the fake host received, which `sends the video to the host` checks equal
    `{ "videoId": "homeVideo02", "title": "Example lecture: why bridges hum in the wind" }`.
@@ -53,10 +58,12 @@ Never the developer's Chrome: the tests launch Playwright's own Chromium with a 
   with a temporary profile, when buttons go missing.
 - Signed out, YouTube's home page shows no videos and Watch Later is empty, so a live check of those two pages needs
   the developer's account, which only the whole-flow check on this Mac uses.
-- On search results, YouTube's inline preview covers the thumbnail about a second after the pointer arrives, and the
-  button with it: it sits in a layer above the whole results page, which no `z-index` on the button can pass. Press
-  within that second. The fixture pages have no preview, so the tests do not see this. Home and Watch Later cards are
-  not affected: the button stays above their preview.
+- YouTube's inline preview, `ytd-video-preview` under `ytd-app > #video-preview`, lies outside every card and stays on
+  the page when idle, with no size; while it plays, it has the class `ytdVideoPreviewActive`. It holds a watch link
+  but no title, so the button takes the title from the card showing the same video. The fixture pages copy that
+  structure, and `e2e/pages/preview.js` plays YouTube's part. After the preview appears, a test moves the pointer a
+  little, as a resting hand does, so that Chromium sees the pointer over the preview. Whether the live preview's own
+  layers sit above the button is left to the developer's check on YouTube.
 - `yt-digest did not respond` takes 5 seconds to appear; a test that waits less fails for the wrong reason.
 - A click leaves the keyboard focus on the button. The button shows for `:focus-visible` only, so a click does not
   keep it visible after its check ends.
