@@ -49,7 +49,7 @@ Update this table when the layout changes. Rows marked (planned) do not exist ye
 |---|---|
 | Code the programs share, exported from `src/index.ts`: the request, the reply and the queue file with their parsers (`parseRequest`, `parseReply`, `parseQueueFile`), and the button's messages (`BUTTON_MESSAGES`) | `shared/` |
 | The Chrome extension (planned) | `extension/` |
-| The Native Messaging host (planned) | `native-host/` |
+| The Native Messaging host, its Chrome manifest template and the install script that registers it | `native-host/` |
 | The worker that turns a queued video into a digest: the loop in `src/run-queue.ts`, each step's interface in `src/transcript/`, `src/model/` and `src/destination/`, and its launchd agent | `worker/` |
 | The digest prompt, the contract with the worker, and the evaluations | `prompt/` |
 | Shared TypeScript settings, lint and format rules | `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json` |

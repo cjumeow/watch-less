@@ -9,7 +9,8 @@
   },
   "workspaces": [
     "shared",
-    "worker"
+    "worker",
+    "native-host"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",

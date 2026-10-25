@@ -1,0 +1,7 @@
+{
+  "name": "com.yt_digest.host",
+  "description": "yt-digest: puts a requested video in the queue for a digest",
+  "path": "HOST_LAUNCHER_PATH",
+  "type": "stdio",
+  "allowed_origins": ["chrome-extension://EXTENSION_ID/"]
+}
