@@ -105,8 +105,8 @@ needs a seam the issue does not list asks before testing there.
 ## Workflow
 
 - Every change ends as a pull request: work on a branch from `main`, one issue per branch, then push it and open the
-  pull request yourself when the change is ready. The developer reviews and merges. Pull requests are squash-merged,
-  so the title becomes the commit on `main`. How to write branches, commits, the changelog and pull requests is in
+  pull request yourself when the change is ready. Who merges it is in [Sessions and merging](#sessions-and-merging).
+  Pull requests are squash-merged, so the title becomes the commit on `main`. How to write branches, commits, the changelog and pull requests is in
   [`commit-and-pull-request-convention`](.claude/skills/commit-and-pull-request-convention/SKILL.md).
 - Issues are written so several sessions can implement them at once, each in its own worktree: an issue owns a
   folder or set of files that no other open issue touches, names the issues it waits for, and lists the seams `tdd`
@@ -120,14 +120,27 @@ needs a seam the issue does not list asks before testing there.
 - Ask the developer before anything that needs their credentials or changes their system settings (installing a
   launchd agent or a Native Messaging host manifest, granting permissions).
 
+### Sessions and merging
+
+- **One session talks to the developer.** It writes the issues and starts one session per issue, one after another
+  or side by side when they touch no common files. An issue's session that meets a decision the spec and the docs do
+  not settle asks that top session, which answers from the docs or asks the developer; the developer is asked in that
+  one place.
+- **An agent merges its own pull request** (squash) when all of these hold: every CI check passes, `/code-review`
+  leaves no unresolved finding, and the Verification section shows its main claim at level 4 or 5. After a merge, the
+  top session tells the developer in a few sentences what landed and any tool or technique that was new.
+- **The developer merges** a pull request that changes the native host, how `claude -p` is run, or the extension's
+  permissions (after `/security-review`), and one that changes the workflows in `.github/workflows/` or the rules in
+  this file and the skills.
+
 There are no releases and no release workflow yet: yt-digest is a personal tool, installed from a checkout.
 
 ## Proving a change
 
 A change is done when it is proven on the real thing, not when it compiles or its tests pass: run a build of a
 commit, never the working tree, observe the result, and put the evidence in the pull request's Verification section.
-What counts as proof for each kind of change, how to drive each program in isolation, and the feature map are in
-[`verify`](.claude/skills/verify/SKILL.md).
+What counts as proof for each kind of change, how to drive each program in isolation, the end-to-end tests and the
+feature map are in [`verify`](.claude/skills/verify/SKILL.md).
 
 ## Commands
 
