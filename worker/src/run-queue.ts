@@ -85,7 +85,12 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
     const video = await steps.transcript.checkVideo(videoId);
     title = video.details.title || request.title;
     const transcript = await video.getTranscript();
-    const answer = await steps.model.writeDigest({ videoId, title, transcript });
+    const answer = await steps.model.writeDigest({
+      videoId,
+      title,
+      description: video.details.description,
+      transcript,
+    });
     if (answer.outcome === "postponed") {
       postponed = true;
     } else {

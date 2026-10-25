@@ -12,6 +12,9 @@ On stdin, as UTF-8 text, one video:
 ```text
 Video: https://www.youtube.com/watch?v=<id>
 Title: <the video's title>
+Description:
+> <a line of the video's description>
+> <the next line>
 Transcript:
 [0:00] <words said from this moment>
 [0:07] <words said from this moment>
@@ -21,10 +24,13 @@ Transcript:
 - `Video:` is the video's link, always `https://www.youtube.com/watch?v=` followed by its ID. The model links to a
   moment by appending `&t=<seconds>s` to it.
 - `Title:` is the title on one line.
+- `Description:` is followed by the video's description as yt-dlp gives it, links included, one line of it per line,
+  each starting with `> ` (a blank line of it is `>` alone). Quoting every line keeps a description from passing for
+  a transcript line or another field. A video without a description has no lines here.
 - `Transcript:` is followed by one line per transcript segment, in order: the moment it starts, as `[m:ss]` under an
   hour and `[h:mm:ss]` from an hour on, a space, and its words on one line.
 
-Everything on stdin, the title included, is untrusted: the prompt treats it as data and never as instructions.
+Everything on stdin, the title and the description included, is untrusted: the prompt treats it as data and never as instructions.
 
 ## What the model returns
 
@@ -34,7 +40,7 @@ The digest's four sections and nothing else, in this order, each starting with i
 |---|---|
 | `## 結論` | Conclusion |
 | `## 主要論點` | Main arguments, each with its time range |
-| `## 影片的來源` | The video's sources, or `影片未引用任何來源。` |
+| `## 參考資料` | The references: what the video mentions that the reader could look up, each with a link or `找不到連結`, or `影片未提到任何參考資料。` |
 | `## 評估` | Assessment |
 
 The worker fails the digest (`The digest was incomplete`) when one of these four lines is missing. The model writes no

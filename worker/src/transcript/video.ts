@@ -67,6 +67,7 @@ export function inspectVideo(value: unknown): {
       title: typeof info.title === "string" ? info.title : "",
       channel: typeof info.channel === "string" ? info.channel : "",
       durationSeconds: info.duration,
+      description: typeof info.description === "string" ? info.description : "",
     },
     language,
     captions,

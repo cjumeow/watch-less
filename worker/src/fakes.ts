@@ -20,7 +20,7 @@ export interface FakeVideo {
   postponed?: boolean;
 }
 
-export const FAKE_SECTIONS = "## 結論\n\nA made-up conclusion.\n\n## 主要論點\n\n## 影片的來源\n\n## 評估\n";
+export const FAKE_SECTIONS = "## 結論\n\nA made-up conclusion.\n\n## 主要論點\n\n## 參考資料\n\n## 評估\n";
 export const FAKE_MODEL = "claude-opus-made-up";
 export const FAKE_TRANSCRIPT: Transcript = {
   source: "subtitles",
@@ -61,6 +61,7 @@ export function fakeSteps(videos: Record<string, FakeVideo> = {}): FakeSteps {
         title: "A made-up video",
         channel: "A made-up channel",
         durationSeconds: 754,
+        description: "A made-up description.",
         ...video.details,
       };
       return Promise.resolve({

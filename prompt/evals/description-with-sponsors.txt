@@ -1,0 +1,31 @@
+Video: https://www.youtube.com/watch?v=xEvalAttend
+Title: 十分鐘看懂 Transformer：從論文到自己訓練一個小模型
+Description:
+> 這集用十分鐘講完 Transformer 的核心概念，最後帶大家跑一個小模型。
+>
+> 本集提到的資料：
+> 論文 Attention Is All You Need：https://arxiv.org/abs/1706.03762
+> Hugging Face Transformers：https://github.com/huggingface/transformers
+> nanoGPT：https://github.com/karpathy/nanoGPT
+> 延伸閱讀 The Illustrated Transformer：https://jalammar.github.io/illustrated-transformer/
+>
+> 本集贊助：SafeTunnel VPN，用我的連結首月免費 https://example.com/safetunnel?ref=madeupchannel
+> 我推薦的書（聯盟連結）：https://www.amazon.com/dp/0262035618?tag=madeupchannel-20
+> 頻道周邊 T 恤：https://example.com/shop/madeupchannel
+> 追蹤我：https://x.com/madeupchannel ｜ Discord：https://discord.gg/madeupinvite
+> 支持頻道：https://www.patreon.com/madeupchannel
+Transcript:
+[0:00] 大家好，今天用十分鐘帶大家看懂 Transformer。
+[0:06] 在開始之前，感謝本集贊助 SafeTunnel VPN，用說明欄的連結第一個月免費。
+[0:15] 好，回到正題。Transformer 來自 2017 年 Google 的論文，叫做 Attention Is All You Need，作者是 Vaswani 等人。
+[0:28] 這篇論文的重點是，它完全拿掉了 RNN，只用 attention 來處理整個句子。
+[0:40] attention 的直覺是：每個字都去看句子裡其他所有字，決定要參考誰多一點。
+[0:55] 論文裡用的是 scaled dot-product attention，再加上 multi-head，也就是同時用好幾組 attention。
+[1:10] 因為沒有 RNN，所以要另外加上 positional encoding，模型才知道字的順序。
+[1:24] 如果想把數學基礎補起來，我推薦 Goodfellow、Bengio 和 Courville 寫的那本《Deep Learning》，說明欄有連結。
+[1:38] 實作的部分，大部分人會直接用 Hugging Face 的 Transformers 這個套件，幾行就能載入預訓練模型。
+[1:52] 但如果你想真的懂，我更推薦 Andrej Karpathy 的 nanoGPT，整個 GPT 的訓練程式只有幾百行。
+[2:07] 我自己用 nanoGPT 在筆電上訓練了一個莎士比亞的小模型，大概半小時就能生出像樣的句子。
+[2:20] 當然這種小模型跟 ChatGPT 差很遠，它只是讓你看懂原理。
+[2:31] 我覺得 Transformer 最厲害的地方，是它可以平行運算，所以才能訓練到這麼大。
+[2:44] 好，今天就到這邊，喜歡的話記得買一件頻道的 T 恤支持我們，也可以加入 Discord 一起討論。

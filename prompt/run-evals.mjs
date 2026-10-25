@@ -15,7 +15,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 /** The four section headings, in order. The worker fails a digest that lacks one. */
-const SECTION_HEADINGS = ["## 結論", "## 主要論點", "## 影片的來源", "## 評估"];
+const SECTION_HEADINGS = ["## 結論", "## 主要論點", "## 參考資料", "## 評估"];
 
 const MODEL = "opus";
 const TIMEOUT_MS = 10 * 60 * 1000;
@@ -45,11 +45,34 @@ function strayMoments(digest, transcript) {
   return [...digest.matchAll(/&t=(\d+)s/g)].map(([, seconds]) => seconds).filter((seconds) => !moments.has(seconds));
 }
 
-/** The links the model added, outside the video's own, that appear in none of the search results it received. */
-function unfoundLinks(digest, searchResults) {
-  return [...digest.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)]
-    .map(([, url]) => url)
-    .filter((url) => !url.startsWith("https://www.youtube.com/watch?v=") && !searchResults.includes(url));
+/** The Markdown links of the digest, in order. */
+function links(digest) {
+  return [...digest.matchAll(/\]\((https?:\/\/[^)\s]+)\)/g)].map(([, url]) => url);
+}
+
+/** The web addresses in the input's description: its `> ` lines between `Description:` and `Transcript:`. */
+function descriptionLinks(input) {
+  const description = input.match(/^Description:\n((?:>.*\n)*)Transcript:$/m)?.[1] ?? "";
+  return [...description.matchAll(/https?:\/\/[^\s）」]+/g)].map(([url]) => url.replace(/[.,;:!?]+$/, ""));
+}
+
+/** The links the model added, outside the video's own, that appear in neither the description nor a search result. */
+function unfoundLinks(digest, input, searchResults) {
+  const described = descriptionLinks(input);
+  return links(digest).filter(
+    (url) =>
+      !url.startsWith("https://www.youtube.com/watch?v=") && !described.includes(url) && !searchResults.includes(url),
+  );
+}
+
+/** Links the developer excluded from references: social accounts, memberships, and affiliate, referral or discount links. */
+function excludedLinks(digest) {
+  return links(digest).filter(
+    (url) =>
+      /^https?:\/\/(?:www\.)?(?:x|twitter|instagram|threads|facebook|tiktok|patreon)\.(?:com|net)\//.test(url) ||
+      /^https?:\/\/discord\.gg\//.test(url) ||
+      /[?&](?:tag|ref|code|aff|affiliate)=/i.test(url),
+  );
 }
 
 /** Citations the prompt forbids: a source list after the assessment, and a source without its link. */
@@ -147,8 +170,14 @@ function reportRun(name, transcript, output) {
       "every moment is a transcript timestamp",
     ),
     report(
-      unfoundLinks(digest, searchResults).map((url) => `link in no search result: ${url}`),
-      "every added link is in a search result",
+      unfoundLinks(digest, transcript, searchResults).map(
+        (url) => `link in neither the description nor a search result: ${url}`,
+      ),
+      "every added link is in the description or a search result",
+    ),
+    report(
+      excludedLinks(digest).map((url) => `social, affiliate or referral link: ${url}`),
+      "no social, affiliate or referral links",
     ),
     report(
       forbiddenCitations(digest).map((pattern) => `forbidden citation: ${String(pattern)}`),
