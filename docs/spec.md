@@ -6,14 +6,15 @@ to the destination and notifies the developer.
 
 ## The button
 
-The only way to request a digest is the button the extension adds to a video's thumbnail. There is no context menu,
-no button on the watch page and no toolbar popup.
+A digest is requested with the button the extension adds to a video's thumbnail, or with the same button in the player
+on the watch page. There is no context menu and no toolbar popup.
 
 ### Where it appears
 
 On the cards of ordinary videos on three pages: the home page, search results, and the Watch Later playlist. Shorts on
-those pages get no button, and no other page has one. The card selectors are verified against YouTube's live markup
-when the extension is built.
+those pages get no button. On the watch page, the button sits in the player's control bar (see
+[On the watch page](#on-the-watch-page)); its cards get none, and no other page has a button. The selectors are
+verified against YouTube's live markup when the extension is built.
 
 ### What it looks like
 
@@ -28,6 +29,18 @@ when the extension is built.
 - The button looks the same on every card: the extension keeps no record of which videos were requested. Cards on the
   home page and in search results are gone within a day or two, so a record would rarely be seen again, and a repeated
   request costs nothing (see below).
+
+### On the watch page
+
+- The button is the first of the player's right-hand controls, before autoplay, subtitles and settings, drawn like
+  them: the white note icon on no backdrop. It shows and hides with YouTube's controls, also in theater mode and
+  fullscreen, and keeps them showing while its check or message does. The message appears above the button. Space or
+  Enter on the focused button presses it without pausing the video.
+- It requests the video playing, read when it is pressed: the ID from the page's URL and the title YouTube shows
+  below the player. Moving to another video, YouTube changes the URL about a second before the title, so a press in
+  that second sends the new video with no title.
+- YouTube changes videos without loading a page and may render its controls anew, so the extension puts the button
+  back whenever the controls lack it, and takes it out of the miniplayer when the player leaves the watch page.
 
 ### Pressing it
 
@@ -48,8 +61,8 @@ when the extension is built.
    the button ever shows. `alert()` is not used, since it blocks the page, and neither are system notifications,
    which are kept for the digest's result.
 
-While the check or the message shows, the button stays visible even when the pointer leaves the card. Pressing it
-again ends that feedback at once and sends a new request.
+While the check or the message shows, the button stays visible even when the pointer leaves the card or the player.
+Pressing it again ends that feedback at once and sends a new request.
 
 The button reports only whether the request was sent. A digest that fails later, after the green check, is reported
 by a notification (see below), never on the button.

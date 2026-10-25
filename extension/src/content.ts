@@ -5,6 +5,7 @@ import { BUTTON_MESSAGES, type RequestMessage } from "@yt-digest/shared";
 import { type ButtonResult } from "./button-result.js";
 import { findCards, HANDLED, pageOf, PREVIEW, thumbnailOf, videoOf, videoOfPreview } from "./cards.js";
 import { BUTTON_TAG, createButton } from "./digest-button.js";
+import { ANY_PLAYER_CONTROLS, isWatchPage, PLAYER_CONTROLS, videoOfWatchPage } from "./watch-page.js";
 
 const FAILED: ButtonResult = { ok: false, message: BUTTON_MESSAGES.failed };
 
@@ -33,6 +34,20 @@ function scan(container: Element) {
     thumbnail?.setAttribute(HANDLED, "");
     thumbnail?.before(createButton(() => request(videoOf(card))));
   }
+  placeInPlayer();
+}
+
+/**
+ * Puts the button first in the watch page's player controls, again whenever YouTube renders them anew, and takes it
+ * out of a player that has left the watch page, such as the miniplayer.
+ */
+function placeInPlayer() {
+  const controls = isWatchPage(new URL(location.href)) ? document.querySelector(PLAYER_CONTROLS) : null;
+  for (const button of document.querySelectorAll(`${ANY_PLAYER_CONTROLS} > ${BUTTON_TAG}`)) {
+    if (button.parentElement !== controls) button.remove();
+  }
+  if (controls === null || controls.querySelector(`:scope > ${BUTTON_TAG}`)) return;
+  controls.prepend(createButton(() => request(videoOfWatchPage(document, new URL(location.href))), "player"));
 }
 
 /** Scans YouTube's content area now and once per animation frame in which it changed. */

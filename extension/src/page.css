@@ -38,3 +38,18 @@ yt-digest-button[data-active] {
   opacity: 1;
   pointer-events: auto;
 }
+
+/*
+  On the watch page, the button is the first of the player's right-hand controls, inside YouTube's control bar, so it
+  shows and hides with the bar. YouTube hides the bar by adding ytp-autohide to the player; the bar stays while the
+  button's check or message shows.
+*/
+.ytp-right-controls-left > yt-digest-button {
+  position: relative;
+  margin: 0;
+  opacity: 1;
+  pointer-events: auto;
+}
+.ytp-autohide .ytp-chrome-bottom:has(yt-digest-button[data-active]) {
+  opacity: 1;
+}
