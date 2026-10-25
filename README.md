@@ -1,6 +1,7 @@
 # yt-digest
 
-Hover a YouTube thumbnail, click 📝, and get a neutral, evidence-backed Markdown summary of the video in Heptabase, without opening the video.
+Hover a YouTube thumbnail, press its note button, and get a neutral, evidence-backed Markdown summary of the video in
+Heptabase, without opening the video. What the button does is specified in [`docs/spec.md`](docs/spec.md).
 
 ## Planned architecture
 

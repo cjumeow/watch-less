@@ -68,8 +68,8 @@ user can do.
 - A `feat` or `fix` adds an entry under `## [Unreleased]`, in its category: Added, Changed, Deprecated, Removed, Fixed
   or Security. Write it for the user: what is different for them, not how the code changed. Other types get no entry;
   a change the user would notice is a `feat` or a `fix`.
-- An entry is one line, two at most: the thing the user meets (the 📝 button, the context menu, the digest card in
-  Heptabase, a notification), what is different, and a short example when it says more than an explanation would.
+- An entry is one line, two at most: the thing the user meets (the button on a thumbnail, the digest in Heptabase, a
+  notification), what is different, and a short example when it says more than an explanation would.
   The reason, how it works, edge cases and trade-offs go in the pull request.
 
 ## Pull requests

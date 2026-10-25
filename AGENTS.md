@@ -1,12 +1,13 @@
 # yt-digest
 
-A button on each YouTube thumbnail that turns the video into a neutral, evidence-backed summary, a **digest**, stored
-as a Heptabase card, without opening the video. A Chrome extension queues the video through a Native Messaging host;
-a worker on this Mac fetches the transcript, asks `claude -p` for the digest, and saves it to Heptabase.
+A button on each YouTube thumbnail that turns the video into a neutral, evidence-backed summary, a **digest**: a
+Markdown document, delivered to a **destination** (Heptabase first), without opening the video. A Chrome extension
+sends the request through a Native Messaging host; a worker on this Mac fetches the transcript, asks `claude -p` for
+the digest, and delivers it.
 
 Status: the repository's skeleton (toolchain, checks, CI, skills) exists; no program does yet. What the first version
-does will be in the spec, `docs/spec.md`, and the features are built from it. The agreed architecture and the
-digest's sections are in `README.md` until the spec replaces them.
+does is in the spec, `docs/spec.md`, and the features are built from it. The spec covers the button so far; for the
+rest, the agreed architecture and the digest's sections are in `README.md` until the spec replaces them.
 
 ## A learning project
 
@@ -63,7 +64,7 @@ Update this table when the layout changes. Rows marked (planned) do not exist ye
 | Design decisions | `docs/adr/` |
 | Clickable prototypes the developer tries before a UI is built, one HTML file each that opens in a browser | `docs/prototypes/` |
 | The domain's terms, one name each | `GLOSSARY.md` |
-| The spec (planned) | `docs/spec.md` |
+| The spec: the button so far | `docs/spec.md` |
 | GitHub workflows | `.github/workflows/<verb>-<object>.yml` |
 
 ### Shared code
