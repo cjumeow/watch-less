@@ -1,0 +1,337 @@
+<!doctype html>
+<!--
+  A clickable prototype of a digest button on YouTube's watch page, for the developer to compare placements before
+  the spec changes. Open it in a browser; nothing is sent anywhere. The page imitates the watch page's layout with a
+  made-up video. The panel at the top picks the placement and what the native host would reply.
+
+  The feedback is the thumbnail button's (docs/prototypes/button.html): dimmed while waiting, a green check for about
+  1.5 seconds, or a short message for 3 seconds.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Watch page prototype</title>
+    <style>
+      :root {
+        --page: #0f0f0f;
+        --text: #f1f1f1;
+        --muted: #aaa;
+        --panel: #212121;
+        --pill: rgb(255 255 255 / 10%);
+        --pill-hover: rgb(255 255 255 / 20%);
+        --subscribe-bg: #f1f1f1;
+        --subscribe-text: #0f0f0f;
+      }
+      :root[data-theme="light"] {
+        --page: #fff;
+        --text: #0f0f0f;
+        --muted: #606060;
+        --panel: #f2f2f2;
+        --pill: rgb(0 0 0 / 5%);
+        --pill-hover: rgb(0 0 0 / 10%);
+        --subscribe-bg: #0f0f0f;
+        --subscribe-text: #fff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: var(--page);
+        color: var(--text);
+        font:
+          14px/1.4 Roboto,
+          Arial,
+          sans-serif;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        align-items: center;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+        background: var(--panel);
+      }
+      .controls label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      main {
+        max-width: 1100px;
+      }
+      .player {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #2b2b2b, #111);
+        display: grid;
+        place-items: center;
+        color: #777;
+      }
+      .player .bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 48px;
+        background: linear-gradient(transparent, rgb(0 0 0 / 70%));
+      }
+      h1 {
+        margin: 12px 0 8px;
+        font-size: 20px;
+        line-height: 28px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .owner {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #555;
+      }
+      .owner small {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .subscribe {
+        margin-left: 12px;
+        padding: 0 16px;
+        height: 36px;
+        border-radius: 18px;
+        border: 0;
+        background: var(--subscribe-bg);
+        color: var(--subscribe-text);
+        font:
+          500 14px Roboto,
+          Arial,
+          sans-serif;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .yt-pill {
+        height: 36px;
+        padding: 0 16px;
+        border-radius: 18px;
+        display: inline-flex;
+        align-items: center;
+        background: var(--pill);
+        font-weight: 500;
+      }
+      .description {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--pill);
+        color: var(--muted);
+      }
+
+      /* Placement "player": on the player's top left, shown while the pointer is over the player. */
+      .player yt-digest-watch-button {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        opacity: 0;
+        transition: opacity 0.1s;
+      }
+      .player:hover yt-digest-watch-button,
+      .player yt-digest-watch-button:focus-within,
+      .player yt-digest-watch-button[data-active] {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <label>
+        Placement
+        <select id="placement">
+          <option value="pill">A. Pill with a label, in the action row</option>
+          <option value="icon">B. Round icon, in the action row</option>
+          <option value="player">C. On the player, on hover</option>
+        </select>
+      </label>
+      <label>
+        Host reply
+        <select id="reply">
+          <option value="ok">ok</option>
+          <option value="not-installed">not installed</option>
+          <option value="error">host error</option>
+          <option value="no-reply">no reply (times out)</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="light" /> Light theme</label>
+    </div>
+
+    <main>
+      <div class="player" id="player">
+        A made-up video playing
+        <div class="bar"></div>
+      </div>
+      <h1>Example lecture: why bridges hum in the wind</h1>
+      <div class="row">
+        <div class="owner">
+          <span class="avatar"></span>
+          <span>Example Channel<small>12K subscribers</small></span>
+          <button class="subscribe" type="button">Subscribe</button>
+        </div>
+        <div class="actions" id="actions">
+          <span class="yt-pill">👍 1.2K | 👎</span>
+          <span class="yt-pill">Share</span>
+          <span class="yt-pill">Save</span>
+          <span class="yt-pill">…</span>
+        </div>
+      </div>
+      <div class="description">3K views · 2 days ago — a made-up description.</div>
+    </main>
+
+    <script type="module">
+      const NOTE_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5M8 12h8M8 15.5h8M8 19h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      const CHECK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      const CHECK_MS = 1500;
+      const MESSAGE_MS = 3000;
+
+      // Each placement styles the same element; the extension would ship only the one the developer picks.
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(`
+        :host { display: inline-flex; align-items: center; gap: 6px; position: relative; }
+        button {
+          all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
+          gap: 6px; cursor: pointer; font: 500 14px Roboto, Arial, sans-serif;
+        }
+        button:focus-visible { outline: 2px solid #3ea6ff; outline-offset: 2px; }
+        button[aria-disabled="true"] { cursor: default; opacity: 0.6; }
+        svg { width: 20px; height: 20px; flex: none; }
+        .done svg { color: #2ba640; }
+
+        :host([data-placement="pill"]) button {
+          height: 36px; padding: 0 16px 0 12px; border-radius: 18px; background: var(--pill); color: var(--text);
+        }
+        :host([data-placement="pill"]) button:hover { background: var(--pill-hover); }
+        :host([data-placement="icon"]) button {
+          width: 36px; height: 36px; border-radius: 50%; background: var(--pill); color: var(--text);
+        }
+        :host([data-placement="icon"]) button:hover { background: var(--pill-hover); }
+        :host([data-placement="icon"]) .label { display: none; }
+        :host([data-placement="player"]) button {
+          width: 40px; height: 40px; border-radius: 50%; background: rgb(0 0 0 / 60%); color: #d0d0d0;
+        }
+        :host([data-placement="player"]) button:hover { background: rgb(0 0 0 / 80%); color: #fff; }
+        :host([data-placement="player"]) .label { display: none; }
+
+        .message {
+          position: absolute; top: calc(100% + 6px); left: 0; z-index: 1;
+          padding: 4px 8px; border-radius: 4px; background: rgb(0 0 0 / 80%); color: #fff;
+          font: 500 12px/1.4 Roboto, Arial, sans-serif; white-space: nowrap;
+        }
+        :host([data-placement="player"]) .message { position: static; }
+        .message[hidden] { display: none; }
+      `);
+
+      class DigestWatchButton extends HTMLElement {
+        #button;
+        #icon;
+        #message;
+        #feedback;
+
+        constructor() {
+          super();
+          const root = this.attachShadow({ mode: "closed" });
+          root.adoptedStyleSheets = [sheet];
+          root.innerHTML = `<button type="button" aria-label="Request a digest"><span class="icon">${NOTE_ICON}</span><span class="label">Digest</span></button><span class="message" role="status" hidden></span>`;
+          this.#button = root.querySelector("button");
+          this.#icon = root.querySelector(".icon");
+          this.#message = root.querySelector(".message");
+          this.#button.addEventListener("click", (event) => this.#press(event));
+        }
+
+        async #press(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (this.#button.getAttribute("aria-disabled") === "true") return;
+
+          clearTimeout(this.#feedback);
+          this.#showNote();
+          this.dataset.active = "";
+          this.#button.setAttribute("aria-disabled", "true");
+          const reply = await requestDigest();
+          this.#button.removeAttribute("aria-disabled");
+
+          if (reply.ok) {
+            this.#icon.innerHTML = CHECK_ICON;
+            this.#button.classList.add("done");
+          } else {
+            this.#message.textContent = reply.message;
+            this.#message.hidden = false;
+          }
+          this.#feedback = setTimeout(
+            () => {
+              this.#showNote();
+              delete this.dataset.active;
+            },
+            reply.ok ? CHECK_MS : MESSAGE_MS,
+          );
+        }
+
+        #showNote() {
+          this.#icon.innerHTML = NOTE_ICON;
+          this.#button.classList.remove("done");
+          this.#message.hidden = true;
+        }
+      }
+      customElements.define("yt-digest-watch-button", DigestWatchButton);
+
+      // --- A stand-in for the native host. ---
+
+      const FAILURES = {
+        "not-installed": "yt-digest is not installed",
+        error: "yt-digest failed",
+        "no-reply": "yt-digest did not respond",
+      };
+
+      async function requestDigest() {
+        const reply = document.querySelector("#reply").value;
+        await sleep(reply === "no-reply" ? 5000 : 300);
+        return reply === "ok" ? { ok: true } : { ok: false, message: FAILURES[reply] };
+      }
+
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      // --- Placement. ---
+
+      const button = document.createElement("yt-digest-watch-button");
+
+      function place(placement) {
+        button.dataset.placement = placement;
+        if (placement === "player") document.querySelector("#player").append(button);
+        else document.querySelector("#actions").prepend(button);
+      }
+
+      document.querySelector("#placement").addEventListener("change", (event) => place(event.target.value));
+      document.querySelector("#light").addEventListener("change", (event) => {
+        document.documentElement.dataset.theme = event.target.checked ? "light" : "dark";
+      });
+      place("pill");
+    </script>
+  </body>
+</html>
