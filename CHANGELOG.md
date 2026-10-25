@@ -10,3 +10,5 @@ checkout, so every entry is under Unreleased.
 
 - A worker that takes the queue oldest first, skips a video already digested, writes each digest under a header with
   the video's link and details, and sends a `Digest ready` or `Digest failed` notification; its steps come next.
+- The digest prompt: a digest in Traditional Chinese with a conclusion, the main arguments linked to their moment in
+  the video, the video's sources, and an assessment whose added claims carry a source or say 未經查證 (unverified).
