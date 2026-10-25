@@ -68,6 +68,28 @@ rules below apply.
 - **Kill only what you started**, never by process name, and unload only launchd agents you loaded.
 - **Cleanup keeps the evidence.** Tear down browsers, temporary profiles and queue folders; keep the artifacts.
 
+## End-to-end tests
+
+The end-to-end tests drive the built programs the way the developer does, in CI, on every pull request that changes
+code. They arrive with the extension's first issue, the first program there is to drive: `npm run test:e2e`, part of
+`npm run check`, run in CI after the build.
+
+| Covered by end-to-end tests | Left to the whole-flow check on this Mac |
+|---|---|
+| The button on made-up pages copying YouTube's card markup: hover, press, the check or the message, the message sent | YouTube's live pages |
+| The native host: a message on stdin, the queue file it writes, its reply | The installed host and launchd agent |
+| The worker on a queued request, with fake `yt-dlp`, `claude` and `heptabase`: the file in the done folder | `claude -p` on the subscription, Heptabase, macOS notifications |
+
+- **Offline.** A test reaches only its local fixtures; every other request is blocked, so a test is stable and never
+  touches real data.
+- **Made-up fixtures.** Fixture pages copy the structure of YouTube's markup with invented video IDs, titles and
+  channels.
+- **Faked boundaries.** The worker reaches commands and macOS services (notifications) through interfaces the tests
+  replace, so the tests run on CI's Linux runner.
+- **One journey, one test.** Every journey in the feature map has an end-to-end test, added in the pull request that
+  adds or changes the feature.
+- **A flaky test is a bug.** Fix its cause; rerunning until it passes proves nothing.
+
 ## Feature map
 
 [`features/`](features/README.md) lists every user-facing feature: how a user reaches it, how to drive it, and what

@@ -94,4 +94,4 @@ user can do.
   table. No file lists, no nested bullets, and no order of implementation.
 - The description ends with the agent's generated-with line when an agent wrote it.
 - Before opening the pull request, run `/code-review` on the change.
-- The developer reviews and merges. Do not merge a pull request unless the developer asks you to.
+- Merge a pull request only under the conditions in `AGENTS.md`, Sessions and merging; the rest the developer merges.
