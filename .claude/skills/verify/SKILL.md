@@ -15,7 +15,7 @@ without redoing the work.
 - **Check the real artifact, not a proxy.** Run the feature, read the actual value, inspect the actual state. "It
   compiles", a green test that does not cover the change, and your own summary of what the code does are not proof.
 - **Observe through a different path than the code under test.** If the worker reports that it created a Heptabase
-  card, read the card back with the `heptabase` CLI; if the extension shows "queued", list the queue folder.
+  card, read the card back with the `heptabase` CLI; if the button shows its green check, list the queue folder.
 - **Quote what happened, whole.** Output cut with `| tail` or `| head`, and text you echoed yourself, prove nothing.
   Read exit codes. When a check fails, suspect the way you observed before you suspect the system.
 - **A red check proves something only when it fails for the reason you predicted.** An exception, an empty result and
@@ -43,7 +43,7 @@ Name the level each claim reached. The main claim of a `feat` or a `fix` reaches
 | Change | Proof | Not proof |
 |---|---|---|
 | Pure logic (caption parsing, job validation, timestamps) | A test that failed before the change with the predicted difference, and passes after | "All tests pass" when no test covers the change |
-| The extension's button or context menu | The built extension in an isolated browser on a page with the YouTube markup: a screenshot, and the message it sent | Reading the content script and saying where the button would go |
+| The extension's button | The built extension in an isolated browser on a page with the YouTube markup: a screenshot, and the message it sent | Reading the content script and saying where the button would go |
 | The native host | The built host started with a length-prefixed message on stdin: its reply, and the job file it wrote | "The host writes the file" |
 | The worker | The built worker run on a job, with fake `yt-dlp`, `claude` and `heptabase` executables first on `PATH`: the commands they received and the files it left | The worker's own log line saying it succeeded |
 | The digest prompt in `prompt/` | Digests of made-up transcripts with and without the change, compared section by section, including a transcript that tries to give the model instructions | "The rule is clearly written" |
