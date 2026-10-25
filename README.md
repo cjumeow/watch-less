@@ -1,30 +1,27 @@
 # yt-digest
 
 Hover a YouTube thumbnail, press its note button, and get a neutral, evidence-backed Markdown summary of the video in
-Heptabase, without opening the video. What the button does is specified in [`docs/spec.md`](docs/spec.md).
+Heptabase, without opening the video. What it does is specified in [`docs/spec.md`](docs/spec.md).
 
-## Planned architecture
+## Architecture
 
 ```
 YouTube thumbnail hover button (Chrome extension content script, Shadow DOM)
   → service worker
-  → Native Messaging host (writes a job to the queue, replies immediately)
+  → Native Messaging host (writes the request to the queue, replies immediately)
   → queue folder (one JSON file per video)
-  → worker (started by launchd WatchPaths, one at a time)
+  → worker (started by launchd, one at a time)
       → get transcript (yt-dlp subtitles; fallback: audio + mlx-whisper)
-      → claude -p (subscription; tools restricted; prompt in prompt.md)
-      → save .md → Heptabase CLI (tag #yt-digest)
+      → claude -p (subscription; tools restricted; prompt in prompt/digest.md)
+      → Heptabase CLI (tag yt-digest) → done folder
       → macOS notification
 ```
 
-## Summary format
+## The digest
 
-- One-line conclusion
-- Key points (3–7)
-- Claims and evidence table, with timestamp links (`&t=754s`) and evidence strength
-- Neutral assessment: what is supported, what is speculation, missing counterpoints
-- Anxiety check: does this actually affect me, and do I need to act now?
-- Segments worth watching in the original
+A short conclusion, the video's main arguments with their time ranges, the sources it cites, and an assessment of
+what is worth learning and what is exaggerated, with sources for every claim the assessment adds. The details are in
+[`docs/spec.md`](docs/spec.md).
 
 ## Notes
 
