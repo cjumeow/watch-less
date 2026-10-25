@@ -6,6 +6,8 @@ import type { Transcript } from "../transcript/transcript-step.js";
 export interface DigestInput {
   videoId: string;
   title: string;
+  /** The video's description, links included; empty when it has none. */
+  description: string;
   transcript: Transcript;
 }
 

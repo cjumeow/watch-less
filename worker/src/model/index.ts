@@ -132,6 +132,14 @@ function formatInput(input: DigestInput): string {
   return [
     `Video: https://www.youtube.com/watch?v=${input.videoId}`,
     `Title: ${oneLine(input.title)}`,
+    "Description:",
+    // Quoted line by line, so no line of the description can pass for a transcript line or another field.
+    ...(input.description.trim() === ""
+      ? []
+      : input.description
+          .trim()
+          .split(/\r\n?|[\n\v\f\u0085\u2028\u2029]/)
+          .map((line) => `> ${line}`.trimEnd())),
     "Transcript:",
     ...input.transcript.lines.map((line) => `[${timestamp(line.startSeconds)}] ${oneLine(line.text)}`),
     "",

@@ -1,0 +1,15 @@
+Video: https://www.youtube.com/watch?v=xEvalCliTls
+Title: 我每天都在用的三個命令列工具
+Description:
+> 每天都在用的命令列工具分享！
+> 追蹤我的 IG：https://instagram.com/example-made-up-account
+Transcript:
+[0:00] 哈囉大家好，今天分享三個我每天都在用的命令列工具。
+[0:07] 第一個是 ripgrep，指令是 rg，作者是 BurntSushi，它是用 Rust 寫的，GitHub 上就找得到。
+[0:19] 它跟 grep 一樣是用來搜尋文字，但是預設會跳過 .gitignore 裡的檔案，在大專案裡快很多。
+[0:33] 我自己在一個很大的專案裡比過，grep 要十幾秒，rg 不到一秒，不過這只是我電腦上的感覺，沒有正式測。
+[0:47] 第二個是 fzf，作者是 junegunn，它是一個模糊搜尋工具，可以接在任何指令後面。
+[1:00] 我最常用的是按 Ctrl+R 用 fzf 搜尋以前打過的指令，真的會回不去。
+[1:12] 第三個是我朋友寫的小工具，叫做 quillfmt，它會幫你把 Markdown 表格對齊。
+[1:24] 不過它還沒有公開，我朋友說之後會放上網。
+[1:31] 以上就是今天的分享，你們最常用哪些工具？留言告訴我。

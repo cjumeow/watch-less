@@ -11,12 +11,17 @@ test("reads a successful CLI result as the digest's four sections", async () => 
   expect(answer).toMatchObject({ outcome: "written", model: "opus" });
   if (answer.outcome !== "written") throw new Error("Expected a written digest");
   expect(answer.sections).toBe(
-    "## 結論\n\n這是一段虛構的摘要。\n\n## 主要論點\n\n- 講者比較兩個虛構方案。\n\n## 影片的來源\n\n影片未引用任何來源。\n\n## 評估\n\n- 尚無證據判斷優劣。（未經查證）",
+    "## 結論\n\n這是一段虛構的摘要。\n\n## 主要論點\n\n- 講者比較兩個虛構方案。\n\n## 參考資料\n\n影片未提到任何參考資料。\n\n## 評估\n\n- 尚無證據判斷優劣。（未經查證）",
   );
 });
 
 test("fails an answer with a missing section heading", async () => {
   const output = await fixture("incomplete.json");
+  expect(() => readModelAnswer(output, 0)).toThrow("The digest was incomplete");
+});
+
+test("fails an answer that still uses the old sources heading", async () => {
+  const output = (await fixture("written.json")).replace("## 參考資料", "## 影片的來源");
   expect(() => readModelAnswer(output, 0)).toThrow("The digest was incomplete");
 });
 

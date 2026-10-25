@@ -1,9 +1,10 @@
 # Writing a digest
 
 `createModelStep()` implements `ModelStep.writeDigest()` without running a real model during tests. It formats the
-video link, single-line title and timed transcript as `prompt/README.md` describes, sends them on stdin, and reads
-one JSON result. Fractional transcript starts are floored to whole seconds for `[m:ss]` or `[h:mm:ss]` timestamps.
-The four section headings are checked mechanically; evidence quality remains the prompt's responsibility.
+video link, single-line title, quoted description and timed transcript as `prompt/README.md` describes, sends them on
+stdin, and reads one JSON result. Fractional transcript starts are floored to whole seconds for `[m:ss]` or
+`[h:mm:ss]` timestamps. The four section headings are checked mechanically; evidence quality remains the prompt's
+responsibility.
 
 ## Isolation and tool contract
 
