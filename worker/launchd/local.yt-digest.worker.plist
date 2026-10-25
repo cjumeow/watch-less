@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The worker's launchd agent. scripts/install-launchd-agent.sh fills in the @...@ placeholders and loads it; nothing
+  else installs it. launchd starts the worker when the queue folder changes, at login and every 30 minutes, and never
+  runs two at once.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>local.yt-digest.worker</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>@NODE@</string>
+    <string>@WORKER@</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- launchd's own PATH has none of yt-dlp, claude or heptabase, so the installer records the developer's. -->
+    <key>PATH</key>
+    <string>@PATH@</string>
+    <key>YT_DIGEST_DATA_DIR</key>
+    <string>@DATA@</string>
+  </dict>
+  <key>WatchPaths</key>
+  <array>
+    <string>@DATA@/queue</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StartInterval</key>
+  <integer>1800</integer>
+  <!-- What the worker prints when it crashes before it can log, next to what it logs itself. -->
+  <key>StandardOutPath</key>
+  <string>@DATA@/logs/worker.log</string>
+  <key>StandardErrorPath</key>
+  <string>@DATA@/logs/worker.log</string>
+</dict>
+</plist>

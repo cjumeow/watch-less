@@ -1,0 +1,17 @@
+{
+  "name": "@yt-digest/worker",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Turns each queued request into a digest, delivers it to the destination and notifies the developer.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "esbuild src/main.ts --bundle --platform=node --format=esm --target=node24 --outfile=dist/worker.js"
+  },
+  "dependencies": {
+    "@yt-digest/shared": "0.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}
