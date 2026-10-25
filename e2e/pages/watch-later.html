@@ -1,0 +1,94 @@
+<!doctype html>
+<!--
+  A made-up Watch Later playlist, served at https://www.youtube.com/playlist?list=WL in the end-to-end tests. The
+  cards copy the structure of YouTube's markup for a playlist, checked against a public playlist on the live site
+  (Watch Later itself needs a signed-in account): a horizontal yt-lockup-view-model per video. Every video ID, title
+  and channel is invented.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Watch later - YouTube</title>
+    <link rel="stylesheet" href="/e2e-pages/youtube.css" />
+  </head>
+  <body>
+    <ytd-app>
+      <div id="content">
+        <ytd-page-manager id="page-manager">
+          <ytd-browse page-subtype="playlist">
+            <ytd-two-column-browse-results-renderer>
+              <yt-section-list-renderer>
+                <yt-item-section-renderer>
+                  <yt-lockup-view-model class="ytLockupViewModelWrapper">
+                    <div
+                      class="ytLockupViewModelHost ytLockupViewModelHorizontal content-id-laterVideo1 ytLockupViewModelCompact"
+                    >
+                      <a
+                        href="/watch?v=laterVideo1&amp;list=WL&amp;index=1&amp;pp=exampleTrackingValue"
+                        class="ytLockupViewModelContentImage"
+                        tabindex="-1"
+                        aria-hidden="true"
+                      >
+                        <yt-thumbnail-view-model class="ytThumbnailViewModelHost"
+                          ><span class="badge">31:20</span></yt-thumbnail-view-model
+                        >
+                      </a>
+                      <div class="ytLockupViewModelMetadata">
+                        <yt-lockup-metadata-view-model
+                          class="ytLockupMetadataViewModelHost ytLockupMetadataViewModelHorizontal"
+                        >
+                          <div class="ytLockupMetadataViewModelTextContainer">
+                            <h3 class="ytLockupMetadataViewModelHeadingReset">
+                              <a
+                                href="/watch?v=laterVideo1&amp;list=WL&amp;index=1&amp;pp=exampleTrackingValue"
+                                class="ytLockupMetadataViewModelTitle"
+                                ><span class="ytAttributedStringHost">Made-up guide to repotting houseplants</span></a
+                              >
+                            </h3>
+                            <div class="meta">Example Channel · 6K views</div>
+                          </div>
+                        </yt-lockup-metadata-view-model>
+                      </div>
+                    </div>
+                  </yt-lockup-view-model>
+                  <yt-lockup-view-model class="ytLockupViewModelWrapper">
+                    <div
+                      class="ytLockupViewModelHost ytLockupViewModelHorizontal content-id-laterVideo2 ytLockupViewModelCompact"
+                    >
+                      <a
+                        href="/watch?v=laterVideo2&amp;list=WL&amp;index=2&amp;pp=exampleTrackingValue"
+                        class="ytLockupViewModelContentImage"
+                        tabindex="-1"
+                        aria-hidden="true"
+                      >
+                        <yt-thumbnail-view-model class="ytThumbnailViewModelHost"
+                          ><span class="badge">47:02</span></yt-thumbnail-view-model
+                        >
+                      </a>
+                      <div class="ytLockupViewModelMetadata">
+                        <yt-lockup-metadata-view-model
+                          class="ytLockupMetadataViewModelHost ytLockupMetadataViewModelHorizontal"
+                        >
+                          <div class="ytLockupMetadataViewModelTextContainer">
+                            <h3 class="ytLockupMetadataViewModelHeadingReset">
+                              <a
+                                href="/watch?v=laterVideo2&amp;list=WL&amp;index=2&amp;pp=exampleTrackingValue"
+                                class="ytLockupMetadataViewModelTitle"
+                                ><span class="ytAttributedStringHost">An imaginary history of the paperclip</span></a
+                              >
+                            </h3>
+                            <div class="meta">Another Example Channel · 1K views</div>
+                          </div>
+                        </yt-lockup-metadata-view-model>
+                      </div>
+                    </div>
+                  </yt-lockup-view-model>
+                </yt-item-section-renderer>
+              </yt-section-list-renderer>
+            </ytd-two-column-browse-results-renderer>
+          </ytd-browse>
+        </ytd-page-manager>
+      </div>
+    </ytd-app>
+  </body>
+</html>

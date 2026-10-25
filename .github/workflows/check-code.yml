@@ -55,3 +55,8 @@ jobs:
         run: npm test
       - if: steps.scope.outputs.code == 'true'
         run: npm run build
+      # The end-to-end tests load the built extension in Playwright's own Chromium, so they run after the build.
+      - if: steps.scope.outputs.code == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.scope.outputs.code == 'true'
+        run: npm run test:e2e

@@ -1,0 +1,28 @@
+/*
+  Where the button sits on a card and when it shows. Chrome injects this file into YouTube's pages with the content
+  script; the button's own look is in its shadow root.
+
+  The button is placed just before the thumbnail link. Absolutely positioned with no offsets, it stays where it would
+  have been: at the thumbnail's top-left corner in a lockup, whatever padding its card has.
+*/
+yt-digest-button {
+  position: absolute;
+  z-index: 2;
+  margin: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
+}
+
+/* A search result's thumbnail gets its height from a spacer before the link, which would put the button below it. */
+ytd-thumbnail > yt-digest-button {
+  top: 0;
+  left: 0;
+}
+
+:is(yt-lockup-view-model, ytd-video-renderer):hover yt-digest-button,
+yt-digest-button[data-focused],
+yt-digest-button[data-active] {
+  opacity: 1;
+  pointer-events: auto;
+}

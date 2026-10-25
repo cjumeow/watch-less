@@ -1,0 +1,110 @@
+/*
+  Just enough of YouTube's look for the fixture pages that the cards have a size, a hover and a place for the button.
+  The markup is what matters: it copies the elements and classes of YouTube's cards. This file is not YouTube's CSS.
+*/
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  padding: 16px;
+  background: #0f0f0f;
+  color: #f1f1f1;
+  font:
+    14px/1.4 Roboto,
+    Arial,
+    sans-serif;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+h2,
+h3 {
+  margin: 8px 0 4px;
+  font-size: 16px;
+  font-weight: 500;
+}
+ytd-rich-grid-renderer #contents {
+  display: grid;
+  grid-template-columns: repeat(3, 320px);
+  gap: 24px 16px;
+}
+ytd-rich-shelf-renderer,
+grid-shelf-view-model {
+  display: block;
+  grid-column: 1 / -1;
+}
+ytd-rich-shelf-renderer #contents,
+grid-shelf-view-model .shelf {
+  display: flex;
+  gap: 12px;
+}
+yt-lockup-view-model,
+ytd-video-renderer,
+ytm-shorts-lockup-view-model-v2 {
+  display: block;
+}
+.ytLockupViewModelHost {
+  display: flex;
+  flex-direction: column;
+}
+.ytLockupViewModelHorizontal,
+ytd-video-renderer #dismissible {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.ytLockupViewModelHost {
+  position: relative;
+}
+.ytLockupViewModelContentImage {
+  display: block;
+  flex: none;
+  width: 320px;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3a3a3a, #262626);
+}
+/* As on YouTube, a search result's thumbnail gets its height from a spacer, with the link laid over it. */
+ytd-thumbnail {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 320px;
+}
+ytd-thumbnail::before {
+  content: "";
+  display: block;
+  padding-top: 56.25%;
+}
+ytd-thumbnail a#thumbnail {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3a3a3a, #262626);
+}
+.ytCollectionsStackHost {
+  display: block;
+  height: 100%;
+  border-top: 4px solid #555;
+}
+.shortsLockupViewModelHostEndpoint.reel-item-endpoint {
+  display: block;
+  width: 160px;
+  aspect-ratio: 9 / 16;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3a3a3a, #262626);
+}
+.badge {
+  float: right;
+  margin: 6px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 80%);
+  font-size: 12px;
+}
+.meta {
+  color: #aaa;
+}

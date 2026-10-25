@@ -1,0 +1,125 @@
+<!doctype html>
+<!--
+  A made-up page of YouTube search results, served at https://www.youtube.com/results in the end-to-end tests. The
+  cards copy the structure of YouTube's markup, checked against the live site: ytd-video-renderer for videos, with one
+  that is a Short, and a grid-shelf-view-model of ytm-shorts-lockup-view-model. Every video ID, title and channel is
+  invented.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>example search - YouTube</title>
+    <link rel="stylesheet" href="/e2e-pages/youtube.css" />
+  </head>
+  <body>
+    <ytd-app>
+      <div id="content">
+        <ytd-page-manager id="page-manager">
+          <ytd-search page-subtype="search">
+            <ytd-two-column-search-results-renderer>
+              <ytd-section-list-renderer>
+                <ytd-item-section-renderer>
+                  <div id="contents">
+                    <ytd-video-renderer class="style-scope ytd-item-section-renderer">
+                      <div id="dismissible">
+                        <ytd-thumbnail>
+                          <a
+                            id="thumbnail"
+                            class="yt-simple-endpoint inline-block"
+                            aria-hidden="true"
+                            tabindex="-1"
+                            href="/watch?v=searchVid01&amp;pp=exampleTrackingValue"
+                            ><span class="badge">14:05</span></a
+                          >
+                        </ytd-thumbnail>
+                        <div class="text-wrapper">
+                          <h3 class="title-and-badge">
+                            <a
+                              id="video-title"
+                              class="yt-simple-endpoint"
+                              href="/watch?v=searchVid01&amp;pp=exampleTrackingValue"
+                              ><yt-formatted-string
+                                >Sample interview with an imaginary economist</yt-formatted-string
+                              ></a
+                            >
+                          </h3>
+                          <div class="meta">Example Channel · 5K views</div>
+                        </div>
+                      </div>
+                    </ytd-video-renderer>
+                    <ytd-video-renderer class="style-scope ytd-item-section-renderer">
+                      <div id="dismissible">
+                        <ytd-thumbnail>
+                          <a
+                            id="thumbnail"
+                            class="yt-simple-endpoint inline-block"
+                            aria-hidden="true"
+                            tabindex="-1"
+                            href="/shorts/searchShrt1"
+                            ><span class="badge">SHORTS</span></a
+                          >
+                        </ytd-thumbnail>
+                        <div class="text-wrapper">
+                          <h3 class="title-and-badge">
+                            <a id="video-title" class="yt-simple-endpoint" href="/shorts/searchShrt1"
+                              ><yt-formatted-string>A made-up Short shown as a search result</yt-formatted-string></a
+                            >
+                          </h3>
+                          <div class="meta">Example Channel · 9K views</div>
+                        </div>
+                      </div>
+                    </ytd-video-renderer>
+                    <grid-shelf-view-model>
+                      <h2>Shorts</h2>
+                      <div class="shelf">
+                        <ytm-shorts-lockup-view-model-v2 class="shortsLockupViewModelHost">
+                          <ytm-shorts-lockup-view-model class="shortsLockupViewModelHost">
+                            <a
+                              href="/shorts/searchShrt2"
+                              class="shortsLockupViewModelHostEndpoint reel-item-endpoint"
+                              tabindex="-1"
+                              aria-hidden="true"
+                            ></a>
+                            <div class="shortsLockupViewModelHostOutsideMetadata">
+                              <h3 class="shortsLockupViewModelHostMetadataTitle">
+                                <a href="/shorts/searchShrt2" class="shortsLockupViewModelHostEndpoint"
+                                  ><span>An example Short about tides</span></a
+                                >
+                              </h3>
+                            </div>
+                          </ytm-shorts-lockup-view-model>
+                        </ytm-shorts-lockup-view-model-v2>
+                      </div>
+                    </grid-shelf-view-model>
+                    <ytd-video-renderer class="style-scope ytd-item-section-renderer">
+                      <div id="dismissible">
+                        <ytd-thumbnail>
+                          <a
+                            id="thumbnail"
+                            class="yt-simple-endpoint inline-block"
+                            aria-hidden="true"
+                            tabindex="-1"
+                            href="/watch?v=searchVid02"
+                            ><span class="badge">9:58</span></a
+                          >
+                        </ytd-thumbnail>
+                        <div class="text-wrapper">
+                          <h3 class="title-and-badge">
+                            <a id="video-title" class="yt-simple-endpoint" href="/watch?v=searchVid02"
+                              ><yt-formatted-string>Example explainer on how tides work</yt-formatted-string></a
+                            >
+                          </h3>
+                          <div class="meta">Another Example Channel · 7K views</div>
+                        </div>
+                      </div>
+                    </ytd-video-renderer>
+                  </div>
+                </ytd-item-section-renderer>
+              </ytd-section-list-renderer>
+            </ytd-two-column-search-results-renderer>
+          </ytd-search>
+        </ytd-page-manager>
+      </div>
+    </ytd-app>
+  </body>
+</html>
