@@ -30,7 +30,7 @@ function cardOpener(page: Page, videoId: string): Locator {
 
 /** The ⋯ under the player on the watch page. */
 function watchOpener(page: Page): Locator {
-  return page.locator("ytd-watch-metadata #menu yt-icon-button button");
+  return page.locator("ytd-watch-metadata #menu yt-button-shape button");
 }
 
 const DROPDOWN = "ytd-popup-container tp-yt-iron-dropdown";
