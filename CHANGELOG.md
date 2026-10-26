@@ -8,6 +8,8 @@ checkout, so every entry is under Unreleased.
 
 ### Added
 
+- Set up yt-digest with one command, `sh scripts/setup.sh`: it installs the missing tools after asking once,
+  signs you in to Claude Code or Codex CLI, and installs yt-digest.
 - Digests can be written by OpenAI's models (GPT-6 Luna, Sol, 6.1 Sol and Astra) through Codex CLI and your
   ChatGPT plan, never an API key. Pick one in the popup. Codex's usage limit is not recognised yet, so a digest
   that meets it fails instead of waiting.
