@@ -1,6 +1,6 @@
 # yt-digest
 
-A button on a YouTube thumbnail turns the video into a faithful summary, so the developer can decide
+Summarize in a YouTube video's menu turns the video into a faithful summary, so the developer can decide
 from the summary whether the video is worth watching.
 
 ## Language
@@ -14,8 +14,8 @@ Where a finished digest is delivered. Heptabase is the first; the digest does no
 _Avoid_: sink, output, target
 
 **Request**:
-The developer handing one video to this computer for a digest, by pressing its button. A video can be requested any
-number of times; the extension does not remember that it was.
+The developer handing one video to this computer for a digest, by choosing Summarize in its menu. A video can be
+requested any number of times; the extension does not remember that it was.
 _Avoid_: click, job, order
 
 **Queue**:

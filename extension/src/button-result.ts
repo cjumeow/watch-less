@@ -1,11 +1,11 @@
 import { BUTTON_MESSAGES, parseReply, type ButtonMessage } from "@yt-digest/shared";
 
-/** What the button shows after a press: the check, or one message. */
+/** What the toast shows after the item is chosen: the check, or one of `BUTTON_MESSAGES`. */
 export type ButtonResult = { ok: true } | { ok: false; message: ButtonMessage };
 
 /**
  * How sending one request to the native host ended: the host's reply, the error Chrome gave instead, or no answer
- * within the time the button waits.
+ * within the time the extension waits.
  */
 export type NativeOutcome = { replied: unknown } | { failed: string } | "timedOut";
 

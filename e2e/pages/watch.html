@@ -2,80 +2,31 @@
 <!--
   A made-up YouTube watch page, served at https://www.youtube.com/watch?v=watchVideo1 in the end-to-end tests. It
   copies the structure of YouTube's markup, checked against the live site: ytd-watch-flexy and ytd-watch-metadata,
-  each with the video-id of the video playing, the title in ytd-watch-metadata's h1, and the player, #movie_player,
-  whose control bar has the right-hand controls in .ytp-right-controls-left and .ytp-right-controls-right. In theater
-  mode and fullscreen YouTube moves the player into #player-full-bleed-container. Every video ID, title and channel is
-  invented. watch.js plays YouTube's part.
+  each with the video-id of the video playing, the title in ytd-watch-metadata's h1, and under it the actions, whose
+  ytd-menu-renderer ends with the ⋯ that opens the video's menu, in the shared ytd-popup-container. A related video
+  in #secondary is a lockup with its own ⋮. Every video ID, title and channel is invented. watch.js and menu.js play
+  YouTube's part.
 -->
-<html lang="en">
+<html lang="en" dark>
   <head>
     <meta charset="utf-8" />
     <title>Example lecture: why bridges hum in the wind - YouTube</title>
     <link rel="stylesheet" href="/e2e-pages/youtube.css" />
     <script src="/e2e-pages/watch.js" defer></script>
+    <script src="/e2e-pages/menu.js" defer></script>
   </head>
   <body>
     <ytd-app>
       <div id="content">
         <ytd-page-manager id="page-manager">
           <ytd-watch-flexy class="style-scope ytd-page-manager" video-id="watchVideo1" role="main">
-            <div id="full-bleed-container">
-              <div id="player-full-bleed-container"></div>
-            </div>
             <div id="columns">
               <div id="primary">
                 <div id="primary-inner">
                   <div id="player">
-                    <div id="player-container-outer">
-                      <div id="player-container-inner">
-                        <div id="player-container">
-                          <ytd-player id="ytd-player">
-                            <div id="container">
-                              <div id="movie_player" class="html5-video-player ytp-delhi-modern playing-mode">
-                                <div class="html5-video-container"><video></video></div>
-                                <div class="ytp-gradient-bottom"></div>
-                                <div class="ytp-chrome-bottom">
-                                  <div class="ytp-progress-bar-container"><div class="ytp-progress-bar"></div></div>
-                                  <div class="ytp-chrome-controls">
-                                    <div class="ytp-left-controls">
-                                      <button class="ytp-play-button ytp-button" aria-label="Pause (k)">⏸</button>
-                                      <div class="ytp-time-display notranslate">
-                                        <span class="ytp-time-current">3:14</span> / <span>12:40</span>
-                                      </div>
-                                    </div>
-                                    <div class="ytp-right-controls">
-                                      <div class="ytp-right-controls-left">
-                                        <button
-                                          class="ytp-expand-right-bottom-section-button ytp-button"
-                                          aria-label="Expand"
-                                        >
-                                          ‹
-                                        </button>
-                                        <button class="ytp-button ytp-autonav-toggle" aria-label="Autoplay is on">
-                                          ⏵
-                                        </button>
-                                        <button class="ytp-subtitles-button ytp-button" aria-label="Subtitles">
-                                          CC
-                                        </button>
-                                        <button class="ytp-button ytp-settings-button" aria-label="Settings">⚙</button>
-                                      </div>
-                                      <div class="ytp-right-controls-right">
-                                        <button class="ytp-size-button ytp-button" aria-label="Theater mode (t)">
-                                          ▭
-                                        </button>
-                                        <button class="ytp-fullscreen-button ytp-button" aria-label="Full screen (f)">
-                                          ⛶
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </ytd-player>
-                        </div>
-                      </div>
-                    </div>
+                    <ytd-player id="ytd-player">
+                      <div id="movie_player" class="html5-video-player playing-mode"><video></video></div>
+                    </ytd-player>
                   </div>
                   <ytd-watch-metadata class="watch-active-metadata style-scope ytd-watch-flexy" video-id="watchVideo1">
                     <div id="title">
@@ -85,7 +36,29 @@
                         >
                       </h1>
                     </div>
-                    <div class="meta">Example Channel · 3K views</div>
+                    <div id="top-row" class="style-scope ytd-watch-metadata">
+                      <div class="meta">Example Channel · 3K views</div>
+                      <div id="actions" class="style-scope ytd-watch-metadata">
+                        <div id="actions-inner" class="style-scope ytd-watch-metadata">
+                          <div id="menu" class="style-scope ytd-watch-metadata">
+                            <ytd-menu-renderer class="style-scope ytd-watch-metadata">
+                              <div
+                                id="top-level-buttons-computed"
+                                class="top-level-buttons style-scope ytd-menu-renderer"
+                              >
+                                <button class="pill" aria-label="like this video">Like</button>
+                                <button class="pill" aria-label="Share">Share</button>
+                              </div>
+                              <yt-icon-button id="button" class="dropdown-trigger style-scope ytd-menu-renderer"
+                                ><button id="button" class="style-scope yt-icon-button" aria-label="More actions">
+                                  ⋯
+                                </button></yt-icon-button
+                              >
+                            </ytd-menu-renderer>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </ytd-watch-metadata>
                 </div>
               </div>
@@ -99,10 +72,26 @@
                       aria-hidden="true"
                     ></a>
                     <div class="ytLockupViewModelMetadata">
-                      <h3>
-                        <a href="/watch?v=watchVideo2"><span>Made-up tour of a lighthouse that never existed</span></a>
-                      </h3>
-                      <div class="meta">Another Example Channel · 8K views</div>
+                      <yt-lockup-metadata-view-model class="ytLockupMetadataViewModelHost">
+                        <div class="ytLockupMetadataViewModelTextContainer">
+                          <h3>
+                            <a href="/watch?v=watchVideo2"
+                              ><span>Made-up tour of a lighthouse that never existed</span></a
+                            >
+                          </h3>
+                          <div class="meta">Another Example Channel · 8K views</div>
+                        </div>
+                        <div class="ytLockupMetadataViewModelMenuButton">
+                          <button-view-model class="ytSpecButtonViewModelHost">
+                            <button
+                              class="yt-spec-button-shape-next yt-spec-button-shape-next--icon-button"
+                              aria-label="More actions"
+                            >
+                              ⋮
+                            </button>
+                          </button-view-model>
+                        </div>
+                      </yt-lockup-metadata-view-model>
                     </div>
                   </div>
                 </yt-lockup-view-model>
@@ -111,6 +100,15 @@
           </ytd-watch-flexy>
         </ytd-page-manager>
       </div>
+      <!--
+        YouTube's one video menu for the whole page, copying the structure of the live markup: one tp-yt-iron-dropdown in
+        ytd-popup-container, filled anew each time a menu opens. menu.js plays YouTube's part.
+      -->
+      <ytd-popup-container class="style-scope ytd-app">
+        <tp-yt-iron-dropdown class="style-scope ytd-popup-container" aria-hidden="true" style="display: none">
+          <div id="contentWrapper" class="style-scope tp-yt-iron-dropdown"></div>
+        </tp-yt-iron-dropdown>
+      </ytd-popup-container>
     </ytd-app>
   </body>
 </html>

@@ -1,79 +1,80 @@
 # yt-digest spec
 
 What the first version of yt-digest does. The terms are defined in [`GLOSSARY.md`](../GLOSSARY.md). A request
-travels from the button through the native host into the queue, and the worker turns it into a digest, delivers it
+travels from the Summarize item through the native host into the queue, and the worker turns it into a digest, delivers it
 to the destination and notifies the developer.
 
-## The button
+## The Summarize item
 
-A digest is requested with the button the extension adds to a video's thumbnail, or with the same button in the player
-on the watch page. There is no context menu and no toolbar popup.
+A digest is requested with **Summarize**, an item the extension adds first to YouTube's own video menu, the ⋮ of a
+video's card and the ⋯ under the player; the result shows in a toast. There is no button on thumbnails or in the
+player, no context menu and no toolbar popup. The item replaced buttons on thumbnails, which flickered and fought
+YouTube's inline preview; the developer confirmed it in [`docs/prototypes/menu-item.html`](prototypes/menu-item.html).
 
 ### Where it appears
 
-On the cards of ordinary videos on three pages: the home page, search results, and the Watch Later playlist. Shorts on
-those pages get no button. On the watch page, the button sits in the player's control bar (see
-[On the watch page](#on-the-watch-page)); its cards get none, and no other page has a button. The selectors are
-verified against YouTube's live markup when the extension is built.
+- In the ⋮ menu of an ordinary video's card on three pages: the home page, search results and the Watch Later
+  playlist.
+- In the ⋯ menu under the player on the watch page, after Like and Share, for the video playing.
+- Not in the menu of a mix, a playlist or a Short, not in the menus of the watch page's related videos, and on no
+  other page.
+
+The selectors are verified against YouTube's live markup when the extension is built, and match the menu buttons by
+their place in the page, not by their label, which changes with YouTube's language.
 
 ### What it looks like
 
-- One icon, a grey monochrome note drawn as an inline SVG, on a translucent dark round backdrop, at the top-left of the
-  thumbnail, so it does not cover YouTube's own buttons at the top right. An emoji is not used: its colour cannot be
-  changed, and the icon briefly turns into a green check.
-- It is visible only while the pointer is over the card.
-- About a second after the pointer rests on a thumbnail, YouTube may lay its inline preview over the card, so the
-  pointer leaves the card. While the preview shows, the same button sits exactly where the card's button was, though
-  the preview is larger than the thumbnail, so it does not move as the pointer crosses between the preview and the
-  card. It is visible while the pointer is over the preview, and requests the video the preview plays, with the same
-  feedback.
-- There is no text on the button. Its `aria-label` is `Request a digest`, for screen readers.
-- The button looks the same on every card: the extension keeps no record of which videos were requested. Cards on the
-  home page and in search results are gone within a day or two, so a record would rarely be seen again, and a repeated
+- The word `Summarize`, after Tabler's message-ai icon drawn in `currentColor`, so it matches YouTube's own items in
+  both themes. It is the first item, above YouTube's own.
+- The item looks the same in every menu: the extension keeps no record of which videos were requested. A repeated
   request costs nothing (see below).
 
-### On the watch page
+### How the menu is found
 
-- The button is the first of the player's right-hand controls, before autoplay, subtitles and settings, drawn like
-  them: the white note icon on no backdrop. It shows and hides with YouTube's controls, also in theater mode and
-  fullscreen, and keeps them showing while its check or message does. The message appears above the button. Space or
-  Enter on the focused button presses it without pausing the video.
-- It requests the video playing, read when it is pressed: the ID from the page's URL and the title YouTube shows
-  below the player. Moving to another video, YouTube changes the URL about a second before the title, so a press in
-  that second sends the new video with no title.
-- YouTube changes videos without loading a page and may render its controls anew, so the extension puts the button
-  back whenever the controls lack it, and takes it out of the miniplayer when the player leaves the watch page.
+YouTube opens one shared menu for the whole page, in `ytd-app > ytd-popup-container > tp-yt-iron-dropdown`, and fills
+it anew each time; the menu holds no video. So the extension remembers which ⋮ or ⋯ was pressed, with a `pointerdown`
+or `click` listener in the capture phase that runs before YouTube's own, and adds the item when the menu's list
+appears. Two kinds of menu are in use:
 
-### Pressing it
+| Where | Menu button | The list the item is put first in |
+|---|---|---|
+| A card on the home page and in Watch Later (`yt-lockup-view-model`) | `.ytLockupMetadataViewModelMenuButton button` | `yt-sheet-view-model … yt-list-view-model[role="menu"]` |
+| A search result (`ytd-video-renderer`) | `#menu ytd-menu-renderer yt-icon-button#button > button` | `ytd-menu-popup-renderer > tp-yt-paper-listbox#items` |
+| The watch page | `ytd-watch-metadata ytd-menu-renderer yt-icon-button#button > button` | the same `ytd-menu-popup-renderer` |
 
-1. The extension sends the video's ID and title to the native host and waits for its reply. The click does not reach
-   YouTube: it neither opens the video nor starts its preview. Until the reply comes, the icon is dimmed and the
-   button cannot be pressed again.
-2. When the host replies `ok`, the icon turns into a green check for about 1.5 seconds, then back into the grey note.
-3. When the host does not reply `ok`, a short message in English appears next to the icon for 3 seconds, then the
-   icon is the grey note again:
+The video is read when the menu button is pressed: on a card, its ID from the thumbnail's link and its title from the
+card; on the watch page, its ID from the page's URL and the title YouTube shows below the player. Moving to another
+video, YouTube changes the URL about a second before the title, so the ⋯ pressed in that second sends the new video
+with no title. A press outside the menu takes the item away from the last menu, since YouTube may reuse its list for a
+menu that is not a video's.
 
-   | Case | Message |
+### Choosing it
+
+1. Choosing the item, with the pointer or with Enter or Space, closes the menu, as YouTube's own items do, by
+   dispatching the Escape key YouTube's menu listens for. The press does not reach YouTube's menu, which would take
+   it for one of its own items.
+2. The extension sends the video's ID and title to the native host and waits for its reply, at most 5 seconds.
+3. A toast at the bottom left of the window shows the result for 3 seconds, with the video's title on a second line,
+   in the inverse of the page's theme: light on YouTube's dark theme, dark on its light theme. A new toast replaces
+   the one showing. Until the reply comes nothing shows, and the menu can be opened and the item chosen again.
+
+   | Case | Toast |
    |---|---|
-   | The host is not installed | `yt-digest is not installed` |
-   | No reply within 5 seconds | `yt-digest did not respond` |
-   | The host replies with an error | `yt-digest failed` |
+   | The host replies `ok` | a green check and `Digest requested` |
+   | The host is not installed | a red mark and `yt-digest is not installed` |
+   | No reply within 5 seconds | a red mark and `yt-digest did not respond` |
+   | The host replies with an error | a red mark and `yt-digest failed` |
 
-   The message lives in the button's own shadow root, with `role="status"` for screen readers. It is the only text
-   the button ever shows. `alert()` is not used, since it blocks the page, and neither are system notifications,
-   which are kept for the digest's result.
+   The toast has `role="status"`, for screen readers. `alert()` is not used, since it blocks the page, and neither
+   are system notifications, which are kept for the digest's result.
 
-While the check or the message shows, the button stays visible even when the pointer leaves the card or the player.
-Pressing it again ends that feedback at once and sends a new request.
-
-The button reports only whether the request was sent. A digest that fails later, after the green check, is reported
-by a notification (see below), never on the button.
+The toast reports only whether the request was sent. A digest that fails later, after `Digest requested`, is reported
+by a notification (see below), never in the toast.
 
 A video can be requested any number of times. Requesting again is how a failed digest is retried; a video whose
-digest already exists is skipped (see [Repeated requests](#repeated-requests)), so pressing twice never makes two
-digests. As a result, hovering over a card does not tell whether its video was requested. This is deliberate: if it
-is ever wanted, the button can ask the host on hover whether the digest exists, without the extension storing
-anything.
+digest already exists is skipped (see [Repeated requests](#repeated-requests)), so choosing Summarize twice never
+makes two digests. As a result, the menu does not tell whether its video was requested. This is deliberate: if it is
+ever wanted, the extension can ask the host when the menu opens whether the digest exists, without storing anything.
 
 ### What the extension does not know
 
@@ -81,7 +82,7 @@ The extension knows only that a request was accepted, never whether its digest i
 the request at once. The developer learns the result from a macOS notification:
 
 - one when a digest is finished, and one when it fails, each with the video's title and the result;
-- none when a request is accepted (the green check says so), and none when the usage limit of the Claude subscription
+- none when a request is accepted (the toast says so), and none when the usage limit of the Claude subscription
   postpones a digest, which waits and runs later, ending in one of the two notifications above;
 - clicking a notification does nothing.
 
@@ -108,13 +109,11 @@ the same after the worker or the computer restarts.
 
 ### Performance
 
-Every card on a page gets its own button, so the cost per card stays small:
-
-- One custom host element with a closed shadow root per card. All shadow roots share one constructable stylesheet
-  (`adoptedStyleSheets`), so the button's CSS is parsed once per page, not once per card.
-- A `MutationObserver` on YouTube's content area, not on the whole document, batches its changes into one scan per
-  animation frame, and marks the cards it has handled so it never handles one twice.
-- The extension stores nothing, so drawing a button reads no storage.
+- No page gets anything until a menu opens: the extension adds one element to an open video menu, and one toast to
+  the page the first time a request is answered.
+- A `MutationObserver` on `ytd-popup-container` only, not on the whole document or YouTube's content area, puts the
+  item in a menu's list.
+- The extension stores nothing, so opening a menu reads no storage.
 
 ## The native host
 

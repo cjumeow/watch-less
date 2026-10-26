@@ -4,97 +4,68 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, test } from "vitest";
-import { findCards, videoOf, videoOfPreview } from "./cards.js";
+import { CARD_MENU_OPENER, videoOfCardMenu } from "./cards.js";
+
+const HOME = "https://www.youtube.com/";
+const SEARCH = "https://www.youtube.com/results?search_query=example";
+const WATCH_LATER = "https://www.youtube.com/playlist?list=WL";
 
 function loadPage(name: string) {
   const html = readFileSync(join(import.meta.dirname, `../../e2e/pages/${name}.html`), "utf8");
   document.documentElement.innerHTML = new DOMParser().parseFromString(html, "text/html").documentElement.innerHTML;
 }
 
-function videoIds(url: string) {
-  return findCards(document, new URL(url)).map((card) => videoOf(card)?.videoId);
+/** The video of each ⋮ on the page that opens a card's menu, in document order. */
+function videosOfOpeners(url: string) {
+  return [...document.querySelectorAll(CARD_MENU_OPENER)].map((opener) => videoOfCardMenu(opener, new URL(url)));
 }
 
 beforeEach(() => {
   document.documentElement.innerHTML = "";
 });
 
-describe("findCards", () => {
-  test("finds the videos on the home page, but not its Shorts or mixes", () => {
+describe("videoOfCardMenu", () => {
+  test("reads each video on the home page, and no video from a mix's menu", () => {
     loadPage("home");
-    expect(videoIds("https://www.youtube.com/")).toEqual(["homeVideo01", "homeVideo02", "homeVideo03"]);
+    expect(videosOfOpeners(HOME)).toEqual([
+      { videoId: "homeVideo01", title: "A made-up talk about sourdough starters" },
+      { videoId: "homeVideo02", title: "Example lecture: why bridges hum in the wind" },
+      undefined,
+      { videoId: "homeVideo03", title: "Placeholder review of a fictional laptop" },
+    ]);
   });
 
-  test("finds the videos in search results, but not a Short shown as a result or in a shelf", () => {
+  test("reads each video in search results, and no video from a Short's", () => {
     loadPage("search");
-    expect(videoIds("https://www.youtube.com/results?search_query=example")).toEqual(["searchVid01", "searchVid02"]);
+    expect(videosOfOpeners(SEARCH)).toEqual([
+      { videoId: "searchVid01", title: "Sample interview with an imaginary economist" },
+      undefined,
+      { videoId: "searchVid02", title: "Example explainer on how tides work" },
+    ]);
   });
 
-  test("finds the videos in Watch Later", () => {
+  test("reads each video in Watch Later", () => {
     loadPage("watch-later");
-    expect(videoIds("https://www.youtube.com/playlist?list=WL")).toEqual(["laterVideo1", "laterVideo2"]);
+    expect(videosOfOpeners(WATCH_LATER)).toEqual([
+      { videoId: "laterVideo1", title: "Made-up guide to repotting houseplants" },
+      { videoId: "laterVideo2", title: "An imaginary history of the paperclip" },
+    ]);
+  });
+
+  test("a Short's ⋮ on the home page is not a card's menu", () => {
+    loadPage("home");
+    const short = document.querySelector(".shortsLockupViewModelHostOutsideMetadataMenu button");
+    expect(short?.matches(CARD_MENU_OPENER)).toBe(false);
   });
 
   test.each([
     ["another playlist", "watch-later", "https://www.youtube.com/playlist?list=PLexampleList"],
     ["a channel's videos", "home", "https://www.youtube.com/@ExampleChannel/videos"],
-    ["the watch page", "home", "https://www.youtube.com/watch?v=homeVideo01"],
-  ])("finds nothing on %s", (_case, page, url) => {
+    ["the watch page", "watch", "https://www.youtube.com/watch?v=watchVideo1"],
+  ])("reads no video on %s", (_case, page, url) => {
     loadPage(page);
-    expect(videoIds(url)).toEqual([]);
-  });
-
-  test("skips a card that already has a button", () => {
-    loadPage("search");
-    document.querySelector("ytd-video-renderer a#thumbnail")?.setAttribute("data-yt-digest", "");
-    expect(videoIds("https://www.youtube.com/results?search_query=example")).toEqual(["searchVid02"]);
-  });
-});
-
-describe("videoOf", () => {
-  test("reads no video from a mix, even on a card that was a video before", () => {
-    loadPage("home");
-    const mix = document.querySelector('yt-lockup-view-model:has(a[href*="list=RD"])');
-    expect(mix && videoOf(mix)).toBeUndefined();
-  });
-
-  test("reads the title of the card's video", () => {
-    loadPage("watch-later");
-    const [card] = findCards(document, new URL("https://www.youtube.com/playlist?list=WL"));
-    expect(card && videoOf(card)).toEqual({ videoId: "laterVideo1", title: "Made-up guide to repotting houseplants" });
-  });
-});
-
-describe("videoOfPreview", () => {
-  function preview() {
-    const element = document.querySelector("ytd-video-preview");
-    if (element === null) throw new Error("The page has no preview");
-    return element;
-  }
-
-  /** As YouTube fills the preview when it plays a card's video. */
-  function play(href: string) {
-    preview().querySelector("a")?.setAttribute("href", href);
-    preview().classList.add("ytdVideoPreviewActive", "ytdVideoPreviewPlaying");
-  }
-
-  test("reads the video the preview plays, with the title of its card", () => {
-    loadPage("search");
-    play("/watch?v=searchVid02&pp=example");
-    expect(videoOfPreview(preview(), document)).toEqual({
-      videoId: "searchVid02",
-      title: "Example explainer on how tides work",
-    });
-  });
-
-  test("reads a video whose card is gone with no title", () => {
-    loadPage("home");
-    play("/watch?v=goneVideo01");
-    expect(videoOfPreview(preview(), document)).toEqual({ videoId: "goneVideo01", title: "" });
-  });
-
-  test("reads no video from a preview that has not played one", () => {
-    loadPage("home");
-    expect(videoOfPreview(preview(), document)).toBeUndefined();
+    const videos = videosOfOpeners(url);
+    expect(videos.length).toBeGreaterThan(0);
+    expect(videos.every((video) => video === undefined)).toBe(true);
   });
 });

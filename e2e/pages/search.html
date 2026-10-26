@@ -2,15 +2,15 @@
 <!--
   A made-up page of YouTube search results, served at https://www.youtube.com/results in the end-to-end tests. The
   cards copy the structure of YouTube's markup, checked against the live site: ytd-video-renderer for videos, with one
-  that is a Short, and a grid-shelf-view-model of ytm-shorts-lockup-view-model. Every video ID, title and channel is
-  invented.
+  that is a Short, each with its ⋮ menu in div#menu, a grid-shelf-view-model of ytm-shorts-lockup-view-model, and the
+  shared menu in ytd-popup-container. Every video ID, title and channel is invented.
 -->
-<html lang="en">
+<html lang="en" dark>
   <head>
     <meta charset="utf-8" />
     <title>example search - YouTube</title>
     <link rel="stylesheet" href="/e2e-pages/youtube.css" />
-    <script src="/e2e-pages/preview.js" defer></script>
+    <script src="/e2e-pages/menu.js" defer></script>
   </head>
   <body>
     <ytd-app>
@@ -45,6 +45,15 @@
                             >
                           </h3>
                           <div class="meta">Example Channel · 5K views</div>
+                          <div id="menu" class="style-scope ytd-video-renderer">
+                            <ytd-menu-renderer class="style-scope ytd-video-renderer">
+                              <yt-icon-button id="button" class="dropdown-trigger style-scope ytd-menu-renderer"
+                                ><button id="button" class="style-scope yt-icon-button" aria-label="Action menu">
+                                  ⋮
+                                </button></yt-icon-button
+                              >
+                            </ytd-menu-renderer>
+                          </div>
                         </div>
                       </div>
                     </ytd-video-renderer>
@@ -67,6 +76,15 @@
                             >
                           </h3>
                           <div class="meta">Example Channel · 9K views</div>
+                          <div id="menu" class="style-scope ytd-video-renderer">
+                            <ytd-menu-renderer class="style-scope ytd-video-renderer">
+                              <yt-icon-button id="button" class="dropdown-trigger style-scope ytd-menu-renderer"
+                                ><button id="button" class="style-scope yt-icon-button" aria-label="Action menu">
+                                  ⋮
+                                </button></yt-icon-button
+                              >
+                            </ytd-menu-renderer>
+                          </div>
                         </div>
                       </div>
                     </ytd-video-renderer>
@@ -87,6 +105,16 @@
                                   ><span>An example Short about tides</span></a
                                 >
                               </h3>
+                              <div class="shortsLockupViewModelHostOutsideMetadataMenu">
+                                <button-view-model class="ytSpecButtonViewModelHost"
+                                  ><button
+                                    class="yt-spec-button-shape-next yt-spec-button-shape-next--icon-button"
+                                    aria-label="More actions"
+                                  >
+                                    ⋮
+                                  </button></button-view-model
+                                >
+                              </div>
                             </div>
                           </ytm-shorts-lockup-view-model>
                         </ytm-shorts-lockup-view-model-v2>
@@ -111,6 +139,15 @@
                             >
                           </h3>
                           <div class="meta">Another Example Channel · 7K views</div>
+                          <div id="menu" class="style-scope ytd-video-renderer">
+                            <ytd-menu-renderer class="style-scope ytd-video-renderer">
+                              <yt-icon-button id="button" class="dropdown-trigger style-scope ytd-menu-renderer"
+                                ><button id="button" class="style-scope yt-icon-button" aria-label="Action menu">
+                                  ⋮
+                                </button></yt-icon-button
+                              >
+                            </ytd-menu-renderer>
+                          </div>
                         </div>
                       </div>
                     </ytd-video-renderer>
@@ -122,29 +159,14 @@
         </ytd-page-manager>
       </div>
       <!--
-        YouTube's inline preview, copying the structure of the live markup: one ytd-video-preview for the whole page,
-        outside every card, never removed. Idle, it has no size; while it plays a card's video, YouTube adds
-        ytdVideoPreviewActive, points its link at the video and places its container over the card's thumbnail. It
-        holds no title. preview.js plays YouTube's part.
+        YouTube's one video menu for the whole page, copying the structure of the live markup: one tp-yt-iron-dropdown in
+        ytd-popup-container, filled anew each time a menu opens. menu.js plays YouTube's part.
       -->
-      <div id="video-preview">
-        <ytd-video-preview-loader class="ytdVideoPreviewLoaderHost">
-          <div class="ytdVideoPreviewLoaderVideoPreviewContainer">
-            <ytd-video-preview class="ytdVideoPreviewHost ytdVideoPreviewHidePlayerControls">
-              <div class="ytdVideoPreviewVideoPreviewContainer">
-                <div class="ytdVideoPreviewMediaContainer">
-                  <a class="yt-simple-endpoint ytdVideoPreviewMediaContainerLink" tabindex="-1"
-                    ><div class="ytdVideoPreviewPlayerContainerWrapper">
-                      <div class="ytdVideoPreviewPlayerContainer"><ytd-player></ytd-player></div></div
-                  ></a>
-                </div>
-                <div class="ytdVideoPreviewPlayerControls"></div>
-                <div class="ytdVideoPreviewMetadata"></div>
-              </div>
-            </ytd-video-preview>
-          </div>
-        </ytd-video-preview-loader>
-      </div>
+      <ytd-popup-container class="style-scope ytd-app">
+        <tp-yt-iron-dropdown class="style-scope ytd-popup-container" aria-hidden="true" style="display: none">
+          <div id="contentWrapper" class="style-scope tp-yt-iron-dropdown"></div>
+        </tp-yt-iron-dropdown>
+      </ytd-popup-container>
     </ytd-app>
   </body>
 </html>

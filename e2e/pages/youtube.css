@@ -1,5 +1,5 @@
 /*
-  Just enough of YouTube's look for the fixture pages that the cards have a size, a hover and a place for the button.
+  Just enough of YouTube's look for the fixture pages that the cards have a size and the video menu opens next to its ⋮.
   The markup is what matters: it copies the elements and classes of YouTube's cards. This file is not YouTube's CSS.
 */
 * {
@@ -108,33 +108,7 @@ ytd-thumbnail a#thumbnail {
 .meta {
   color: #aaa;
 }
-/* The inline preview, placed over a thumbnail by preview.js, above every card as YouTube's is; idle, it has no size. */
-.ytdVideoPreviewLoaderVideoPreviewContainer {
-  position: absolute;
-  z-index: 10;
-}
-ytd-video-preview {
-  display: flex;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-  border-radius: 12px;
-  background: #212121;
-}
-ytd-video-preview.ytdVideoPreviewActive {
-  height: auto;
-}
-.ytdVideoPreviewVideoPreviewContainer,
-.ytdVideoPreviewMediaContainerLink {
-  display: block;
-  width: 100%;
-}
-ytd-player {
-  display: block;
-  aspect-ratio: 16 / 9;
-  background: linear-gradient(135deg, #5a3a3a, #3a2626);
-}
-/* The watch page: the player, with its control bar at the bottom, which hides when YouTube adds ytp-autohide. */
+/* The watch page: the player, and under it the title and the actions. */
 #columns {
   display: flex;
   gap: 24px;
@@ -149,51 +123,61 @@ ytd-player {
   width: 168px;
 }
 #movie_player {
-  position: relative;
   aspect-ratio: 16 / 9;
-  overflow: hidden;
   border-radius: 12px;
   background: linear-gradient(135deg, #2b2b2b, #111);
 }
-#player-full-bleed-container #movie_player {
-  border-radius: 0;
-}
-.ytp-chrome-bottom {
-  position: absolute;
-  right: 12px;
-  bottom: 0;
-  left: 12px;
-  transition: opacity 0.25s;
-}
-.ytp-autohide .ytp-chrome-bottom {
-  opacity: 0;
-  transition: opacity 0.1s;
-}
-.ytp-progress-bar {
-  height: 3px;
-  background: #f00;
-}
-.ytp-chrome-controls,
-.ytp-left-controls,
-.ytp-right-controls,
-.ytp-right-controls-left,
-.ytp-right-controls-right {
+#top-row,
+ytd-menu-renderer,
+#top-level-buttons-computed {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
-.ytp-chrome-controls {
+#top-row {
   justify-content: space-between;
-  height: 56px;
 }
-.ytp-button {
-  width: 48px;
-  height: 40px;
+/* The menu buttons and the watch page's pills. */
+.ytLockupMetadataViewModelMenuButton,
+.shortsLockupViewModelHostOutsideMetadataMenu,
+ytd-video-renderer #menu {
+  margin-top: 4px;
+}
+button {
+  height: 32px;
+  min-width: 32px;
+  padding: 0 12px;
   border: 0;
-  background: transparent;
-  color: #fff;
-  font-size: 18px;
+  border-radius: 16px;
+  background: #272727;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
-/* Shown only when the player is narrow. */
-.ytp-expand-right-bottom-section-button {
-  display: none;
+/* YouTube's one video menu, placed next to the ⋮ that opened it by menu.js. */
+tp-yt-iron-dropdown {
+  position: absolute;
+  z-index: 2202;
+  min-width: 240px;
+  padding: 8px 0;
+  border-radius: 12px;
+  background: #282828;
+}
+yt-list-item-view-model,
+ytd-menu-service-item-renderer tp-yt-paper-item {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px 0 52px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+yt-list-item-view-model:hover,
+ytd-menu-service-item-renderer:hover {
+  background: rgb(255 255 255 / 10%);
+}
+yt-list-view-model,
+tp-yt-paper-listbox,
+ytd-menu-service-item-renderer {
+  display: block;
 }

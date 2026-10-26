@@ -2,14 +2,15 @@
 <!--
   A made-up Watch Later playlist, served at https://www.youtube.com/playlist?list=WL in the end-to-end tests. The
   cards copy the structure of YouTube's markup for a playlist, checked against a public playlist on the live site
-  (Watch Later itself needs a signed-in account): a horizontal yt-lockup-view-model per video. Every video ID, title
-  and channel is invented.
+  (Watch Later itself needs a signed-in account): a horizontal yt-lockup-view-model per video with its ⋮ menu button,
+  and the shared menu in ytd-popup-container. Every video ID, title and channel is invented.
 -->
-<html lang="en">
+<html lang="en" dark>
   <head>
     <meta charset="utf-8" />
     <title>Watch later - YouTube</title>
     <link rel="stylesheet" href="/e2e-pages/youtube.css" />
+    <script src="/e2e-pages/menu.js" defer></script>
   </head>
   <body>
     <ytd-app>
@@ -47,6 +48,17 @@
                             </h3>
                             <div class="meta">Example Channel · 6K views</div>
                           </div>
+                          <div class="ytLockupMetadataViewModelMenuButton">
+                            <button-view-model class="ytSpecButtonViewModelHost">
+                              <button
+                                class="yt-spec-button-shape-next yt-spec-button-shape-next--text yt-spec-button-shape-next--icon-button"
+                                title="More actions"
+                                aria-label="More actions"
+                              >
+                                ⋮
+                              </button>
+                            </button-view-model>
+                          </div>
                         </yt-lockup-metadata-view-model>
                       </div>
                     </div>
@@ -79,6 +91,17 @@
                             </h3>
                             <div class="meta">Another Example Channel · 1K views</div>
                           </div>
+                          <div class="ytLockupMetadataViewModelMenuButton">
+                            <button-view-model class="ytSpecButtonViewModelHost">
+                              <button
+                                class="yt-spec-button-shape-next yt-spec-button-shape-next--text yt-spec-button-shape-next--icon-button"
+                                title="More actions"
+                                aria-label="More actions"
+                              >
+                                ⋮
+                              </button>
+                            </button-view-model>
+                          </div>
                         </yt-lockup-metadata-view-model>
                       </div>
                     </div>
@@ -89,6 +112,15 @@
           </ytd-browse>
         </ytd-page-manager>
       </div>
+      <!--
+        YouTube's one video menu for the whole page, copying the structure of the live markup: one tp-yt-iron-dropdown in
+        ytd-popup-container, filled anew each time a menu opens. menu.js plays YouTube's part.
+      -->
+      <ytd-popup-container class="style-scope ytd-app">
+        <tp-yt-iron-dropdown class="style-scope ytd-popup-container" aria-hidden="true" style="display: none">
+          <div id="contentWrapper" class="style-scope tp-yt-iron-dropdown"></div>
+        </tp-yt-iron-dropdown>
+      </ytd-popup-container>
     </ytd-app>
   </body>
 </html>

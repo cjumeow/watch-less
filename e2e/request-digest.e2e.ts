@@ -1,274 +1,279 @@
-// Requesting a digest from a thumbnail: .claude/skills/verify/features/request-digest-from-thumbnail.md, one test per
-// journey there.
+// Requesting a digest from YouTube's video menu: .claude/skills/verify/features/request-digest-from-video-menu.md, one
+// test per journey there.
 
 import { type Locator, type Page } from "@playwright/test";
-import { buttonStates, expect, test } from "./fixtures.js";
+import { expect, test } from "./fixtures.js";
 
 const HOME = "https://www.youtube.com/";
 const SEARCH = "https://www.youtube.com/results?search_query=example";
 const WATCH_LATER = "https://www.youtube.com/playlist?list=WL";
+const WATCH = "https://www.youtube.com/watch?v=watchVideo1";
 
-/** The card of the video with this ID, on any of the fixture pages. */
-function card(page: Page, videoId: string): Locator {
+const YOUTUBE_ITEMS = ["Add to queue", "Save to Watch later", "Save to playlist", "Share", "Report"];
+const WITH_SUMMARIZE = ["Summarize", ...YOUTUBE_ITEMS];
+
+const VIDEOS = {
+  homeVideo02: { videoId: "homeVideo02", title: "Example lecture: why bridges hum in the wind" },
+  searchVid01: { videoId: "searchVid01", title: "Sample interview with an imaginary economist" },
+  laterVideo2: { videoId: "laterVideo2", title: "An imaginary history of the paperclip" },
+  watchVideo1: { videoId: "watchVideo1", title: "Example lecture: why bridges hum in the wind" },
+  watchVideo2: { videoId: "watchVideo2", title: "Made-up tour of a lighthouse that never existed" },
+};
+
+/** The ⋮ of the card of the video with this ID, on the home page, search results or Watch Later. */
+function cardOpener(page: Page, videoId: string): Locator {
   return page
     .locator("yt-lockup-view-model, ytd-video-renderer")
-    .filter({ has: page.locator(`h3 a[href*="v=${videoId}"]`) });
+    .filter({ has: page.locator(`h3 a[href*="v=${videoId}"]`) })
+    .locator(".ytLockupMetadataViewModelMenuButton button, #menu button");
 }
 
-/** Presses the button on a card, on its icon, as a pointer does. */
-async function press(cardLocator: Locator) {
-  await cardLocator.hover();
-  await cardLocator.locator("yt-digest-button").click({ position: { x: 16, y: 16 } });
+/** The ⋯ under the player on the watch page. */
+function watchOpener(page: Page): Locator {
+  return page.locator("ytd-watch-metadata #menu yt-icon-button button");
 }
 
-/** The state of the button on the nth card that has one. */
-async function stateOf(page: Page, index = 0) {
-  const states = await buttonStates(page);
-  return states[index];
+const DROPDOWN = "ytd-popup-container tp-yt-iron-dropdown";
+
+/** Opens a menu with its ⋮ or ⋯, as a pointer does, and waits for YouTube's items. */
+async function open(page: Page, opener: Locator) {
+  await opener.click();
+  await expect(page.locator(DROPDOWN)).toBeVisible();
 }
 
-/** The video ID of every card that has a button, in document order. */
-function videosWithButtons(page: Page) {
+/** The labels of the open menu's items, in order. */
+function items(page: Page) {
   return page
-    .locator("yt-lockup-view-model, ytd-video-renderer")
-    .filter({ has: page.locator("yt-digest-button") })
-    .evaluateAll((cards) =>
-      cards.map(
-        (c) =>
-          c
-            .querySelector("h3 a")
-            ?.getAttribute("href")
-            ?.match(/v=([\w-]{11})/)?.[1],
-      ),
-    );
+    .locator(`${DROPDOWN} :is(yt-list-view-model, tp-yt-paper-listbox) > *`)
+    .evaluateAll((elements) => elements.map((e) => e.textContent.trim()));
 }
 
-test.describe("where the button appears", () => {
-  for (const [name, url, videos] of [
-    ["the home page", HOME, ["homeVideo01", "homeVideo02", "homeVideo03"]],
-    ["search results", SEARCH, ["searchVid01", "searchVid02"]],
-    ["Watch Later", WATCH_LATER, ["laterVideo1", "laterVideo2"]],
-  ] as const) {
-    test(`every video on ${name} has a button, and no Short or mix does`, async ({ page }, testInfo) => {
+function summarize(page: Page): Locator {
+  return page.locator(DROPDOWN).getByRole("menuitem", { name: "Summarize" });
+}
+
+function toast(page: Page): Locator {
+  return page.locator("yt-digest-toast");
+}
+
+/** The toast's two lines: the result, and the video's title. */
+async function toastLines(page: Page) {
+  await expect(toast(page)).toBeVisible();
+  // Past its fade-in, so that a screenshot shows it as it stays.
+  await expect(toast(page)).toHaveCSS("opacity", "1");
+  return [await toast(page).locator("strong").textContent(), await toast(page).locator(".video").textContent()];
+}
+
+const MENUS = [
+  ["the home page", HOME, (page: Page) => cardOpener(page, "homeVideo02"), VIDEOS.homeVideo02],
+  ["search results", SEARCH, (page: Page) => cardOpener(page, "searchVid01"), VIDEOS.searchVid01],
+  ["Watch Later", WATCH_LATER, (page: Page) => cardOpener(page, "laterVideo2"), VIDEOS.laterVideo2],
+  ["the watch page", WATCH, watchOpener, VIDEOS.watchVideo1],
+] as const;
+
+test.describe("where the item appears", () => {
+  for (const [name, url, opener] of MENUS) {
+    test(`Summarize is first in a video's menu on ${name}`, async ({ page }, testInfo) => {
       await page.goto(url);
-      await expect.poll(() => videosWithButtons(page)).toEqual(videos);
-      expect(await page.locator("ytm-shorts-lockup-view-model-v2 yt-digest-button").count()).toBe(0);
-      expect(await page.locator("yt-digest-button").count()).toBe(videos.length);
-
-      const states = await buttonStates(page);
-      expect(states.map((s) => s.label)).toEqual(videos.map(() => "Request a digest"));
-
-      // At the thumbnail's top-left corner, 8 pixels in, on every card.
-      for (const videoId of videos) {
-        const thumbnail = await card(page, videoId)
-          .locator("a.ytLockupViewModelContentImage, a#thumbnail")
-          .boundingBox();
-        const button = await card(page, videoId).locator("yt-digest-button").boundingBox();
-        expect([button?.x, button?.y]).toEqual([(thumbnail?.x ?? 0) + 8, (thumbnail?.y ?? 0) + 8]);
-      }
-
-      await card(page, videos[0]).hover();
-      await page.screenshot({ path: testInfo.outputPath(`${name.replaceAll(" ", "-")}.png`) });
+      await open(page, opener(page));
+      await expect.poll(() => items(page)).toEqual(WITH_SUMMARIZE);
+      await expect(summarize(page).locator("svg")).toBeVisible();
+      await summarize(page).hover();
+      await page.screenshot({ path: testInfo.outputPath(`menu-${name.replaceAll(" ", "-")}.png`) });
     });
   }
 
-  test("another playlist has no button", async ({ page }) => {
-    await page.goto("https://www.youtube.com/playlist?list=PLexampleList");
-    // Give the content script time to scan, which it does at once on a page that is already rendered.
-    await page.waitForTimeout(500);
-    expect(await page.locator("yt-digest-button").count()).toBe(0);
-  });
-
-  test("the button shows only while the pointer is over its card", async ({ page }) => {
-    await page.goto(HOME);
-    const button = card(page, "homeVideo02").locator("yt-digest-button");
-    await expect(button).toHaveCSS("opacity", "0");
-    await card(page, "homeVideo02").hover();
-    await expect(button).toHaveCSS("opacity", "1");
-    await page.mouse.move(1, 1);
-    await expect(button).toHaveCSS("opacity", "0");
-  });
-
-  test("the button shows while it has the keyboard focus", async ({ page }) => {
-    await page.goto(SEARCH);
-    const button = card(page, "searchVid01").locator("yt-digest-button");
-    await expect(button).toHaveCSS("opacity", "0");
-    // The first card's button comes after nothing but the page itself, so Tab reaches it before its title link.
-    await page.keyboard.press("Tab");
-    expect(await page.evaluate(() => document.activeElement?.tagName)).toBe("YT-DIGEST-BUTTON");
-    await expect(button).toHaveCSS("opacity", "1");
-  });
-
-  test("a card YouTube adds later gets a button", async ({ page }) => {
-    await page.goto(SEARCH);
-    await expect.poll(() => videosWithButtons(page)).toEqual(["searchVid01", "searchVid02"]);
-    // As YouTube appends results when the page scrolls: a copy of the last card, for another made-up video.
-    await page.evaluate(() => {
-      const last = [...document.querySelectorAll("ytd-video-renderer")].at(-1);
-      if (last === undefined) throw new Error("No card to copy");
-      const copy = document.createElement("ytd-video-renderer");
-      copy.innerHTML = last.innerHTML.replaceAll("searchVid02", "searchVid03").replaceAll("Example explainer", "Copy");
-      // Without what the extension added to the card it copies: a new card from YouTube has neither.
-      copy.querySelector("yt-digest-button")?.remove();
-      copy.querySelector("[data-yt-digest]")?.removeAttribute("data-yt-digest");
-      last.after(copy);
-    });
-    await expect.poll(() => videosWithButtons(page)).toEqual(["searchVid01", "searchVid02", "searchVid03"]);
-  });
-});
-
-test.describe("pressing the button", () => {
-  test("sends the video to the host and shows the check for about 1.5 seconds", async ({ page, host }, testInfo) => {
-    await host.answer({ reply: { ok: true } });
-    await page.goto(HOME);
-    // YouTube opens a video from a click that reaches its card; this stands in for that.
-    await page.evaluate(() => {
-      document.addEventListener("click", (event) => {
-        if (event.target instanceof Element && event.target.closest("yt-lockup-view-model") !== null) {
-          document.body.dataset.cardOpened = "true";
-        }
-      });
-    });
-
-    const pressedAt = Date.now();
-    await press(card(page, "homeVideo02"));
-    await expect.poll(async () => (await stateOf(page, 1))?.icon).toBe("check");
-    await page.screenshot({ path: testInfo.outputPath("check.png") });
-
-    expect(await host.requests()).toEqual([
-      { videoId: "homeVideo02", title: "Example lecture: why bridges hum in the wind" },
-    ]);
-    expect(await page.evaluate(() => document.body.dataset.cardOpened)).toBeUndefined();
-    expect(page.url()).toBe(HOME);
-
-    // The check keeps the button visible after the pointer leaves the card.
-    await page.mouse.move(1, 1);
-    await expect(card(page, "homeVideo02").locator("yt-digest-button")).toHaveCSS("opacity", "1");
-
-    // The check starts after the reply, so it still shows a second after the press, and is gone within 3 seconds.
-    await page.waitForTimeout(Math.max(0, pressedAt + 1000 - Date.now()));
-    expect((await stateOf(page, 1))?.icon).toBe("check");
-    await expect.poll(async () => (await stateOf(page, 1))?.icon, { timeout: 2000 }).toBe("note");
-    expect(Date.now() - pressedAt).toBeLessThan(3000);
-    await expect(card(page, "homeVideo02").locator("yt-digest-button")).toHaveCSS("opacity", "0");
-  });
-
-  test("is dimmed and cannot be pressed again while it waits for the host", async ({ page, host }) => {
-    await host.answer("silent");
-    await page.goto(WATCH_LATER);
-    await press(card(page, "laterVideo1"));
-    await expect.poll(async () => (await stateOf(page))?.disabled).toBe(true);
-    await card(page, "laterVideo1")
-      .locator("yt-digest-button")
-      .click({ position: { x: 16, y: 16 } });
-    await expect.poll(() => host.requests()).toHaveLength(1);
-    // Still one request after a second press while waiting.
-    await page.waitForTimeout(500);
-    expect(await host.requests()).toHaveLength(1);
-  });
-
-  test("says the host failed when it replies with an error", async ({ page, host }, testInfo) => {
-    await host.answer({ reply: { ok: false, error: "queue-unwritable" } });
-    await page.goto(SEARCH);
-    await press(card(page, "searchVid01"));
-    await expect.poll(async () => (await stateOf(page))?.message).toBe("yt-digest failed");
-    expect((await stateOf(page))?.messageRole).toBe("status");
-    await page.screenshot({ path: testInfo.outputPath("failed.png") });
-    expect(await host.requests()).toEqual([
-      { videoId: "searchVid01", title: "Sample interview with an imaginary economist" },
-    ]);
-  });
-
-  test("says the host did not respond after 5 seconds without a reply", async ({ page, host }, testInfo) => {
-    await host.answer("silent");
-    await page.goto(SEARCH);
-    await press(card(page, "searchVid02"));
-    const pressedAt = Date.now();
-    await expect
-      .poll(async () => (await stateOf(page, 1))?.message, { timeout: 8000 })
-      .toBe("yt-digest did not respond");
-    expect(Date.now() - pressedAt).toBeGreaterThan(4500);
-    await page.screenshot({ path: testInfo.outputPath("no-response.png") });
-  });
-
-  test("a press during the message ends it and sends a new request", async ({ page, host }) => {
-    await host.answer({ reply: { ok: false, error: "queue-unwritable" } });
-    await page.goto(HOME);
-    await press(card(page, "homeVideo01"));
-    await expect.poll(async () => (await stateOf(page))?.message).toBe("yt-digest failed");
-
-    await host.answer({ reply: { ok: true } });
-    await card(page, "homeVideo01")
-      .locator("yt-digest-button")
-      .click({ position: { x: 16, y: 16 } });
-    await expect.poll(async () => (await stateOf(page))?.icon).toBe("check");
-    expect((await stateOf(page))?.message).toBeNull();
-    expect(await host.requests()).toHaveLength(2);
-  });
-});
-
-test.describe("while YouTube plays a preview", () => {
-  for (const [name, url, videoId, title] of [
-    ["the home page", HOME, "homeVideo03", "Placeholder review of a fictional laptop"],
-    ["search results", SEARCH, "searchVid01", "Sample interview with an imaginary economist"],
+  for (const [name, url, opener] of [
+    [
+      "a mix's menu on the home page",
+      HOME,
+      ".ytLockupViewModelCollectionStack2 .ytLockupMetadataViewModelMenuButton button",
+    ],
+    ["a Short's menu on the home page", HOME, ".shortsLockupViewModelHostOutsideMetadataMenu button"],
+    ["a Short's menu in search results", SEARCH, 'ytd-video-renderer:has(a[href^="/shorts/"]) #menu button'],
+    [
+      "a video's menu in another playlist",
+      "https://www.youtube.com/playlist?list=PLexampleList",
+      "#menu button, .ytLockupMetadataViewModelMenuButton button",
+    ],
+    ["the related video's menu on the watch page", WATCH, "#secondary .ytLockupMetadataViewModelMenuButton button"],
   ] as const) {
-    test(`on ${name}, the preview has the button, which requests the video it plays`, async ({
+    test(`${name} has no Summarize`, async ({ page }) => {
+      await page.goto(url);
+      await open(page, page.locator(opener).first());
+      await expect.poll(() => items(page)).toEqual(YOUTUBE_ITEMS);
+      // The content script adds the item when the menu's list appears; give it time to add one it should not.
+      await page.waitForTimeout(300);
+      expect(await items(page)).toEqual(YOUTUBE_ITEMS);
+    });
+  }
+
+  test("YouTube's one menu, refilled for a mix after a video and for a video after a mix, has the item only for the video", async ({
+    page,
+  }) => {
+    await page.goto(HOME);
+    await open(page, cardOpener(page, "homeVideo01"));
+    await expect.poll(() => items(page)).toEqual(WITH_SUMMARIZE);
+    await page.keyboard.press("Escape");
+    await expect(page.locator(DROPDOWN)).toBeHidden();
+
+    await open(page, page.locator(".ytLockupViewModelCollectionStack2 .ytLockupMetadataViewModelMenuButton button"));
+    await page.waitForTimeout(300);
+    expect(await items(page)).toEqual(YOUTUBE_ITEMS);
+
+    // A click outside closes the mix's menu; the next video's menu has the item again.
+    await page.mouse.click(1, 1);
+    await expect(page.locator(DROPDOWN)).toBeHidden();
+    await open(page, cardOpener(page, "homeVideo03"));
+    await expect.poll(() => items(page)).toEqual(WITH_SUMMARIZE);
+  });
+});
+
+test.describe("choosing it", () => {
+  for (const [name, url, opener, video] of MENUS) {
+    test(`on ${name}, requests the video, closes the menu and says Digest requested`, async ({
       page,
       host,
     }, testInfo) => {
       await host.answer({ reply: { ok: true } });
       await page.goto(url);
-      const preview = page.locator("ytd-video-preview");
-      await card(page, videoId).locator("a.ytLockupViewModelContentImage, a#thumbnail").hover();
-      await expect(preview).toBeVisible();
-      // A resting pointer still moves a little, which tells Chromium that it is over the preview now.
-      const thumbnailBox = await card(page, videoId)
-        .locator("a.ytLockupViewModelContentImage, a#thumbnail")
-        .boundingBox();
-      await page.mouse.move((thumbnailBox?.x ?? 0) + 100, (thumbnailBox?.y ?? 0) + 60);
-      // The preview covers the card, which loses its hover and hides the card's own button.
-      await expect(card(page, videoId).locator("yt-digest-button")).toHaveCSS("opacity", "0");
+      await open(page, opener(page));
+      await summarize(page).click();
 
-      const button = preview.locator("yt-digest-button");
-      await expect(button).toHaveCSS("opacity", "1");
-      // The preview is larger than the thumbnail, yet its button sits exactly where the card's button was.
-      const cardButtonBox = await card(page, videoId).locator("yt-digest-button").boundingBox();
-      const buttonBox = await button.boundingBox();
-      expect([buttonBox?.x, buttonBox?.y]).toEqual([cardButtonBox?.x, cardButtonBox?.y]);
-
-      await button.click({ position: { x: 16, y: 16 } });
-      await expect.poll(async () => (await buttonStates(page)).at(-1)?.icon).toBe("check");
-      await page.screenshot({ path: testInfo.outputPath(`preview-${name.replaceAll(" ", "-")}.png`) });
-      expect(await host.requests()).toEqual([{ videoId, title }]);
+      await expect(page.locator(DROPDOWN)).toBeHidden();
+      expect(await toastLines(page)).toEqual(["Digest requested", video.title]);
+      await expect(toast(page)).toHaveAttribute("role", "status");
+      await page.screenshot({ path: testInfo.outputPath(`requested-${name.replaceAll(" ", "-")}.png`) });
+      expect(await host.requests()).toEqual([video]);
+      // None of YouTube's own items was chosen, and the page did not change.
+      expect(await page.evaluate(() => document.body.dataset.chosen)).toBeUndefined();
       expect(page.url()).toBe(url);
-
-      // Idle, the preview stays on the page with no size, and its button does not show, even during the check.
-      await page.mouse.move(1, 1);
-      await expect(preview).toBeHidden();
-      await expect(button).toBeHidden();
     });
   }
+
+  test("with the keyboard, Enter on the focused item requests the video", async ({ page, host }) => {
+    await host.answer({ reply: { ok: true } });
+    await page.goto(SEARCH);
+    await open(page, cardOpener(page, "searchVid01"));
+    await summarize(page).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator(DROPDOWN)).toBeHidden();
+    expect(await toastLines(page)).toEqual(["Digest requested", VIDEOS.searchVid01.title]);
+    expect(await host.requests()).toEqual([VIDEOS.searchVid01]);
+  });
+
+  test("with the keyboard only, a menu opened with Enter has the item, and Space chooses it", async ({
+    page,
+    host,
+  }) => {
+    await host.answer({ reply: { ok: true } });
+    await page.goto(HOME);
+    await cardOpener(page, "homeVideo02").focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator(DROPDOWN)).toBeVisible();
+    await expect.poll(() => items(page)).toEqual(WITH_SUMMARIZE);
+    await summarize(page).focus();
+    await page.keyboard.press("Space");
+    await expect(page.locator(DROPDOWN)).toBeHidden();
+    expect(await toastLines(page)).toEqual(["Digest requested", VIDEOS.homeVideo02.title]);
+    expect(await host.requests()).toEqual([VIDEOS.homeVideo02]);
+  });
+
+  test("the toast shows for 3 seconds at the bottom left, and a new one replaces it", async ({ page, host }) => {
+    await host.answer({ reply: { ok: true } });
+    await page.goto(HOME);
+    await open(page, cardOpener(page, "homeVideo01"));
+    await summarize(page).click();
+    await expect(toast(page)).toBeVisible();
+    const shownAt = Date.now();
+    // 24 pixels from the bottom-left corner of the 1100×800 window, once its slide-in ends.
+    await expect
+      .poll(async () => {
+        const box = await toast(page).boundingBox();
+        return [box?.x, (box?.y ?? 0) + (box?.height ?? 0)];
+      })
+      .toEqual([24, 800 - 24]);
+
+    await host.answer({ reply: { ok: false, error: "queue-unwritable" } });
+    await open(page, cardOpener(page, "homeVideo02"));
+    await summarize(page).click();
+    await expect(toast(page).locator("strong")).toHaveText("yt-digest failed");
+    expect(await page.locator("yt-digest-toast").count()).toBe(1);
+    expect(await toastLines(page)).toEqual(["yt-digest failed", VIDEOS.homeVideo02.title]);
+    const replacedAt = Date.now();
+
+    // The new toast keeps its full 3 seconds, past the moment the first one would have gone.
+    await page.waitForTimeout(Math.max(0, shownAt + 3300 - Date.now()));
+    await expect(toast(page)).toBeVisible();
+    await expect(toast(page)).toBeHidden({ timeout: 3000 });
+    expect(Date.now() - replacedAt).toBeGreaterThan(2500);
+  });
+
+  test("the toast is the inverse of the page's theme", async ({ page, host }, testInfo) => {
+    await host.answer({ reply: { ok: true } });
+    await page.goto(HOME);
+    await open(page, cardOpener(page, "homeVideo01"));
+    await summarize(page).click();
+    // YouTube's dark theme sets `dark` on <html>: the toast is light.
+    await expect(toast(page)).toHaveCSS("background-color", "rgb(241, 241, 241)");
+
+    await page.evaluate(() => {
+      document.documentElement.removeAttribute("dark");
+      document.body.style.background = "#fff";
+      document.body.style.color = "#0f0f0f";
+    });
+    await open(page, cardOpener(page, "homeVideo03"));
+    await summarize(page).click();
+    await expect(toast(page).locator(".video")).toHaveText("Placeholder review of a fictional laptop");
+    await expect(toast(page)).toHaveCSS("background-color", "rgb(15, 15, 15)");
+    await expect(toast(page)).toHaveCSS("opacity", "1");
+    await page.screenshot({ path: testInfo.outputPath("toast-light-theme.png") });
+  });
+
+  test("says the host failed when it replies with an error", async ({ page, host }, testInfo) => {
+    await host.answer({ reply: { ok: false, error: "queue-unwritable" } });
+    await page.goto(WATCH);
+    await open(page, watchOpener(page));
+    await summarize(page).click();
+    expect(await toastLines(page)).toEqual(["yt-digest failed", VIDEOS.watchVideo1.title]);
+    await page.screenshot({ path: testInfo.outputPath("failed.png") });
+  });
+
+  test("says the host did not respond after 5 seconds without a reply", async ({ page, host }, testInfo) => {
+    await host.answer("silent");
+    await page.goto(SEARCH);
+    await open(page, cardOpener(page, "searchVid01"));
+    await summarize(page).click();
+    const chosenAt = Date.now();
+    await expect(toast(page)).toBeVisible({ timeout: 8000 });
+    expect(Date.now() - chosenAt).toBeGreaterThan(4500);
+    expect(await toastLines(page)).toEqual(["yt-digest did not respond", VIDEOS.searchVid01.title]);
+    await page.screenshot({ path: testInfo.outputPath("no-response.png") });
+    expect(await host.requests()).toHaveLength(1);
+  });
+
+  test("after moving to another video without a page load, the ⋯ requests the new video", async ({ page, host }) => {
+    await host.answer({ reply: { ok: true } });
+    await page.goto(WATCH);
+    await page.locator("#secondary a.ytLockupViewModelContentImage").click();
+    await expect(page).toHaveURL(/v=watchVideo2/);
+    await expect(page.locator("ytd-watch-metadata h1")).toHaveText(VIDEOS.watchVideo2.title);
+
+    await open(page, watchOpener(page));
+    await summarize(page).click();
+    expect(await toastLines(page)).toEqual(["Digest requested", VIDEOS.watchVideo2.title]);
+    expect(await host.requests()).toEqual([VIDEOS.watchVideo2]);
+  });
 });
 
 test.describe("without the native host", () => {
   test.use({ hostInstalled: false });
 
-  test("says yt-digest is not installed, for 3 seconds", async ({ page }, testInfo) => {
+  test("says yt-digest is not installed", async ({ page }, testInfo) => {
     await page.goto(WATCH_LATER);
-    const pressedAt = Date.now();
-    await press(card(page, "laterVideo2"));
-    await expect.poll(async () => (await stateOf(page, 1))?.message).toBe("yt-digest is not installed");
+    await open(page, cardOpener(page, "laterVideo2"));
+    await summarize(page).click();
+    expect(await toastLines(page)).toEqual(["yt-digest is not installed", VIDEOS.laterVideo2.title]);
     await page.screenshot({ path: testInfo.outputPath("not-installed.png") });
-
-    // The message keeps the button visible after the pointer leaves the card.
-    await page.mouse.move(1, 1);
-    await expect(card(page, "laterVideo2").locator("yt-digest-button")).toHaveCSS("opacity", "1");
-
-    // The message starts after Chrome's answer, so it still shows 2.5 seconds after the press, and is gone within 5.
-    await page.waitForTimeout(Math.max(0, pressedAt + 2500 - Date.now()));
-    expect((await stateOf(page, 1))?.message).toBe("yt-digest is not installed");
-    await expect.poll(async () => (await stateOf(page, 1))?.message, { timeout: 2500 }).toBeNull();
-    expect(Date.now() - pressedAt).toBeLessThan(5000);
-    expect((await stateOf(page, 1))?.icon).toBe("note");
   });
 });
