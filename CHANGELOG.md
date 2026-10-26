@@ -8,9 +8,11 @@ checkout, so every entry is under Unreleased.
 
 ### Added
 
+- Digests can be written by OpenAI's models (GPT-6 Luna, Sol, 6.1 Sol and Astra) through Codex CLI and your
+  ChatGPT plan, never an API key. Pick one in the popup. Codex's usage limit is not recognised yet, so a digest
+  that meets it fails instead of waiting.
 - A toolbar popup picks the language digests are written in and the model that writes them, saved as soon as it is
-  chosen and used by the next request. OpenAI's models are listed but disabled until they are supported. The
-  extension now asks for Chrome's `storage` permission, and has a toolbar icon.
+  chosen and used by the next request. The extension now asks for Chrome's `storage` permission, and has a toolbar icon.
 
 ### Changed
 

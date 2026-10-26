@@ -66,7 +66,6 @@ test("opened for the first time, it shows the defaults and offers every language
     "Fable 5.1",
   ]);
   await expect(popup.locator("#models input:disabled")).toHaveCount(0);
-  await expect(popup.locator("#note")).toBeHidden();
   await popup.screenshot({ path: testInfo.outputPath("popup-defaults.png") });
 });
 
@@ -92,7 +91,7 @@ test("a choice is saved as soon as it is made, says Saved, and is shown again wh
   await expect(reopened.locator("#models input:checked")).toHaveValue("claude-opus-5-5");
 });
 
-test("OpenAI's models are disabled, with a line saying they are not supported yet, and nothing is saved", async ({
+test("an OpenAI model can be chosen, is saved, and the footer says Codex CLI runs it", async ({
   context,
 }, testInfo) => {
   const popup = await openPopup(context);
@@ -103,13 +102,12 @@ test("OpenAI's models are disabled, with a line saying they are not supported ye
     "GPT-6.1 Sol",
     "GPT-6 Astra",
   ]);
-  await expect(popup.locator("#models input:disabled")).toHaveCount(4);
-  await expect(popup.locator("#note")).toHaveText("OpenAI models are not supported yet.");
+  await expect(popup.locator("#models input:disabled")).toHaveCount(0);
+  await expect(popup.locator("#footer")).toContainText("Codex CLI and your ChatGPT plan");
+  await popup.getByLabel(/GPT-6 Sol/).check();
+  await expect(popup.locator("#saved")).toHaveText("Saved");
   await popup.screenshot({ path: testInfo.outputPath("popup-openai.png") });
-
-  await popup.locator("#providers label", { hasText: "Claude" }).click();
-  await expect(popup.locator("#models input:checked")).toHaveValue(DEFAULT_SETTINGS.model);
-  await expect(popup.locator("#saved")).toHaveText("");
+  expect(await (await storage(context)).get()).toMatchObject({ model: "gpt-6-sol" });
 });
 
 test("the next Summarize sends the chosen language and model, and the one after a change sends the change", async ({

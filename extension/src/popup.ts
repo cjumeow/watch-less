@@ -4,12 +4,11 @@
 import { isLanguageId, LANGUAGES, PROVIDERS, providerOf, type ProviderId } from "@yt-digest/shared";
 import { savedSettings, STORAGE_KEYS } from "./saved-settings.js";
 
-/** Where each provider's models run, which the footer says. OpenAI's models are not supported until Codex CLI is. */
+/** Where each provider's models run, which the footer says. */
 const RUNS_WITH: Record<ProviderId, string> = {
   claude: "Claude Code and your Claude subscription",
   openai: "Codex CLI and your ChatGPT plan",
 };
-const SUPPORTED: Record<ProviderId, boolean> = { claude: true, openai: false };
 
 /** How long `Saved` stays, in milliseconds. */
 const SAVED_MS = 1200;
@@ -23,7 +22,6 @@ function element(id: string): HTMLElement {
 const languageSelect = element("language") as HTMLSelectElement;
 const providers = element("providers");
 const models = element("models");
-const note = element("note");
 const footer = element("footer");
 const saved = element("saved");
 
@@ -77,7 +75,6 @@ function renderProviders() {
 
 function renderModels() {
   const entry = PROVIDERS.find((candidate) => candidate.id === provider) ?? PROVIDERS[0];
-  const supported = SUPPORTED[entry.id];
   models.replaceChildren(
     ...entry.models.map((model) => {
       const row = document.createElement("label");
@@ -87,7 +84,6 @@ function renderModels() {
       input.name = "model";
       input.value = model.id;
       input.checked = model.id === settings.model;
-      input.disabled = !supported;
       input.addEventListener("change", () => {
         settings.model = model.id;
         void save();
@@ -108,11 +104,7 @@ function renderModels() {
       return row;
     }),
   );
-  note.hidden = supported;
-  note.textContent = supported ? "" : `${entry.name} models are not supported yet.`;
-  footer.textContent = supported
-    ? `Runs on this Mac with ${RUNS_WITH[entry.id]}. No API key. Applies to the next digest you request.`
-    : "Digests keep using the last Claude model you chose.";
+  footer.textContent = `Runs on this Mac with ${RUNS_WITH[entry.id]}. No API key. Applies to the next digest you request.`;
 }
 
 renderLanguages();

@@ -121,9 +121,7 @@ The extension's button in Chrome's toolbar opens a popup, which the developer co
 
 - **Digest language,** one of the languages in `LANGUAGES` of `@yt-digest/shared`, from a menu: English, 繁體中文,
   简体中文, 日本語, 한국어 or Español.
-- **Model,** a Claude / OpenAI switch and that provider's models, from `PROVIDERS`. The OpenAI tab shows its models
-  disabled with one line, `OpenAI models are not supported yet.`, because the worker fails a digest asking for one
-  until Codex CLI is supported. The prototype's warning that a provider's command-line tool is not installed is not
+- **Model,** a Claude / OpenAI switch and that provider's models, from `PROVIDERS`. The prototype's warning that a provider's command-line tool is not installed is not
   built: the popup cannot see this Mac's tools without asking the native host.
 - A choice is saved as soon as it is made, with `Saved` shown briefly, and applies to the next request. Opened for
   the first time, the popup shows `DEFAULT_SETTINGS`: English and Haiku 5.5.
@@ -172,7 +170,7 @@ request, after the done-folder check in [Repeated requests](#repeated-requests):
    then YouTube's automatic captions in that language, then the audio transcribed with Whisper
    (`mlx-community/whisper-large-v3-turbo`). Machine-translated subtitles are never used, since their errors would
    read as the video's claims.
-3. **Write the digest** with `claude -p` (see [Running the model](#running-the-model)).
+3. **Write the digest** with `claude -p`, or `codex exec` for an OpenAI model (see [Running the model](#running-the-model)).
 4. **Deliver it** to the destination, then move the file into the done folder and send the finished notification.
 
 A failure at any step removes the request, logs the details and sends the failed notification, as in
@@ -180,7 +178,12 @@ A failure at any step removes the request, logs the details and sends the failed
 
 ### Running the model
 
-The transcript and the description are untrusted, so the model gets only what writing the digest needs:
+The transcript and the description are untrusted, so the model gets only what writing the digest needs. The model the
+request asks for (Haiku 5.5, `claude-haiku-5-5`, when it asks for none; set in one place) picks the tool by its
+provider: `claude -p` for a Claude model, `codex exec` for an OpenAI one. Both run on the developer's own
+subscription, Claude's or ChatGPT's, and never with an API key.
+
+**Claude (`claude -p`):**
 
 - the prompt in `prompt/digest.md` as its system prompt, and the video's title, description and transcript on stdin;
 - no tools at all (`--tools ""`): no web search, no file access, no shell, and `--permission-mode dontAsk`, so
@@ -189,18 +192,37 @@ The transcript and the description are untrusted, so the model gets only what wr
   (`--strict-mcp-config --mcp-config '{"mcpServers":{}}'`), and no saved session (`--no-session-persistence`);
   Claude Code's administrator-managed policy still applies;
 - an empty temporary folder as its working folder, and only `HOME`, `PATH` and `USER` in its environment, so no token or
-  key reaches it (`claude` needs `USER` to find its login in the macOS keychain);
-- the model the request asks for, Haiku 5.5 when it asks for none
-  (`claude-haiku-5-5`), set in one place.
+  key reaches it (`claude` needs `USER` to find its login in the macOS keychain).
 
-It runs on the developer's Claude subscription. The worker reads its answer from `--output-format json`, and fails
-the digest (`The digest was incomplete`) when a section heading of [The digest](#the-digest) is missing, or when the
-model runs for more than 10 minutes. Whether the digest is good is the prompt's job, not the worker's.
+**OpenAI (`codex exec`)**, isolated as closely as Codex allows ([ADR 2](adr/0002-codex-cli-for-openai-models.md)):
 
-When the answer says the subscription's usage limit is reached, the digest is postponed, not failed: the request
+- the prompt as Codex's instructions (`-c model_instructions_file=<prompt/digest.md>`, which replaces Codex's built-in
+  ones), and the same input on stdin (`-`);
+- a read-only sandbox (`--sandbox read-only`), no approvals asked (`approval_policy="never"`), no web search
+  (`web_search="disabled"`), no MCP servers (`mcp_servers={}`), and the features that give a model tools turned off
+  (`--disable shell_tool`, `unified_exec`, `apps`, `plugins`, `hooks`, `multi_agent`, `view_image`,
+  `image_generation`, `computer_use`, `browser_use`);
+- none of the developer's own Codex configuration, rules or saved sessions (`--ignore-user-config`,
+  `--ignore-rules`, `--ephemeral`), while the ChatGPT login in `~/.codex` is still used;
+- an empty temporary folder as its working folder (`--cd`, `--skip-git-repo-check`), and the same
+  `HOME`, `PATH` and `USER` environment, so no `OPENAI_API_KEY` or `CODEX_HOME` reaches it;
+- the answer read from the file named by `--output-last-message`, kept beside the working folder and not in it.
+
+What Codex cannot restrict the way `claude -p` can: it has no setting for no tools at all, so after the features
+above are off the model still has `apply_patch` (the read-only sandbox refuses its writes), the request for user
+input (nobody answers in a non-interactive run) and a clock tool; Codex's own skill list and environment description
+still reach the model, since no flag removes them; and Codex refreshes its login token in `~/.codex` as it always
+does. These are CLI controls, not operating-system isolation.
+
+The worker fails the digest (`The digest was incomplete`) when a section heading of [The digest](#the-digest) is
+missing, or when the model runs for more than 10 minutes or writes more than 8 MiB. Whether the digest is good is
+the prompt's job, not the worker's.
+
+When Claude's answer says the subscription's usage limit is reached, the digest is postponed, not failed: the request
 stays in the queue with no notification, and the next start of the worker tries again. Any other error, including
 one the worker does not recognise, fails the digest. The exact wording of the usage-limit error is checked against
-the real one the first time it appears.
+the real one the first time it appears. Codex's usage-limit message is not known yet, so a digest that meets
+ChatGPT's limit fails like any other error; the worker will postpone it once the message is observed.
 
 ## The digest
 

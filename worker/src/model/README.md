@@ -24,10 +24,22 @@ OAuth token environment variable or caller-selected config path is forwarded. ma
 folder, removed after its child closes. No shell is used and model text is never executed.
 
 Each digest names its model and its language: the queue file's when it has them, and otherwise `DEFAULT_SETTINGS`
-from `@yt-digest/shared`, English and `claude-haiku-5-5`. The worker fails a digest that asks for an OpenAI model
-with `OpenAI models are not supported yet` before any step runs. The model is recorded in the header, and the language sets the
+from `@yt-digest/shared`, English and `claude-haiku-5-5`. `providerOf(model)` picks the tool: `claude -p` above for a
+Claude model, `codex exec` below for an OpenAI one. The model is recorded in the header, and the language sets the
 headings sent on stdin and checked in the answer. The executable must be available on the worker's `PATH` and support these CLI flags.
 The eval runner uses the same customization/MCP flags, but stream-json output to capture searches.
+
+## Codex
+
+`codex.ts` runs `codex exec --model <model> --sandbox read-only --ignore-user-config --ignore-rules --ephemeral
+--skip-git-repo-check --cd <empty folder> -c model_instructions_file=<prompt/digest.md> -c approval_policy="never"
+-c web_search="disabled" -c mcp_servers={} --disable <tool features> --output-last-message <file> -`, with the same input
+on stdin, the same environment and the same `run-command.ts` (10-minute timeout, 8 MiB cap). Every flag was taken from
+`codex exec --help`, Codex's configuration reference and `codex debug prompt-input`, which prints what the model sees
+without calling it; none is a guess. The folder holds `work/` (Codex's working folder, always empty) and `answer.txt`
+beside it. The answer is read from that file by `readCodexAnswer`: a non-zero exit, a missing file or a missing heading
+fails the digest. Codex's usage-limit message is unconfirmed, so it fails like any other error. What Codex cannot
+restrict is in `docs/spec.md`, Running the model, and [ADR 2](../../../docs/adr/0002-codex-cli-for-openai-models.md).
 
 ## Failures and verification
 
@@ -40,7 +52,7 @@ After ten minutes the child receives SIGTERM, then SIGKILL after two seconds if 
 8 MiB stdout/stderr cap prevents unbounded output buffering. Cleanup waits for the child to close.
 
 Run `npx vitest run worker/src/model/` for the two issue-confirmed seams: reading fixture answers, and the complete
-step with a fake `claude` first on `PATH`. The fake records what it received outside the empty model folder. Tests
+step with a fake `claude` or `codex` first on `PATH` (`index.test.ts`, `codex.test.ts`). The fake records what it received outside the empty model folder. Tests
 never call the real model or use the subscription. Build verification must use a clean snapshot of a commit and
 exercise the actual `worker/dist/worker.js` with fake external commands and a temporary data folder.
 

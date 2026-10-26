@@ -10,8 +10,9 @@ carries it through the native host into the queue file, which the worker writes 
   and the four Claude models, from `@yt-digest/shared`.
 - `saved`: choosing a language or a model saves it in `chrome.storage.local` (only `language` and `model`), shows
   `Saved` for about a second, and shows the same choice when the popup opens again.
-- `openai`: the OpenAI tab lists its four models disabled with `OpenAI models are not supported yet.`; going back to
-  Claude shows the saved model, and nothing was saved.
+- `openai`: the OpenAI tab lists its four models, enabled; choosing one saves it and the footer names Codex CLI.
+- `openai-digest`: a digest asked for an OpenAI model is written by `codex exec` (the built worker with a fake `codex`
+  on a temporary queue file; a real run only with the developer's approval), and the header names the model.
 - `request`: the next Summarize sends `{ videoId, title, language, model }` to the native host, and one after a change
   sends the change.
 - `fallback`: a stored value that is no longer a known ID is replaced by its default in the request.
