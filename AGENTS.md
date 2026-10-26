@@ -48,7 +48,7 @@ Update this table when the layout changes. Rows marked (planned) do not exist ye
 | Looking for | Place |
 |---|---|
 | Code the programs share, exported from `src/index.ts`: the request, the reply and the queue file with their parsers (`parseRequest`, `parseReply`, `parseQueueFile`), and the button's messages (`BUTTON_MESSAGES`) | `shared/` |
-| The Chrome extension: the button on thumbnails, its content script, and the service worker that sends the request to the native host | `extension/` |
+| The Chrome extension: the Summarize item and its content script, the toolbar popup that picks the digest's language and model (kept in `chrome.storage.local`), and the service worker that sends the request with them to the native host | `extension/` |
 | End-to-end tests: the built extension in Playwright's Chromium on made-up pages copying YouTube's markup, with a fake native host | `e2e/` |
 | The Native Messaging host and its Chrome manifest template | `native-host/` |
 | The worker that turns a queued video into a digest: the loop in `src/run-queue.ts`, each step's interface in `src/transcript/`, `src/model/` and `src/destination/`, and its launchd agent | `worker/` |

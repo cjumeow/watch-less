@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>yt-digest</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M8 9h8" />
+        <path d="M8 13h3.5" />
+        <path d="M9.994 19.804l-1.994 1.196v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4" />
+        <path d="M14 21v-4a2 2 0 1 1 4 0v4" />
+        <path d="M14 19h4" />
+        <path d="M21 15v6" />
+      </svg>
+      <h1>yt-digest</h1>
+      <span class="saved" id="saved" role="status"></span>
+    </header>
+
+    <div class="section">
+      <label class="label" for="language">Digest language</label>
+      <select id="language"></select>
+    </div>
+
+    <div class="section">
+      <span class="label" id="model-label">Model</span>
+      <div class="providers" id="providers" role="radiogroup" aria-label="Provider"></div>
+      <div class="models" id="models" role="radiogroup" aria-labelledby="model-label"></div>
+      <p class="note" id="note" hidden></p>
+    </div>
+
+    <footer id="footer"></footer>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

@@ -23,8 +23,8 @@ async function handle(input: AsyncIterable<Uint8Array>, dataDir: string, now: ()
   if (!message.parsed) return { ok: false, error: "invalid-request" };
   const request = parseRequest(message.value);
   if (!request.parsed) return { ok: false, error: "invalid-request" };
-  const { videoId, title } = request.value;
-  const queueFile: QueueFile = { videoId, title, requestedAt: now().toISOString() };
+  // The request holds only what parseRequest accepts: the video, and the language and model when it has them.
+  const queueFile: QueueFile = { ...request.value, requestedAt: now().toISOString() };
   return (await queue(dataDir, queueFile)) ? { ok: true } : { ok: false, error: "queue-unwritable" };
 }
 

@@ -7,3 +7,4 @@ Every user-facing feature of yt-digest, with a file that says how to reach it, d
 |---|---|---|---|
 | Request a digest from the video menu | [request-digest-from-video-menu.md](request-digest-from-video-menu.md) | menu item, toast, native host | built |
 | Find a digest in Heptabase | [find-digest-in-heptabase.md](find-digest-in-heptabase.md) | worker, Heptabase | built |
+| Pick the digest's language and model | [pick-language-and-model.md](pick-language-and-model.md) | toolbar popup, native host | built |

@@ -6,6 +6,12 @@ checkout, so every entry is under Unreleased.
 
 ## [Unreleased]
 
+### Added
+
+- A toolbar popup picks the language digests are written in and the model that writes them, saved as soon as it is
+  chosen and used by the next request. OpenAI's models are listed but disabled until they are supported. The
+  extension now asks for Chrome's `storage` permission, and has a toolbar icon.
+
 ### Changed
 
 - Request a digest with Summarize, first in a video's ⋮ menu (home, search, Watch Later) or the ⋯ under the player;

@@ -3,6 +3,7 @@
 // has no externally_connectable, so no web page can.
 
 import { BUTTON_MESSAGES, parseRequest, type RequestMessage } from "@yt-digest/shared";
+import { savedSettings, STORAGE_KEYS } from "./saved-settings.js";
 import { buttonResult, type ButtonResult, type NativeOutcome } from "./button-result.js";
 
 /** The native host's name, which its manifest declares. */
@@ -32,7 +33,9 @@ async function send(request: RequestMessage): Promise<NativeOutcome> {
 async function handle(message: unknown): Promise<ButtonResult> {
   const request = parseRequest(message);
   if (!request.parsed) return { ok: false, message: BUTTON_MESSAGES.failed };
-  return buttonResult(await send(request.value));
+  // The popup's choices at this moment, so that the next request uses what was chosen last.
+  const settings = savedSettings(await chrome.storage.local.get([...STORAGE_KEYS]).catch(() => ({})));
+  return buttonResult(await send({ videoId: request.value.videoId, title: request.value.title, ...settings }));
 }
 
 chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse: (result: ButtonResult) => void) => {
