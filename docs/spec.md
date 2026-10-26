@@ -241,7 +241,7 @@ and checks:
 1. **Conclusion:** two to four sentences on the video's main point and the conclusion the speaker reaches.
 2. **Main arguments:** one bullet per three minutes of video, at least two and at most ten, a number the worker
    counts and gives the model; each starts with the time range it covers (`12:34–15:10`), linked to that moment in
-   the video, and the ranges do not overlap.
+   the video, and the ranges do not overlap. A range or a moment the model leaves without its link, the worker links.
 3. **References:** the sources the description lists, with its links, and the articles, repositories, books and the
    like the speaker names as sources, linked only when the description links them. Nothing is searched for or
    guessed. Sponsor, affiliate, merchandise and social links are left out, and so are vague appeals that name

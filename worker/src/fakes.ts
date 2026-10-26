@@ -18,6 +18,8 @@ export interface FakeVideo {
   failsAt?: FakeFailure;
   /** The model meets the usage limit. */
   postponed?: boolean;
+  /** What the model writes, `FAKE_SECTIONS` by default. */
+  sections?: string;
 }
 
 export const FAKE_SECTIONS = "## Conclusion\n\nA made-up conclusion.\n\n## Main arguments\n\n## References\n";
@@ -87,7 +89,7 @@ export function fakeSteps(videos: Record<string, FakeVideo> = {}): FakeSteps {
       if (video.failsAt === "crash") throw new Error("A made-up crash");
       failIf(video, "model");
       if (video.postponed === true) return Promise.resolve({ outcome: "postponed" });
-      return Promise.resolve({ outcome: "written", sections: FAKE_SECTIONS, model: input.model });
+      return Promise.resolve({ outcome: "written", sections: video.sections ?? FAKE_SECTIONS, model: input.model });
     },
   };
 
