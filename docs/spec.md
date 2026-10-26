@@ -242,8 +242,9 @@ and checks:
 2. **Main arguments:** one bullet per three minutes of video, at least two and at most ten, a number the worker
    counts and gives the model; each starts with the time range it covers (`12:34–15:10`), linked to that moment in
    the video, and the ranges do not overlap. A range or a moment the model leaves without its link, the worker links.
-3. **References:** the sources the description lists, with its links, and the articles, repositories, books and the
-   like the speaker names as sources, linked only when the description links them. Nothing is searched for or
+3. **References:** the sources the description lists, each its name as a link, and the articles, repositories, books
+   and the like the speaker names as sources, each its name and the moment it is named, linked only when the
+   description links them; nothing else on the line. Nothing is searched for or
    guessed. Sponsor, affiliate, merchandise and social links are left out, and so are vague appeals that name
    nothing.
 

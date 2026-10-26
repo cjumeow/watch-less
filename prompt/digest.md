@@ -107,10 +107,16 @@ What the video cites, as a bullet list, in this order:
    when the description does not list it. Link it only when the same thing is linked in the description; otherwise
    write it without a link. Never search for a link, build one, or write one from memory.
 
+Each bullet is the reference's name and nothing else: no description, no label such as "link", no bare address.
+A reference with a link is its name as a Markdown link; one without is its name, followed by the moment it is named:
+
 ```markdown
-- **<name>**: <what it is, in a few words> ([link title](<url>))
-- **<name>**: <what it is>, named at [12:34](https://www.youtube.com/watch?v=<id>&t=754s)
+- [<name>](<url>)
+- <name> ([12:34](https://www.youtube.com/watch?v=<id>&t=754s))
 ```
+
+The name is the title the description gives the link, or the name the speaker says, in its own language; never
+translated, and never the address itself.
 
 Leave out:
 
