@@ -3,39 +3,40 @@
 Another framework. Another “must-watch” talk. Another video saved for later.
 Keeping up with technology can start to feel like a watch list you will never finish.
 
-Get a faithful **digest** before giving a video your time. Read its conclusion and main arguments, see what it cites,
-and decide whether the full video is worth watching. Stay curious without treating every recommendation as homework.
+yt-digest summarizes a YouTube video for you, on your Mac, with the Claude or ChatGPT plan you already pay for, and
+files the summary in Heptabase. Read it in a minute, then decide whether the full video is worth your time.
 
-## From a thumbnail to a digest
+## From YouTube to Heptabase
 
-Hover a YouTube thumbnail and press its note button. The video becomes a Markdown digest in Heptabase, written in
-English by default, without opening the video.
+Open a video's ⋮ menu on YouTube, on a card or under the player, and choose **Summarize**. You do not have to open
+the video. A few seconds to a few minutes later, a macOS notification says the **digest** is ready: a card in
+Heptabase, tagged `yt-digest`, with the video embedded at the top and three sections:
 
-The digest includes a short conclusion, the video's main arguments in the speaker's own terms, linked to their moments,
-and the references the video cites, with the description's links. The details are in [`docs/spec.md`](docs/spec.md).
+- **Conclusion:** what the video says, in two to four sentences.
+- **Main arguments:** about one per three minutes of video, in the speaker's own terms, each linked to its moment.
+- **References:** what the video cites, such as articles, repositories and books, each as a link.
 
-**Work in progress:** the extension, native host and all worker steps are built. Installation and a real end-to-end
-run still need to be verified before the complete flow is ready to use.
+The toolbar button picks the digest's language (English by default, or 繁體中文, 简体中文, 日本語, 한국어,
+Español) and the model: Claude's, through Claude Code, or OpenAI's, through Codex CLI. The details are in
+[`docs/spec.md`](docs/spec.md).
 
 ## How it runs
 
-Everything runs on this Mac, using the developer's own Claude subscription. Video details, transcripts and digests
-stay outside the repository. The extension remembers no watch history, and Watch Later stays untouched.
+![The Summarize item sends the video to a native host, which queues it; a worker started by launchd fetches the transcript, has Claude or Codex write the digest, and files it in Heptabase.](docs/architecture.svg)
 
-```text
-YouTube thumbnail button
-  → Native Messaging host → local queue
-  → worker, started by launchd
-      → original-language subtitles, automatic captions or local Whisper transcription
-      → claude -p → digest in Heptabase → macOS notification
-```
+- **Local:** the extension, a Native Messaging host and a launchd worker, all on your Mac. There is no server.
+- **Your own plan:** the worker runs `claude -p` or `codex exec`, signed in with your subscription. No API key.
+- **Isolated:** a transcript is someone else's text and may try to instruct the model, so the model runs with
+  nothing it can act with: no web, no shell, none of your settings, an empty folder, and nothing it writes is run.
+- **Private:** what you watch stays on your Mac. The extension keeps only your language and model.
+- **Once per video:** a video already summarized is skipped, and a failed one can be requested again.
 
-The worker uses the done folder to skip a video already digested. A failed digest can be requested again from its
-thumbnail. This is a personal tool, not a hosted service.
+This is a personal tool, not a service.
 
 ## Installing
 
-On this Mac, from a checkout, with Node.js 24, `yt-dlp`, `claude` and the `heptabase` CLI on `PATH`:
+On a Mac, from a checkout, with Node.js 24, `yt-dlp` and the `heptabase` CLI on `PATH`, and `claude` (Claude Code)
+or `codex` (Codex CLI) signed in:
 
 ```bash
 npm install
