@@ -8,8 +8,6 @@
   --hover: #e8eaed;
   --accent: #0b57d0;
   --accent-soft: #d3e3fd;
-  --note: #5f6368;
-  --note-soft: #f1f3f4;
   --ok: #146c2e;
   color-scheme: light dark;
 }
@@ -23,8 +21,6 @@
     --hover: #3c4043;
     --accent: #a8c7fa;
     --accent-soft: #0842a0;
-    --note: #bdc1c6;
-    --note-soft: #35363a;
     --ok: #6dd58c;
   }
 }
@@ -158,25 +154,10 @@ select:focus-visible {
   color: var(--muted);
   font-size: 12px;
 }
-.model:has(input:disabled) {
-  cursor: default;
-  opacity: 0.5;
-}
 
 footer {
   padding: 10px 16px 12px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 12px;
-}
-.note {
-  margin: 10px 0 0;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: var(--note-soft);
-  color: var(--note);
-  font-size: 12px;
-}
-.note[hidden] {
-  display: none;
 }

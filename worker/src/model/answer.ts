@@ -45,3 +45,17 @@ export function readModelAnswer(
 function isUsageLimit(text: string): boolean {
   return /^You've hit your (?:session )?limit · resets [^\r\n]+$/.test(text.trim());
 }
+
+/** Reads the answer Codex wrote with `--output-last-message`, which must have each of `headings`. */
+export function readCodexAnswer(
+  answer: string | undefined,
+  exitCode: number,
+  expected: { headings: readonly string[]; model: string },
+): ModelAnswer {
+  // Codex's usage-limit message is not confirmed, so it fails here like any other error.
+  if (exitCode !== 0 || answer === undefined) throw new DigestFailure("The model failed to write a digest");
+  const lines = answer.split(/\r?\n/).map((line) => line.trim());
+  if (expected.headings.some((heading) => !lines.includes(heading)))
+    throw new DigestFailure("The digest was incomplete");
+  return { outcome: "written", sections: answer, model: expected.model };
+}

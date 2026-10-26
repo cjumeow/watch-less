@@ -85,15 +85,13 @@ describe("runQueue", () => {
     );
   });
 
-  test("fails a digest asking for an OpenAI model, before any step runs", async () => {
+  test("writes the digest with an OpenAI model when the queue file asks for one", async () => {
     await queue("aB3_x-9Zq0Y", "A made-up video", undefined, { model: "gpt-6-luna" });
 
-    const { steps, notifier } = await run();
+    const { steps } = await run();
 
-    expect(steps.calls).toEqual([]);
-    expect(await list("queue")).toEqual([]);
-    expect(await list("done")).toEqual([]);
-    expect(notifier.sent).toEqual(["Digest failed: A made-up video: OpenAI models are not supported yet"]);
+    expect(steps.settings).toEqual([{ language: "en", model: "gpt-6-luna" }]);
+    expect(await readFile(join(dataFolder, "done", "aB3_x-9Zq0Y.md"), "utf8")).toContain("\n- Model: gpt-6-luna\n");
   });
 
   test("takes the oldest request first", async () => {

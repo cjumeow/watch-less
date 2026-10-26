@@ -1,6 +1,6 @@
 # The digest prompt
 
-[`digest.md`](digest.md) is the system prompt `claude -p` follows to write a digest. This file is the contract between
+[`digest.md`](digest.md) is the system prompt `claude -p` (or `codex exec`, as its instructions) follows to write a digest. This file is the contract between
 it and the worker's model step: what the worker sends the model, and what it gets back. A change to either side
 changes both, in the same pull request. How the model is run (its tools, flags and environment) is in
 [`docs/spec.md`, Running the model](../docs/spec.md#running-the-model).
