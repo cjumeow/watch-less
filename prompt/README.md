@@ -51,7 +51,7 @@ heading from `Headings:` on a line of its own. In English:
 |---|---|
 | `## Conclusion` | The video's main point and the speaker's conclusion, in two to four sentences |
 | `## Main arguments` | As many bullets as `Main arguments:` says, each starting with its linked time range, none overlapping |
-| `## References` | The sources the description lists, with its links, and those the speaker names, or a sentence saying it cites none |
+| `## References` | The sources the description lists, each its name as a link, and those the speaker names, each its name and moment, or a sentence saying it cites none |
 
 The worker fails the digest (`The digest was incomplete`) when one of the three headings it sent is missing. The model writes no
 title and no header: the worker writes the header above the sections, as `docs/spec.md` describes.

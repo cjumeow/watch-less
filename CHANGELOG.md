@@ -28,6 +28,8 @@ checkout, so every entry is under Unreleased.
 
 ### Fixed
 
+- A digest's references are each just the name as a link, or the name and the moment it is named, without a
+  description or a bare address.
 - A main argument's time range, or a moment, that the model writes without its link now links to that moment
   in the video.
 - The Summarize item shows in the watch page's ⋯ menu too: YouTube draws that ⋯ with newer markup than the
