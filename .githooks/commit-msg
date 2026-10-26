@@ -1,0 +1,4 @@
+#!/bin/sh
+# Refuses a commit whose subject would fail the pull request title check, so a long or malformed title is caught
+# when the commit is written, not after the pull request is opened. npm install points git at this folder.
+exec node "$(git rev-parse --show-toplevel)/scripts/check-title.mjs" --commit-msg "$1"

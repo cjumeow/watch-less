@@ -55,6 +55,7 @@ Update this table when the layout changes. Rows marked (planned) do not exist ye
 | The digest prompt, the contract with the worker, and the evaluations | `prompt/` |
 | Shared TypeScript settings, lint and format rules | `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json` |
 | Repository checks that are not lint rules, the scripts hooks run, and `install-local.sh`, which installs yt-digest for this account, with their tests | `scripts/` |
+| Git hooks, which `npm install` turns on: `commit-msg` refuses a subject the pull request title check would | `.githooks/` |
 | Claude Code hooks for every agent in this repository: Prettier formats each file an agent writes or edits | `.claude/settings.json` |
 | Skills for developing this repository | `.claude/skills/<name>/SKILL.md` (other agents read them through the `.agents/skills` link) |
 | Where each third-party skill came from, at which commit | `.claude/skills/THIRD_PARTY.md` |
