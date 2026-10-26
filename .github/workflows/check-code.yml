@@ -55,8 +55,19 @@ jobs:
         run: npm test
       - if: steps.scope.outputs.code == 'true'
         run: npm run build
-      # The end-to-end tests load the built extension in Playwright's own Chromium, so they run after the build.
+      # The end-to-end tests load the built extension in Playwright's own Chromium, so they run after the build. Its
+      # download is cached by Playwright's version. `--with-deps` is not used: it installs fonts and xvfb through apt,
+      # whose Azure mirror has stalled runs for half an hour, and the runner image already has Chromium's libraries.
       - if: steps.scope.outputs.code == 'true'
-        run: npx playwright install --with-deps chromium
+        id: playwright
+        run: echo "version=$(npx playwright --version | cut -d ' ' -f 2)" >> "$GITHUB_OUTPUT"
+      - if: steps.scope.outputs.code == 'true'
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - if: steps.scope.outputs.code == 'true'
+        timeout-minutes: 5
+        run: npx playwright install chromium
       - if: steps.scope.outputs.code == 'true'
         run: npm run test:e2e
