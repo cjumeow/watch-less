@@ -1,7 +1,7 @@
 // The interface of the worker's model step: `claude -p` writes the digest's sections from the transcript.
 
 import type { Transcript } from "../transcript/transcript-step.js";
-import type { Language } from "./languages.js";
+import type { LanguageId } from "@yt-digest/shared";
 
 /** What the model is given; the step turns it into the stdin `prompt/README.md` describes. */
 export interface DigestInput {
@@ -11,7 +11,7 @@ export interface DigestInput {
   description: string;
   transcript: Transcript;
   /** The language the digest is written in, which also sets its section headings. */
-  language: Language;
+  language: LanguageId;
   /** The model that writes it, as `claude --model` takes it, recorded in the header. */
   model: string;
 }

@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "vitest";
 import { readModelAnswer } from "./answer.js";
-import { LANGUAGES } from "./languages.js";
+import { HEADINGS } from "./languages.js";
 
-const english = { headings: LANGUAGES.en.headings, model: "claude-made-up" };
+const english = { headings: HEADINGS.en, model: "claude-made-up" };
 
 async function fixture(name: string): Promise<string> {
   return readFile(new URL(`./fixtures/${name}`, import.meta.url), "utf8");
@@ -60,7 +60,7 @@ test("does not treat a digest quoting the limit message as a postponed request",
 
 test("checks the headings of the language asked for", async () => {
   const output = await fixture("written.json");
-  expect(() =>
-    readModelAnswer(output, 0, { headings: LANGUAGES["zh-Hant"].headings, model: "claude-made-up" }),
-  ).toThrow("The digest was incomplete");
+  expect(() => readModelAnswer(output, 0, { headings: HEADINGS["zh-Hant"], model: "claude-made-up" })).toThrow(
+    "The digest was incomplete",
+  );
 });

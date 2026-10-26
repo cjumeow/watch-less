@@ -8,6 +8,22 @@ describe("parseQueueFile", () => {
     expect(parseQueueFile(queueFile)).toEqual({ parsed: true, value: queueFile });
   });
 
+  test("accepts a language and a model it knows", () => {
+    const withSettings = { ...queueFile, language: "ja", model: "claude-opus-5-5" };
+    expect(parseQueueFile(withSettings)).toEqual({ parsed: true, value: withSettings });
+  });
+
+  test.each([
+    ["language", "fr"],
+    ["model", "claude-made-up"],
+    ["model", "--model"],
+  ])("refuses a %s it does not know: %s", (name, value) => {
+    expect(parseQueueFile({ ...queueFile, [name]: value })).toEqual({
+      parsed: false,
+      reason: expect.stringContaining(name) as string,
+    });
+  });
+
   test.each([
     ["10 characters", "aB3_x-9Zq0"],
     ["12 characters", "aB3_x-9Zq0YY"],

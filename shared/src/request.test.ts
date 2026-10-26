@@ -50,6 +50,35 @@ describe("parseRequest", () => {
     });
   });
 
+  test("accepts a language and a model it knows", () => {
+    const request = {
+      videoId: "aB3_x-9Zq0Y",
+      title: "A made-up video",
+      language: "zh-Hant",
+      model: "claude-sonnet-5-5",
+    };
+    expect(parseRequest(request)).toEqual({ parsed: true, value: request });
+  });
+
+  test("accepts an OpenAI model, which the worker refuses later", () => {
+    const request = { videoId: "aB3_x-9Zq0Y", title: "A made-up video", model: "gpt-6.1-sol" };
+    expect(parseRequest(request)).toEqual({ parsed: true, value: request });
+  });
+
+  test.each([
+    ["language", "fr"],
+    ["language", "zh-hant"],
+    ["language", 1],
+    ["model", "claude-made-up"],
+    ["model", "--dangerously-skip-permissions"],
+    ["model", ""],
+  ])("refuses a %s it does not know: %s", (name, value) => {
+    expect(parseRequest({ videoId: "aB3_x-9Zq0Y", title: "A made-up video", [name]: value })).toEqual({
+      parsed: false,
+      reason: expect.stringContaining(name) as string,
+    });
+  });
+
   test("refuses fields it inherits rather than holds", () => {
     expect(parseRequest(Object.create({ videoId: "aB3_x-9Zq0Y", title: "A made-up video" }))).toMatchObject({
       parsed: false,
