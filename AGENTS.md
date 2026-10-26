@@ -1,6 +1,6 @@
 # yt-digest
 
-A button on each YouTube thumbnail that turns the video into a neutral, evidence-backed summary, a **digest**: a
+A button on each YouTube thumbnail that turns the video into a faithful summary, a **digest**: a
 Markdown document, delivered to a **destination** (Heptabase first), without opening the video. A Chrome extension
 sends the request through a Native Messaging host; a worker on this Mac fetches the transcript, asks `claude -p` for
 the digest, and delivers it.
@@ -24,7 +24,7 @@ skills, agent files, testing. So besides doing the task:
 - When a practice is worth reusing in other projects, propose turning it into a skill. Do not create one unasked.
 
 Talk with the developer in Traditional Chinese (繁體中文). Everything in the repository (code, docs, commit messages,
-pull requests) is in English. The digests themselves are written in Traditional Chinese.
+pull requests) is in English; a digest is in the language the developer picks, English by default.
 
 ## Principles that shape the design
 

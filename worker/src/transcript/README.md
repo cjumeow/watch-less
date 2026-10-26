@@ -9,7 +9,7 @@ send as untrusted data. The model step remains separate; this adapter never judg
 
 The worker's `PATH` must contain `yt-dlp`, Node.js 24, `ffmpeg`, and `mlx_whisper`. Whisper uses
 `mlx-community/whisper-large-v3-turbo` on this Mac and may download its model on first use. Its explicit `transcribe`
-task keeps the audio's language; the model step later writes the digest in Traditional Chinese.
+task keeps the audio's language; the model step later writes the digest in the language asked for.
 
 Every yt-dlp call ignores local config, so a developer's download paths, subtitle preferences or postprocessors do
 not change worker behavior. Node is explicitly enabled as yt-dlp's JavaScript runtime. Commands receive argument

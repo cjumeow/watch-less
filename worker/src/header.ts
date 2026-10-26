@@ -1,22 +1,18 @@
-import type { TranscriptSource } from "./transcript/transcript-step.js";
-
 /** What the header says about one digest. */
 export interface HeaderDetails {
   videoId: string;
   title: string;
   channel: string;
+  /** The channel's page as YouTube gives it; empty when it gives none, and the channel is then written without a link. */
+  channelUrl: string;
   durationSeconds: number;
   /** As the queue file holds it, in UTC. */
   requestedAt: string;
-  transcriptSource: TranscriptSource;
   model: string;
 }
 
-const SOURCE_NAMES: Record<TranscriptSource, string> = {
-  subtitles: "字幕",
-  "automatic-captions": "自動字幕",
-  whisper: "Whisper",
-};
+/** A channel page the header links to: on YouTube, with nothing that could end a Markdown link or start another. */
+const CHANNEL_URL = /^https:\/\/www\.youtube\.com\/[\w@%./-]+$/;
 
 export function videoLink(videoId: string): string {
   return `https://www.youtube.com/watch?v=${videoId}`;
@@ -32,11 +28,10 @@ export function formatHeader(details: HeaderDetails, timeZone?: string): string 
     "",
     videoLink(details.videoId),
     "",
-    `- 頻道：${oneLine(details.channel)}`,
-    `- 長度：${formatDuration(details.durationSeconds)}`,
-    `- 請求時間：${formatLocalTime(details.requestedAt, timeZone)}`,
-    `- 逐字稿來源：${SOURCE_NAMES[details.transcriptSource]}`,
-    `- 模型：${oneLine(details.model)}`,
+    `- Channel: ${formatChannel(details.channel, details.channelUrl)}`,
+    `- Length: ${formatDuration(details.durationSeconds)}`,
+    `- Added: ${formatLocalTime(details.requestedAt, timeZone)}`,
+    `- Model: ${oneLine(details.model)}`,
     "",
   ].join("\n");
 }
@@ -44,6 +39,12 @@ export function formatHeader(details: HeaderDetails, timeZone?: string): string 
 /** The title and channel come from YouTube, so a line break in them must not start a line of its own. */
 function oneLine(text: string): string {
   return text.replace(/\s+/g, " ").trim();
+}
+
+/** The channel's name, linked to its page when YouTube gives one the header can trust. */
+function formatChannel(name: string, url: string): string {
+  if (!CHANNEL_URL.test(url)) return oneLine(name);
+  return `[${oneLine(name).replace(/[\\[\]]/g, "\\$&")}](${url})`;
 }
 
 /** `m:ss` under an hour and `h:mm:ss` from an hour on, as the transcript's timestamps are written. */

@@ -5,6 +5,7 @@ import { DigestFailure } from "./digest-failure.js";
 import type { Destination } from "./destination/destination.js";
 import { formatHeader, videoLink } from "./header.js";
 import { fileLog, type Log } from "./log.js";
+import { DEFAULT_SETTINGS } from "./model/languages.js";
 import type { ModelStep } from "./model/model-step.js";
 import type { NotificationTitle, Notifier } from "./notifier.js";
 import type { TranscriptStep } from "./transcript/transcript-step.js";
@@ -90,6 +91,7 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
       title,
       description: video.details.description,
       transcript,
+      ...DEFAULT_SETTINGS,
     });
     if (answer.outcome === "postponed") {
       postponed = true;
@@ -99,9 +101,9 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
           videoId,
           title,
           channel: video.details.channel,
+          channelUrl: video.details.channelUrl,
           durationSeconds: video.details.durationSeconds,
           requestedAt: request.requestedAt,
-          transcriptSource: transcript.source,
           model: answer.model,
         },
         run.timeZone,

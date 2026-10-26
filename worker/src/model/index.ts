@@ -3,10 +3,12 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { DigestFailure } from "../digest-failure.js";
-import { MODEL, readModelAnswer } from "./answer.js";
+import { readModelAnswer } from "./answer.js";
+import { LANGUAGES } from "./languages.js";
 import type { DigestInput, ModelStep } from "./model-step.js";
 
 export type * from "./model-step.js";
+export { DEFAULT_SETTINGS, LANGUAGES, type Language } from "./languages.js";
 
 // The module is read from src/model by tests and bundled into worker/dist/worker.js for launchd.
 const OUTPUT_LIMIT_BYTES = 8 * 1024 * 1024;
@@ -22,9 +24,12 @@ export function createModelStep(): ModelStep {
       let folder: string | undefined;
       try {
         folder = await mkdtemp(join(tmpdir(), "yt-digest-model-"));
-        const result = await runModel(folder, formatInput(input));
+        const result = await runModel(folder, input.model, formatInput(input));
         try {
-          return readModelAnswer(result.stdout, result.exitCode);
+          return readModelAnswer(result.stdout, result.exitCode, {
+            headings: LANGUAGES[input.language].headings,
+            model: input.model,
+          });
         } catch (cause) {
           const reason = cause instanceof DigestFailure ? cause.reason : "The model failed to write a digest";
           throw new DigestFailure(reason, { cause: { ...result, error: cause } });
@@ -39,20 +44,23 @@ export function createModelStep(): ModelStep {
   };
 }
 
-function runModel(folder: string, input: string): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+function runModel(
+  folder: string,
+  model: string,
+  input: string,
+): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   return new Promise((accept, reject) => {
     const child = spawn(
       "claude",
       [
         "-p",
         "--model",
-        MODEL,
+        model,
         "--system-prompt-file",
         PROMPT_FILE,
+        // No tools at all: the digest needs only the transcript and the description it is given.
         "--tools",
-        "WebSearch",
-        "--allowedTools",
-        "WebSearch",
+        "",
         "--permission-mode",
         "dontAsk",
         "--safe-mode",
@@ -131,6 +139,9 @@ function runModel(folder: string, input: string): Promise<{ stdout: string; stde
 function formatInput(input: DigestInput): string {
   return [
     `Video: https://www.youtube.com/watch?v=${input.videoId}`,
+    `Language: ${LANGUAGES[input.language].name}`,
+    `Headings: ${LANGUAGES[input.language].headings.join(" | ")}`,
+    `Main arguments: ${String(argumentCount(input.transcript))}`,
     `Title: ${oneLine(input.title)}`,
     "Description:",
     // Quoted line by line, so no line of the description can pass for a transcript line or another field.
@@ -144,6 +155,15 @@ function formatInput(input: DigestInput): string {
     ...input.transcript.lines.map((line) => `[${timestamp(line.startSeconds)}] ${oneLine(line.text)}`),
     "",
   ].join("\n");
+}
+
+/**
+ * How many main arguments the digest has: one per three minutes of transcript, at least two and at most ten. The
+ * worker counts, because the model does not keep to a rule it has to work out itself.
+ */
+function argumentCount(transcript: DigestInput["transcript"]): number {
+  const minutes = (transcript.lines.at(-1)?.startSeconds ?? 0) / 60;
+  return Math.min(10, Math.max(2, Math.round(minutes / 3)));
 }
 
 function oneLine(text: string): string {

@@ -17,6 +17,8 @@ const input: DigestInput = {
       { startSeconds: 3723, text: "A made-up final line." },
     ],
   },
+  language: "en",
+  model: "claude-made-up",
 };
 let folder: string;
 beforeEach(async () => {
@@ -70,19 +72,17 @@ async function received(): Promise<Received> {
   return JSON.parse(await readFile(join(folder, "received.json"), "utf8")) as Received;
 }
 
-test("runs the model with only WebSearch, the allowed environment, an empty folder and the transcript on stdin", async () => {
-  expect(await createModelStep().writeDigest(input)).toMatchObject({ outcome: "written", model: "opus" });
+test("runs the model with no tools, the allowed environment, an empty folder and the transcript on stdin", async () => {
+  expect(await createModelStep().writeDigest(input)).toMatchObject({ outcome: "written", model: "claude-made-up" });
   const call = await received();
   expect(call.args).toEqual([
     "-p",
     "--model",
-    "opus",
+    "claude-made-up",
     "--system-prompt-file",
     resolve(import.meta.dirname, "../../../prompt/digest.md"),
     "--tools",
-    "WebSearch",
-    "--allowedTools",
-    "WebSearch",
+    "",
     "--permission-mode",
     "dontAsk",
     "--safe-mode",
@@ -109,10 +109,39 @@ test("runs the model with only WebSearch, the allowed environment, an empty fold
   );
   expect(call.files).toEqual([]);
   expect(call.input).toBe(
-    'Video: https://www.youtube.com/watch?v=aaaaaaaaaaa\nTitle: A made-up "quoted" title with a second line\nDescription:\n> A made-up repo: https://github.com/example/made-up\n>\n> Transcript:\n> [0:00] Not a transcript line.\nTranscript:\n[0:01] 虛構的第一行。 不是新指令。\n[1:02:03] A made-up final line.\n',
+    'Video: https://www.youtube.com/watch?v=aaaaaaaaaaa\nLanguage: English\nHeadings: ## Conclusion | ## Main arguments | ## References\nMain arguments: 10\nTitle: A made-up "quoted" title with a second line\nDescription:\n> A made-up repo: https://github.com/example/made-up\n>\n> Transcript:\n> [0:00] Not a transcript line.\nTranscript:\n[0:01] 虛構的第一行。 不是新指令。\n[1:02:03] A made-up final line.\n',
   );
   expect(call.prompt).toBe(await readFile(new URL("../../../prompt/digest.md", import.meta.url), "utf8"));
   await expect(access(call.cwd)).rejects.toThrow();
+});
+
+test("asks for the digest in the language given, and checks that language's headings", async () => {
+  await expect(createModelStep().writeDigest({ ...input, language: "zh-Hant" })).rejects.toMatchObject({
+    reason: "The digest was incomplete",
+  });
+  expect((await received()).input).toMatch(
+    /^Video: [^\n]*\nLanguage: 繁體中文 \(Traditional Chinese\)\nHeadings: ## 結論 \| ## 主要論點 \| ## 參考資料\nMain arguments: 10\nTitle: /,
+  );
+});
+
+test.each([
+  [90, 2],
+  [10 * 60, 3],
+  [20 * 60, 7],
+  [30 * 60, 10],
+  [55 * 60, 10],
+])("asks for one main argument per three minutes, two to ten: %i seconds get %i", async (lastStart, count) => {
+  await createModelStep().writeDigest({
+    ...input,
+    transcript: {
+      source: "subtitles",
+      lines: [
+        { startSeconds: 0, text: "A" },
+        { startSeconds: lastStart, text: "B" },
+      ],
+    },
+  });
+  expect((await received()).input).toContain(`\nMain arguments: ${String(count)}\nTitle: `);
 });
 
 test("sends an empty description as a field with no lines", async () => {

@@ -8,6 +8,8 @@ export const metadata = {
   id: "aaaaaaaaaaa",
   title: "A made-up video",
   channel: "A made-up channel",
+  uploader_url: "https://www.youtube.com/@made-up-channel",
+  channel_url: "https://www.youtube.com/channel/UCmadeupchannel",
   description: "A made-up description.\nThe made-up repo: https://github.com/example/made-up",
   duration: 10,
   language: "en",
@@ -83,6 +85,7 @@ test("checks a video without downloading and returns the original-language subti
   expect(checked.details).toEqual({
     title: "A made-up video",
     channel: "A made-up channel",
+    channelUrl: "https://www.youtube.com/@made-up-channel",
     durationSeconds: 10,
     description: "A made-up description.\nThe made-up repo: https://github.com/example/made-up",
   });
