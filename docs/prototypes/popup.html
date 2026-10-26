@@ -1,0 +1,497 @@
+<!doctype html>
+<!--
+  A clickable prototype of the extension's popup, which opens from its button in Chrome's toolbar and picks the
+  language digests are written in and the model that writes them. Open it in a browser; nothing is sent or stored.
+
+  Two providers, each through its own command-line tool and the developer's own plan, never an API key: Claude through
+  Claude Code (`claude -p`) and OpenAI through Codex CLI (`codex exec`) signed in with ChatGPT. The models are the ones
+  each provider's documentation lists for that tool, checked in October 2026:
+  https://support.claude.com/en/articles/11940350 and https://learn.chatgpt.com/docs/models.
+
+  A choice is saved as soon as it is made and applies to the next digest requested. The panel above the popup tries
+  the case where a provider's tool is not installed on this Mac.
+
+  The icon is Tabler's message-ai (MIT licence, https://tabler.io/icons).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Popup prototype</title>
+    <style>
+      :root {
+        --page: #dee1e6;
+        --toolbar: #fff;
+        --toolbar-text: #3c4043;
+        --popup: #fff;
+        --text: #1f1f1f;
+        --muted: #5f6368;
+        --line: #e3e3e3;
+        --field: #f1f3f4;
+        --hover: #e8eaed;
+        --accent: #0b57d0;
+        --accent-soft: #d3e3fd;
+        --warn: #b3261e;
+        --warn-soft: #fce8e6;
+        --ok: #146c2e;
+      }
+      :root[data-theme="dark"] {
+        --page: #202124;
+        --toolbar: #35363a;
+        --toolbar-text: #e8eaed;
+        --popup: #292a2d;
+        --text: #e8eaed;
+        --muted: #9aa0a6;
+        --line: #3c4043;
+        --field: #35363a;
+        --hover: #3c4043;
+        --accent: #a8c7fa;
+        --accent-soft: #0842a0;
+        --warn: #f2b8b5;
+        --warn-soft: #601410;
+        --ok: #6dd58c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        min-height: 100vh;
+        background: var(--page);
+        color: var(--text);
+        font:
+          13px/1.4 system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        align-items: center;
+        margin-bottom: 16px;
+        color: var(--toolbar-text);
+      }
+      .controls label {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      /* A stand-in for Chrome's toolbar, with the extension's button at its right. */
+      .toolbar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 44px;
+        padding: 0 8px 0 12px;
+        border-radius: 10px 10px 0 0;
+        background: var(--toolbar);
+        color: var(--toolbar-text);
+      }
+      .omnibox {
+        flex: 1;
+        height: 32px;
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        border-radius: 16px;
+        background: var(--field);
+        color: var(--muted);
+      }
+      .action {
+        all: unset;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
+      .action:hover,
+      .action[aria-expanded="true"] {
+        background: var(--hover);
+      }
+      .action:focus-visible {
+        outline: 2px solid var(--accent);
+      }
+      .action svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* The popup: what the extension's popup.html will hold. Chrome sizes it to its content, up to 800 × 600. */
+      .popup {
+        position: absolute;
+        top: 46px;
+        right: 8px;
+        z-index: 1;
+        width: min(340px, calc(100% - 16px));
+        border-radius: 8px;
+        background: var(--popup);
+        color: var(--text);
+        box-shadow:
+          0 1px 3px rgb(0 0 0 / 30%),
+          0 4px 8px 3px rgb(0 0 0 / 15%);
+      }
+      .popup[hidden] {
+        display: none;
+      }
+      .popup header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 16px 10px;
+      }
+      .popup header svg {
+        width: 20px;
+        height: 20px;
+        color: var(--accent);
+      }
+      .popup h1 {
+        flex: 1;
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .saved {
+        color: var(--ok);
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .saved.shown {
+        opacity: 1;
+      }
+      .section {
+        padding: 10px 16px 14px;
+        border-top: 1px solid var(--line);
+      }
+      .section > .label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+      select {
+        width: 100%;
+        height: 34px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 6px;
+        background: var(--field);
+        color: var(--text);
+        font: inherit;
+      }
+      select:focus-visible {
+        outline: 2px solid var(--accent);
+      }
+
+      .providers {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        padding: 3px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        background: var(--field);
+      }
+      .providers label {
+        display: grid;
+        place-items: center;
+        height: 30px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      .providers input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .providers label:has(input:checked) {
+        background: var(--popup);
+        box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+      }
+      .providers label:has(input:focus-visible) {
+        outline: 2px solid var(--accent);
+      }
+
+      .models {
+        display: grid;
+        gap: 2px;
+      }
+      .model {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 2px 10px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .model:hover {
+        background: var(--hover);
+      }
+      .model:has(input:checked) {
+        background: var(--accent-soft);
+      }
+      .model input {
+        grid-row: span 2;
+        margin: 2px 0 0;
+        accent-color: var(--accent);
+      }
+      .model .name {
+        font-weight: 500;
+      }
+      .model .tag {
+        margin-left: 6px;
+        padding: 1px 6px;
+        border-radius: 8px;
+        background: var(--field);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 500;
+      }
+      .model .about {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .model:has(input:disabled) {
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      .warning {
+        margin-top: 10px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        background: var(--warn-soft);
+        color: var(--warn);
+        font-size: 12px;
+      }
+      .warning[hidden] {
+        display: none;
+      }
+      .warning code {
+        font:
+          11px ui-monospace,
+          Menlo,
+          monospace;
+      }
+      footer {
+        padding: 10px 16px 12px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <label><input type="checkbox" id="dark" /> Dark theme</label>
+      <label><input type="checkbox" id="claude-missing" /> Claude Code not installed</label>
+      <label><input type="checkbox" id="codex-missing" /> Codex CLI not installed</label>
+    </div>
+
+    <div class="toolbar">
+      <span class="omnibox">youtube.com</span>
+      <button class="action" type="button" aria-label="yt-digest" aria-haspopup="dialog" aria-expanded="true">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M8 9h8" />
+          <path d="M8 13h3.5" />
+          <path d="M9.994 19.804l-1.994 1.196v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4" />
+          <path d="M14 21v-4a2 2 0 1 1 4 0v4" />
+          <path d="M14 19h4" />
+          <path d="M21 15v6" />
+        </svg>
+      </button>
+
+      <div class="popup" id="popup" role="dialog" aria-label="yt-digest settings">
+        <header>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M8 9h8" />
+            <path d="M8 13h3.5" />
+            <path d="M9.994 19.804l-1.994 1.196v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4" />
+            <path d="M14 21v-4a2 2 0 1 1 4 0v4" />
+            <path d="M14 19h4" />
+            <path d="M21 15v6" />
+          </svg>
+          <h1>yt-digest</h1>
+          <span class="saved" id="saved" role="status">Saved</span>
+        </header>
+
+        <div class="section">
+          <label class="label" for="language">Digest language</label>
+          <select id="language">
+            <option value="en">English</option>
+            <option value="zh-Hant">繁體中文</option>
+            <option value="zh-Hans">简体中文</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+
+        <div class="section">
+          <span class="label" id="model-label">Model</span>
+          <div class="providers" role="radiogroup" aria-label="Provider">
+            <label><input type="radio" name="provider" value="claude" checked />Claude</label>
+            <label><input type="radio" name="provider" value="openai" />OpenAI</label>
+          </div>
+          <div class="models" id="models" role="radiogroup" aria-labelledby="model-label"></div>
+          <p class="warning" id="warning" hidden></p>
+        </div>
+
+        <footer id="footer"></footer>
+      </div>
+    </div>
+
+    <script type="module">
+      const PROVIDERS = {
+        claude: {
+          tool: "Claude Code",
+          command: "claude",
+          plan: "your Claude subscription",
+          install: "npm install -g @anthropic-ai/claude-code",
+          models: [
+            {
+              id: "claude-haiku-5-5",
+              name: "Haiku 5.5",
+              about: "Fastest, uses the least of your plan",
+              tag: "Default",
+            },
+            { id: "claude-sonnet-5-5", name: "Sonnet 5.5", about: "Balanced speed and depth" },
+            { id: "claude-opus-5-5", name: "Opus 5.5", about: "Most capable for complex work" },
+            { id: "claude-fable-5-1", name: "Fable 5.1", about: "Newest Claude model" },
+          ],
+        },
+        openai: {
+          tool: "Codex CLI",
+          command: "codex",
+          plan: "your ChatGPT plan",
+          install: "npm install -g @openai/codex && codex login",
+          models: [
+            {
+              id: "gpt-6-luna",
+              name: "GPT-6 Luna",
+              about: "Most efficient, for summaries and extraction",
+              tag: "Default",
+            },
+            { id: "gpt-6-sol", name: "GPT-6 Sol", about: "General purpose" },
+            { id: "gpt-6.1-sol", name: "GPT-6.1 Sol", about: "Near-Astra quality at lower cost" },
+            { id: "gpt-6-astra", name: "GPT-6 Astra", about: "Most capable for complex work" },
+          ],
+        },
+      };
+
+      // The extension will keep these in chrome.storage.local; the prototype keeps them in memory.
+      const settings = {
+        language: "en",
+        provider: "claude",
+        model: { claude: "claude-haiku-5-5", openai: "gpt-6-luna" },
+      };
+
+      const models = document.querySelector("#models");
+      const warning = document.querySelector("#warning");
+      const footer = document.querySelector("#footer");
+
+      function installed(provider) {
+        return !document.querySelector(provider === "claude" ? "#claude-missing" : "#codex-missing").checked;
+      }
+
+      function render() {
+        const provider = PROVIDERS[settings.provider];
+        const available = installed(settings.provider);
+        models.replaceChildren(
+          ...provider.models.map((model) => {
+            const row = document.createElement("label");
+            row.className = "model";
+            row.innerHTML = `<input type="radio" name="model" /><span><span class="name"></span></span><span class="about"></span>`;
+            const input = row.querySelector("input");
+            input.value = model.id;
+            input.checked = settings.model[settings.provider] === model.id;
+            input.disabled = !available;
+            row.querySelector(".name").textContent = model.name;
+            if (model.tag) {
+              const tag = document.createElement("span");
+              tag.className = "tag";
+              tag.textContent = model.tag;
+              row.querySelector(".name").after(tag);
+            }
+            row.querySelector(".about").textContent = model.about;
+            input.addEventListener("change", () => {
+              settings.model[settings.provider] = model.id;
+              save();
+            });
+            return row;
+          }),
+        );
+        warning.hidden = available;
+        warning.innerHTML = `${provider.tool} is not installed on this Mac, so digests cannot use it. Install it and sign in: <code></code>`;
+        warning.querySelector("code").textContent = provider.install;
+        footer.textContent = available
+          ? `Runs on this Mac with ${provider.tool} and ${provider.plan}. No API key. Applies to the next digest you request.`
+          : `Digests keep using the last model that works until ${provider.tool} is installed.`;
+      }
+
+      let hideSaved;
+      function save() {
+        console.log("saved", structuredClone(settings));
+        const saved = document.querySelector("#saved");
+        saved.classList.add("shown");
+        clearTimeout(hideSaved);
+        hideSaved = setTimeout(() => saved.classList.remove("shown"), 1200);
+      }
+
+      document.querySelector("#language").addEventListener("change", (event) => {
+        settings.language = event.target.value;
+        save();
+      });
+      for (const input of document.querySelectorAll('input[name="provider"]')) {
+        input.addEventListener("change", () => {
+          settings.provider = input.value;
+          render();
+          if (installed(input.value)) save();
+        });
+      }
+      for (const id of ["#claude-missing", "#codex-missing"])
+        document.querySelector(id).addEventListener("change", render);
+
+      const action = document.querySelector(".action");
+      const popup = document.querySelector("#popup");
+      action.addEventListener("click", () => {
+        popup.hidden = !popup.hidden;
+        action.setAttribute("aria-expanded", String(!popup.hidden));
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !popup.hidden) action.click();
+      });
+      document.querySelector("#dark").addEventListener("change", (event) => {
+        document.documentElement.dataset.theme = event.target.checked ? "dark" : "light";
+      });
+
+      render();
+    </script>
+  </body>
+</html>
