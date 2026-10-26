@@ -137,29 +137,95 @@ describe("setup.sh --check", () => {
 });
 
 describe("setup.sh", () => {
-  it("installs the missing Homebrew tools after the developer agrees", () => {
+  /** Homebrew, uv and npm, made up: each only records what it was asked. */
+  function installers() {
+    command("brew", "/opt/homebrew/opt/node@24");
+    command("uv");
+    command("npm");
+  }
+
+  it("with everything there, installs yt-digest without asking anything", () => {
     everything();
-    rmSync(join(bin, "yt-dlp"));
-    rmSync(join(bin, "ffmpeg"));
-    command("brew");
+    installers();
+    const { code, output } = setup([]);
+    expect(code).toBe(0);
+    expect(calls()).toContain("npm install");
+    expect(calls()).toContain("npm run install-local");
+    expect(calls()).not.toContain("brew install");
+    expect(output).toContain("chrome://extensions");
+  });
+
+  it("installs every missing tool after one yes, then yt-digest", () => {
+    everything();
+    for (const tool of ["yt-dlp", "ffmpeg", "mlx_whisper"]) rmSync(join(bin, tool));
+    installers();
     setup([], "y\n");
     expect(calls()).toContain("brew install yt-dlp ffmpeg");
+    expect(calls()).toContain("uv tool install mlx-whisper");
+  });
+
+  it("installs Node.js 24 with Homebrew when this Mac has another", () => {
+    everything();
+    command("node", "v22.11.0");
+    installers();
+    setup([], "y\n");
+    expect(calls()).toContain("brew install node@24");
+  });
+
+  it("installs uv first when mlx_whisper needs it", () => {
+    everything();
+    rmSync(join(bin, "mlx_whisper"));
+    command("brew");
+    command("npm");
+    setup([], "y\n");
+    expect(calls()).toContain("brew install uv");
+  });
+
+  it("asks which of Claude Code and Codex CLI to install when there is neither", () => {
+    everything();
+    rmSync(join(bin, "claude"));
+    rmSync(join(bin, "codex"));
+    installers();
+    const { output } = setup([], "codex\ny\n");
+    expect(output).toContain("claude or codex");
+    expect(calls()).toContain("npm install -g @openai/codex");
+    expect(calls()).not.toContain("@anthropic-ai/claude-code");
+  });
+
+  it("offers to sign in to Claude Code when it is installed but not signed in", () => {
+    everything();
+    rmSync(join(bin, "codex"));
+    command("claude", '{ "loggedIn": false }');
+    installers();
+    setup([], "y\n");
+    expect(calls()).toContain("claude auth login");
   });
 
   it("installs nothing when the developer declines", () => {
     everything();
     rmSync(join(bin, "yt-dlp"));
-    command("brew");
+    installers();
     const { code } = setup([], "n\n");
-    expect(calls()).not.toContain("brew install");
     expect(code).toBe(1);
+    expect(calls()).not.toContain("brew install");
+    expect(calls()).not.toContain("npm run install-local");
   });
 
-  it("installs mlx-whisper with uv after the developer agrees", () => {
+  it("stops without Homebrew, saying how to install it", () => {
     everything();
-    rmSync(join(bin, "mlx_whisper"));
-    command("uv");
-    setup([], "y\n");
-    expect(calls()).toContain("uv tool install mlx-whisper");
+    rmSync(join(bin, "yt-dlp"));
+    const { code, output } = setup([], "y\n");
+    expect(code).toBe(1);
+    expect(output).toContain("https://brew.sh");
+  });
+
+  it("stops before installing yt-digest without the Heptabase CLI, saying where to turn it on", () => {
+    everything();
+    rmSync(join(bin, "heptabase"));
+    installers();
+    const { code, output } = setup([]);
+    expect(code).toBe(1);
+    expect(output).toContain("Local CLI Server");
+    expect(calls()).not.toContain("npm run install-local");
   });
 });

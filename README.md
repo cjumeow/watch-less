@@ -35,38 +35,29 @@ This is a personal tool, not a service.
 
 ## Installing
 
-On a Mac with Apple Silicon, Chrome and the Heptabase app, from a clone of this repository:
+On a Mac with Apple Silicon, with [Homebrew](https://brew.sh), Chrome and the Heptabase app:
 
-1. **Check the tools.** yt-digest uses Node.js 24, `yt-dlp` to read a video's subtitles, the Heptabase CLI, and
-   Claude Code or Codex CLI to write the summary; `ffmpeg` and `mlx_whisper` transcribe a video without subtitles.
+```bash
+git clone https://github.com/cjumeow/watch-less.git yt-digest
+cd yt-digest
+sh scripts/setup.sh
+```
 
-   ```bash
-   npm install
-   npm run setup
-   ```
+The script installs what yt-digest needs and is missing, after asking you once, then installs yt-digest itself:
 
-   It lists what is missing, offers to install what Homebrew and `uv` can, and says how to do the rest.
+- Node.js 24, `yt-dlp` (reads a video's subtitles), and `ffmpeg` and `mlx_whisper` (transcribe a video without
+  subtitles), with Homebrew and `uv`;
+- Claude Code or Codex CLI, whichever you choose, and signs you in with your Claude or ChatGPT plan, not an API key;
+- yt-digest, in `~/Library/Application Support/yt-digest/app/`, where Chrome can reach it and it runs in the
+  background whenever you request a summary.
 
-2. **Sign in and turn on Heptabase's CLI.** These need you, so the script only checks them:
-   - sign in to Claude Code (`claude auth login`) or Codex CLI (`codex login`) with your Claude or ChatGPT plan, not
-     an API key;
-   - in the Heptabase app's settings, install the CLI and turn on the Local CLI Server.
+Two steps are yours, and the script tells you when:
 
-3. **Install yt-digest.**
+1. **Heptabase's CLI:** in the Heptabase app's settings, install the CLI and turn on the Local CLI Server.
+2. **The extension, once:** in `chrome://extensions`, turn on Developer mode, press Load unpacked and pick
+   `~/Library/Application Support/yt-digest/app/extension/dist` (press ⌘⇧G in the picker to type the path).
 
-   ```bash
-   npm run install-local
-   ```
-
-   It checks the tools again, builds the code you have checked out, copies it to
-   `~/Library/Application Support/yt-digest/app/`, lets Chrome talk to it, and sets it to run in the background
-   whenever you request a summary.
-
-4. **Load the extension in Chrome,** once: in `chrome://extensions`, turn on Developer mode, press Load unpacked
-   and pick `~/Library/Application Support/yt-digest/app/extension/dist` (press ⌘⇧G in the picker to type the path).
-
-To update, pull the latest code, run `npm run install-local` again, and press Reload on yt-digest in
-`chrome://extensions`.
+To update, `git pull`, run `npm run install-local`, and press Reload on yt-digest in `chrome://extensions`.
 
 ## Development
 
