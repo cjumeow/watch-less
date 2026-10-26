@@ -90,6 +90,11 @@ export const test = base.extend<{
       // Offline: the made-up pages are served for YouTube's URLs, and every other request fails.
       await context.route("**/*", async (route) => {
         const url = new URL(route.request().url());
+        // The extension's own files, such as the popup's script, are local.
+        if (url.protocol === "chrome-extension:") {
+          await route.continue();
+          return;
+        }
         const file = url.hostname === "www.youtube.com" ? ROUTES[url.pathname + url.search] : undefined;
         if (file === undefined) {
           await route.abort("blockedbyclient");

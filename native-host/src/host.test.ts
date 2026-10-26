@@ -47,6 +47,22 @@ describe("runHost", () => {
     expect(written).toEqual({ videoId: VIDEO_ID, title: "A made-up video", requestedAt: "2026-03-04T05:06:07.890Z" });
   });
 
+  test("copies the request's language and model into the queue file", async () => {
+    const request = { videoId: VIDEO_ID, title: "A made-up video", language: "zh-Hant", model: "claude-sonnet-5-5" };
+
+    expect(await reply(frame(JSON.stringify(request)))).toEqual({ ok: true });
+
+    const written = JSON.parse(await readFile(join(dataDir, "queue", `${VIDEO_ID}.json`), "utf8")) as unknown;
+    expect(written).toEqual({ ...request, requestedAt: "2026-03-04T05:06:07.890Z" });
+  });
+
+  test("refuses a model the popup does not offer, and writes nothing", async () => {
+    const request = { videoId: VIDEO_ID, title: "A made-up video", model: "--dangerously-skip-permissions" };
+
+    expect(await reply(frame(JSON.stringify(request)))).toEqual({ ok: false, error: "invalid-request" });
+    await expect(readdir(join(dataDir, "queue"))).rejects.toThrow();
+  });
+
   test("replies queue-unwritable when the queue folder cannot be written", async () => {
     // A file where the queue folder should be, so the folder can be neither made nor written.
     await writeFile(join(dataDir, "queue"), "");

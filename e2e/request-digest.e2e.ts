@@ -1,6 +1,7 @@
 // Requesting a digest from YouTube's video menu: .claude/skills/verify/features/request-digest-from-video-menu.md, one
 // test per journey there.
 
+import { DEFAULT_SETTINGS } from "@yt-digest/shared";
 import { type Locator, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures.js";
 
@@ -150,7 +151,7 @@ test.describe("choosing it", () => {
       expect(await toastLines(page)).toEqual(["Digest requested", video.title]);
       await expect(toast(page)).toHaveAttribute("role", "status");
       await page.screenshot({ path: testInfo.outputPath(`requested-${name.replaceAll(" ", "-")}.png`) });
-      expect(await host.requests()).toEqual([video]);
+      expect(await host.requests()).toEqual([{ ...video, ...DEFAULT_SETTINGS }]);
       // None of YouTube's own items was chosen, and the page did not change.
       expect(await page.evaluate(() => document.body.dataset.chosen)).toBeUndefined();
       expect(page.url()).toBe(url);
@@ -165,7 +166,7 @@ test.describe("choosing it", () => {
     await page.keyboard.press("Enter");
     await expect(page.locator(DROPDOWN)).toBeHidden();
     expect(await toastLines(page)).toEqual(["Digest requested", VIDEOS.searchVid01.title]);
-    expect(await host.requests()).toEqual([VIDEOS.searchVid01]);
+    expect(await host.requests()).toEqual([{ ...VIDEOS.searchVid01, ...DEFAULT_SETTINGS }]);
   });
 
   test("with the keyboard only, a menu opened with Enter has the item, and Space chooses it", async ({
@@ -182,7 +183,7 @@ test.describe("choosing it", () => {
     await page.keyboard.press("Space");
     await expect(page.locator(DROPDOWN)).toBeHidden();
     expect(await toastLines(page)).toEqual(["Digest requested", VIDEOS.homeVideo02.title]);
-    expect(await host.requests()).toEqual([VIDEOS.homeVideo02]);
+    expect(await host.requests()).toEqual([{ ...VIDEOS.homeVideo02, ...DEFAULT_SETTINGS }]);
   });
 
   test("the toast shows for 3 seconds at the bottom left, and a new one replaces it", async ({ page, host }) => {
@@ -268,7 +269,7 @@ test.describe("choosing it", () => {
     await open(page, watchOpener(page));
     await summarize(page).click();
     expect(await toastLines(page)).toEqual(["Digest requested", VIDEOS.watchVideo2.title]);
-    expect(await host.requests()).toEqual([VIDEOS.watchVideo2]);
+    expect(await host.requests()).toEqual([{ ...VIDEOS.watchVideo2, ...DEFAULT_SETTINGS }]);
   });
 });
 

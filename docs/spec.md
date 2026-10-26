@@ -8,7 +8,7 @@ to the destination and notifies the developer.
 
 A digest is requested with **Summarize**, an item the extension adds first to YouTube's own video menu, the ⋮ of a
 video's card and the ⋯ under the player; the result shows in a toast. There is no button on thumbnails or in the
-player, no context menu and no toolbar popup. The item replaced buttons on thumbnails, which flickered and fought
+player and no context menu; the extension's toolbar popup (below) chooses the language and the model. The item replaced buttons on thumbnails, which flickered and fought
 YouTube's inline preview; the developer confirmed it in [`docs/prototypes/menu-item.html`](prototypes/menu-item.html).
 
 ### Where it appears
@@ -112,7 +112,26 @@ the same after the worker or the computer restarts.
   the page the first time a request is answered.
 - A `MutationObserver` on `ytd-popup-container` only, not on the whole document or YouTube's content area, puts the
   item in a menu's list.
-- The extension stores nothing, so opening a menu reads no storage.
+- Opening a menu reads no storage: the service worker reads the popup's settings only when a request is sent.
+
+### The toolbar popup
+
+The extension's button in Chrome's toolbar opens a popup, which the developer confirmed in
+[`docs/prototypes/popup.html`](prototypes/popup.html), and which picks what the next digests are written with.
+
+- **Digest language,** one of the languages in `LANGUAGES` of `@yt-digest/shared`, from a menu: English, 繁體中文,
+  简体中文, 日本語, 한국어 or Español.
+- **Model,** a Claude / OpenAI switch and that provider's models, from `PROVIDERS`. The OpenAI tab shows its models
+  disabled with one line, `OpenAI models are not supported yet.`, because the worker fails a digest asking for one
+  until Codex CLI is supported. The prototype's warning that a provider's command-line tool is not installed is not
+  built: the popup cannot see this Mac's tools without asking the native host.
+- A choice is saved as soon as it is made, with `Saved` shown briefly, and applies to the next request. Opened for
+  the first time, the popup shows `DEFAULT_SETTINGS`: English and Haiku 5.5.
+- The extension stores only these two values, `language` and `model`, in `chrome.storage.local`, which needs the
+  `storage` permission. It stores nothing about videos.
+- The service worker reads them when a request is sent and sends `{ videoId, title, language, model }`. A value that
+  is missing or no longer one of the known IDs, such as a removed model, is replaced by its default.
+- The toolbar icon is Tabler's message-ai (MIT), the Summarize item's icon, at 16, 32, 48 and 128 pixels.
 
 ## The native host
 
@@ -120,9 +139,10 @@ Chrome starts the native host for each message and it exits after replying. It d
 in the queue. Its native messaging name is `com.yt_digest.host`, which the extension calls and the host's manifest
 declares, and the manifest allows only the extension's ID, fixed by the `key` in the extension's manifest.
 
-- The message is `{ videoId, title }`. A `videoId` that is not 11 characters of `A-Z`, `a-z`, `0-9`, `_` or `-` is
+- The message is `{ videoId, title }` with `language` and `model` when the popup's settings are sent; one that is
+  not a known ID is refused, since the model becomes a command-line argument. A `videoId` that is not 11 characters of `A-Z`, `a-z`, `0-9`, `_` or `-` is
   refused, since it becomes a file name.
-- It writes `{ videoId, title, requestedAt }` to `<videoId>.json` in the queue folder, first under another name and
+- It writes `{ videoId, title, requestedAt }`, with `language` and `model` when the request has them, to `<videoId>.json` in the queue folder, first under another name and
   then renamed, so the worker never reads half a file. A request for a video already queued replaces the same file.
 - It replies `{ ok: true }`, or `{ ok: false, error }` with `error` either `invalid-request` or `queue-unwritable`.
 - It never looks in the done folder and never starts the worker.
@@ -170,7 +190,7 @@ The transcript and the description are untrusted, so the model gets only what wr
   Claude Code's administrator-managed policy still applies;
 - an empty temporary folder as its working folder, and only `HOME`, `PATH` and `USER` in its environment, so no token or
   key reaches it (`claude` needs `USER` to find its login in the macOS keychain);
-- the model the request asks for; until the extension lets the developer choose one, Haiku 5.5
+- the model the request asks for, Haiku 5.5 when it asks for none
   (`claude-haiku-5-5`), set in one place.
 
 It runs on the developer's Claude subscription. The worker reads its answer from `--output-format json`, and fails
