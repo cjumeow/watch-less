@@ -52,6 +52,13 @@ describe("videoOfCardMenu", () => {
     ]);
   });
 
+  test("reads the related video beside the player on the watch page", () => {
+    loadPage("watch");
+    expect(videosOfOpeners("https://www.youtube.com/watch?v=watchVideo1")).toEqual([
+      { videoId: "watchVideo2", title: "Made-up tour of a lighthouse that never existed" },
+    ]);
+  });
+
   test("a Short's ⋮ on the home page is not a card's menu", () => {
     loadPage("home");
     const short = document.querySelector(".shortsLockupViewModelHostOutsideMetadataMenu button");
@@ -61,7 +68,6 @@ describe("videoOfCardMenu", () => {
   test.each([
     ["another playlist", "watch-later", "https://www.youtube.com/playlist?list=PLexampleList"],
     ["a channel's videos", "home", "https://www.youtube.com/@ExampleChannel/videos"],
-    ["the watch page", "watch", "https://www.youtube.com/watch?v=watchVideo1"],
   ])("reads no video on %s", (_case, page, url) => {
     loadPage(page);
     const videos = videosOfOpeners(url);

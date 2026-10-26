@@ -13,11 +13,10 @@ YouTube's inline preview; the developer confirmed it in [`docs/prototypes/menu-i
 
 ### Where it appears
 
-- In the ⋮ menu of an ordinary video's card on three pages: the home page, search results and the Watch Later
-  playlist.
+- In the ⋮ menu of an ordinary video's card on three pages, the home page, search results and the Watch Later
+  playlist, and among the related videos beside the player on the watch page.
 - In the ⋯ menu under the player on the watch page, after Like and Share, for the video playing.
-- Not in the menu of a mix, a playlist or a Short, not in the menus of the watch page's related videos, and on no
-  other page.
+- Not in the menu of a mix, a playlist or a Short, and on no other page.
 
 The selectors are verified against YouTube's live markup when the extension is built, and match the menu buttons by
 their place in the page, not by their label, which changes with YouTube's language.

@@ -3,11 +3,15 @@
 
 import { parseRequest, type RequestMessage } from "@yt-digest/shared";
 
-/** The pages whose cards' menus get the item, each with the element YouTube renders it in, inside `ytd-page-manager`. */
+/**
+ * Where cards' menus get the item: three pages, and the related videos beside the player on the watch page, each
+ * with the element YouTube renders the cards in, inside `ytd-page-manager`.
+ */
 const PAGES = {
   home: 'ytd-browse[page-subtype="home"]',
   search: "ytd-search",
   watchLater: 'ytd-browse[page-subtype="playlist"]',
+  related: "ytd-watch-flexy #secondary",
 } as const;
 
 /**
@@ -34,6 +38,7 @@ function pageOf(url: URL): keyof typeof PAGES | undefined {
   if (url.pathname === "/") return "home";
   if (url.pathname === "/results") return "search";
   if (url.pathname === "/playlist" && url.searchParams.get("list") === "WL") return "watchLater";
+  if (url.pathname === "/watch") return "related";
   return undefined;
 }
 
