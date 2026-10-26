@@ -1,0 +1,515 @@
+<!doctype html>
+<!--
+  A clickable prototype of the Summarize item in YouTube's video menu, which replaces the buttons on thumbnails, on
+  the preview and in the player's controls. Open it in a browser; nothing is sent anywhere. The page imitates
+  YouTube's cards, its one shared video menu and the watch page's menu with made-up videos, and the panel at the top
+  picks what the native host would reply.
+
+  Pressing ⋮ on a card remembers the card, then the shared menu opens with Summarize added. Choosing it closes the
+  menu, as YouTube's own items do, and the result shows in a toast at the bottom left.
+
+  The icon is Tabler's message-ai (MIT licence, https://tabler.io/icons), drawn in currentColor so it matches
+  YouTube's own menu icons in both themes.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Menu item prototype</title>
+    <style>
+      :root {
+        --page: #0f0f0f;
+        --text: #f1f1f1;
+        --muted: #aaa;
+        --panel: #212121;
+        --thumb-a: #3a3a3a;
+        --thumb-b: #262626;
+        --menu: #282828;
+        --menu-hover: #3e3e3e;
+        --menu-shadow: none;
+        --divider: rgb(255 255 255 / 10%);
+        /* YouTube's toast is the inverse of the page. */
+        --toast: #f1f1f1;
+        --toast-text: #0f0f0f;
+        --toast-muted: #606060;
+        --ok: #2ba640;
+        --fail: #cc0000;
+      }
+      :root[data-theme="light"] {
+        --page: #fff;
+        --text: #0f0f0f;
+        --muted: #606060;
+        --panel: #f2f2f2;
+        --thumb-a: #d9d9d9;
+        --thumb-b: #c4c4c4;
+        --menu: #fff;
+        --menu-hover: #f2f2f2;
+        --menu-shadow: 0 4px 32px rgb(0 0 0 / 10%);
+        --divider: rgb(0 0 0 / 10%);
+        --toast: #0f0f0f;
+        --toast-text: #f1f1f1;
+        --toast-muted: #aaa;
+        --ok: #4caf50;
+        --fail: #ff8983;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: var(--page);
+        color: var(--text);
+        font:
+          14px/1.4 Roboto,
+          Arial,
+          sans-serif;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        align-items: center;
+        padding: 12px 16px;
+        margin-bottom: 24px;
+        border-radius: 12px;
+        background: var(--panel);
+      }
+      .controls label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      h2 {
+        margin: 32px 0 12px;
+        font-size: 18px;
+      }
+      h2 small {
+        color: var(--muted);
+        font-weight: normal;
+        font-size: 13px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px 16px;
+      }
+      .thumb {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--thumb-a), var(--thumb-b));
+      }
+      .thumb.stack {
+        box-shadow:
+          0 -4px 0 -2px var(--thumb-b),
+          0 -8px 0 -4px var(--thumb-a);
+      }
+      .duration {
+        position: absolute;
+        right: 6px;
+        bottom: 6px;
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: rgb(0 0 0 / 80%);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .details {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 4px;
+        margin-top: 10px;
+      }
+      .title {
+        margin: 0 0 2px;
+        font-weight: 500;
+        font-size: 16px;
+      }
+      .meta {
+        margin: 0;
+        color: var(--muted);
+      }
+      .more {
+        all: unset;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+      }
+      .more:hover,
+      .more[aria-expanded="true"] {
+        background: var(--menu-hover);
+      }
+      .more:focus-visible {
+        outline: 2px solid #3ea6ff;
+      }
+      .watch {
+        max-width: 900px;
+      }
+      .watch .thumb {
+        border-radius: 12px;
+      }
+      .watch-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .watch-row .title {
+        flex: 1;
+        font-size: 20px;
+      }
+      .pill {
+        padding: 0 16px;
+        height: 36px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: var(--panel);
+        font-weight: 500;
+      }
+      .watch-row .more {
+        width: 36px;
+        height: 36px;
+        background: var(--panel);
+      }
+      .clicked {
+        color: var(--muted);
+        margin-top: 24px;
+        min-height: 1.4em;
+      }
+
+      /* YouTube's one video menu for the whole page, placed next to the ⋮ that opened it. */
+      .menu {
+        position: absolute;
+        z-index: 10;
+        min-width: 240px;
+        padding: 8px 0;
+        border-radius: 12px;
+        background: var(--menu);
+        box-shadow: var(--menu-shadow);
+      }
+      .menu[hidden] {
+        display: none;
+      }
+      .menu [role="menuitem"] {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        height: 36px;
+        padding: 0 16px 0 12px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .menu [role="menuitem"]:hover,
+      .menu [role="menuitem"]:focus-visible {
+        background: var(--menu-hover);
+        outline: none;
+      }
+      .menu svg {
+        flex: none;
+        width: 24px;
+        height: 24px;
+      }
+      .menu hr {
+        margin: 8px 0;
+        border: 0;
+        border-top: 1px solid var(--divider);
+      }
+
+      /* The toast: what the extension adds, at the bottom left, one at a time. */
+      .toast {
+        position: fixed;
+        left: 24px;
+        bottom: 24px;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        max-width: min(420px, calc(100vw - 48px));
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: var(--toast);
+        color: var(--toast-text);
+        box-shadow: 0 4px 16px rgb(0 0 0 / 30%);
+        opacity: 0;
+        translate: 0 16px;
+        transition:
+          opacity 0.15s ease-out,
+          translate 0.15s ease-out;
+        pointer-events: none;
+      }
+      .toast.shown {
+        opacity: 1;
+        translate: 0 0;
+      }
+      .toast svg {
+        flex: none;
+        width: 20px;
+        height: 20px;
+      }
+      .toast.ok svg {
+        color: var(--ok);
+      }
+      .toast.fail svg {
+        color: var(--fail);
+      }
+      .toast .text {
+        min-width: 0;
+      }
+      .toast strong {
+        display: block;
+        font-weight: 500;
+      }
+      .toast .video {
+        display: block;
+        overflow: hidden;
+        color: var(--toast-muted);
+        font-size: 12px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <label>
+        Host reply
+        <select id="reply">
+          <option value="ok">ok</option>
+          <option value="not-installed">not installed</option>
+          <option value="error">host error</option>
+          <option value="no-reply">no reply (times out)</option>
+        </select>
+      </label>
+      <label>
+        Reply after
+        <select id="latency">
+          <option value="50">50 ms (typical)</option>
+          <option value="1000">1 s</option>
+          <option value="3000">3 s</option>
+        </select>
+      </label>
+      <label>
+        Summarize goes
+        <select id="position">
+          <option value="first">first</option>
+          <option value="after-later">after Save to Watch later</option>
+          <option value="last">last, above Report</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="light" /> Light theme</label>
+    </div>
+
+    <h2>Home <small>⋮ on each card; the mix and the Short get no Summarize</small></h2>
+    <div class="grid" id="home"></div>
+
+    <h2>Watch page <small>the ⋯ next to Share</small></h2>
+    <div class="watch">
+      <div class="thumb"><span class="duration">0:42 / 14:07</span></div>
+      <div class="watch-row">
+        <p class="title">Example explainer on how tides work</p>
+        <span class="pill">Share</span>
+        <button
+          class="more"
+          type="button"
+          aria-label="More actions"
+          aria-haspopup="menu"
+          data-video-id="exampleTide"
+          data-title="Example explainer on how tides work"
+        >
+          ⋯
+        </button>
+      </div>
+    </div>
+
+    <p class="clicked" id="clicked"></p>
+
+    <div class="menu" id="menu" role="menu" hidden></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module">
+      const ICONS = {
+        // Tabler's message-ai, in currentColor.
+        summarize: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9h8"/><path d="M8 13h3.5"/><path d="M9.994 19.804l-1.994 1.196v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4"/><path d="M14 21v-4a2 2 0 1 1 4 0v4"/><path d="M14 19h4"/><path d="M21 15v6"/></svg>`,
+        ok: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>`,
+        fail: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.5"/><path d="M12 16h.01"/></svg>`,
+        // Stand-ins for YouTube's own icons.
+        queue: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 5l4 2.5L4 10zM11 7h9M4 13h16M4 18h16"/></svg>`,
+        later: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
+        playlist: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>`,
+        share: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M14 4l7 7-7 7v-4c-6 0-9 2-11 6 0-7 3-12 11-13z"/></svg>`,
+        report: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h12l-2 4 2 4H5"/></svg>`,
+      };
+      const TOAST_MS = 3000;
+      const TIMEOUT_MS = 5000;
+      const FAILURES = {
+        "not-installed": "yt-digest is not installed",
+        error: "yt-digest failed",
+        "no-reply": "yt-digest did not respond",
+      };
+
+      // --- YouTube's part: cards, and one shared menu opened by any ⋮. ---
+
+      const TITLES = [
+        "A made-up talk about sourdough starters",
+        "Example lecture: why bridges hum in the wind",
+        "Placeholder review of a fictional laptop",
+        "Sample interview with an imaginary economist",
+      ];
+
+      function card({ title, videoId, kind }) {
+        const element = document.createElement("div");
+        element.className = "card";
+        element.innerHTML = `
+          <div class="thumb ${kind === "mix" ? "stack" : ""}" style="${kind === "short" ? "aspect-ratio: 9 / 16; max-width: 180px" : ""}">
+            ${kind === "video" ? `<span class="duration">12:0${title.length % 10}</span>` : ""}
+          </div>
+          <div class="details">
+            <div><p class="title"></p><p class="meta"></p></div>
+            <button class="more" type="button" aria-label="More actions" aria-haspopup="menu">⋮</button>
+          </div>`;
+        element.querySelector(".title").textContent = title;
+        element.querySelector(".meta").textContent =
+          kind === "mix"
+            ? "Mix · Example Channel and more"
+            : kind === "short"
+              ? "Short · 2M views"
+              : "Example Channel · 12K views";
+        const more = element.querySelector(".more");
+        if (kind === "video") Object.assign(more.dataset, { videoId, title });
+        return element;
+      }
+
+      const home = document.querySelector("#home");
+      TITLES.forEach((title, index) => home.append(card({ title, videoId: `example${index}`, kind: "video" })));
+      home.append(card({ title: "Example mix of made-up talks", kind: "mix" }));
+      home.append(card({ title: "A made-up Short", kind: "short" }));
+
+      const menu = document.querySelector("#menu");
+      let openedBy = null;
+
+      function youTubeItems() {
+        return [
+          ["queue", "Add to queue"],
+          ["later", "Save to Watch later"],
+          ["playlist", "Save to playlist"],
+          ["share", "Share"],
+          "divider",
+          ["report", "Report"],
+        ];
+      }
+
+      function item(icon, label, onChoose) {
+        const element = document.createElement("div");
+        element.setAttribute("role", "menuitem");
+        element.tabIndex = 0;
+        element.innerHTML = `${ICONS[icon]}<span></span>`;
+        element.querySelector("span").textContent = label;
+        const choose = () => {
+          closeMenu();
+          onChoose();
+        };
+        element.addEventListener("click", choose);
+        element.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            choose();
+          }
+        });
+        return element;
+      }
+
+      function openMenu(more) {
+        openedBy?.setAttribute("aria-expanded", "false");
+        openedBy = more;
+        more.setAttribute("aria-expanded", "true");
+        menu.replaceChildren(
+          ...youTubeItems().map((entry) =>
+            entry === "divider"
+              ? document.createElement("hr")
+              : item(entry[0], entry[1], () => {
+                  document.querySelector("#clicked").textContent = `YouTube's own "${entry[1]}" was chosen.`;
+                }),
+          ),
+        );
+        addSummarize(more);
+        menu.hidden = false;
+        const box = more.getBoundingClientRect();
+        const width = menu.offsetWidth;
+        const left = Math.min(box.right + scrollX - width, innerWidth + scrollX - width - 8);
+        menu.style.left = `${Math.max(8, left)}px`;
+        menu.style.top = `${box.bottom + scrollY + 4}px`;
+        menu.querySelector('[role="menuitem"]').focus();
+      }
+
+      function closeMenu() {
+        menu.hidden = true;
+        openedBy?.setAttribute("aria-expanded", "false");
+        openedBy?.focus();
+        openedBy = null;
+      }
+
+      document.addEventListener("click", (event) => {
+        const more = event.target.closest(".more");
+        if (more !== null) {
+          if (openedBy === more) closeMenu();
+          else openMenu(more);
+        } else if (!menu.hidden && !menu.contains(event.target)) {
+          closeMenu();
+        }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !menu.hidden) closeMenu();
+      });
+
+      // --- The extension's part: one item in the menu, and the toast. ---
+
+      function addSummarize(more) {
+        // Only an ordinary video's menu gets the item; a mix or a Short has no video ID here.
+        const { videoId, title } = more.dataset;
+        if (videoId === undefined) return;
+        const summarize = item("summarize", "Summarize", () => request({ videoId, title }));
+        const position = document.querySelector("#position").value;
+        const items = [...menu.querySelectorAll('[role="menuitem"]')];
+        if (position === "first") menu.prepend(summarize);
+        else if (position === "after-later") items[1].after(summarize);
+        else menu.querySelector("hr").before(summarize);
+      }
+
+      const toast = document.querySelector("#toast");
+      let hideToast;
+
+      function showToast(ok, message, title) {
+        clearTimeout(hideToast);
+        toast.className = `toast ${ok ? "ok" : "fail"}`;
+        toast.innerHTML = `${ok ? ICONS.ok : ICONS.fail}<span class="text"><strong></strong><span class="video"></span></span>`;
+        toast.querySelector("strong").textContent = message;
+        toast.querySelector(".video").textContent = title;
+        // Restart the slide-in when one toast replaces another.
+        void toast.offsetWidth;
+        toast.classList.add("shown");
+        hideToast = setTimeout(() => toast.classList.remove("shown"), TOAST_MS);
+      }
+
+      async function request({ videoId, title }) {
+        const reply = document.querySelector("#reply").value;
+        const latency = Number(document.querySelector("#latency").value);
+        await new Promise((resolve) => setTimeout(resolve, reply === "no-reply" ? TIMEOUT_MS : latency));
+        console.log("request", { videoId, title }, "→", reply);
+        if (reply === "ok") showToast(true, "Digest requested", title);
+        else showToast(false, FAILURES[reply], title);
+      }
+
+      document.querySelector("#light").addEventListener("change", (event) => {
+        document.documentElement.dataset.theme = event.target.checked ? "light" : "dark";
+      });
+    </script>
+  </body>
+</html>
