@@ -10,7 +10,10 @@ its body is the messages of the pull request's commits. Write both for someone w
 chat with the agent is gone after the session, and the history on `main` is what stays.
 
 The `check-pull-request-conventions` workflow checks what a program can: the title's format and length, and the
-changelog entry of a `feat` or `fix`. The rest is for you and the reviewer.
+changelog entry of a `feat` or `fix`. The same title rule, `scripts/check-title.mjs`, runs on every commit's subject
+through the `commit-msg` hook in `.githooks/`, which `npm install` turns on, so a long subject is refused before it
+becomes a pull request title. Check a pull request title you write by hand with `node scripts/check-title.mjs
+"<title>"`. The rest is for you and the reviewer.
 
 ## Branches
 

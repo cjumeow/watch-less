@@ -21,16 +21,8 @@ jobs:
       - name: Check the title
         env:
           TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          if ! printf '%s' "$TITLE" | grep -Eq '^(feat|fix|refactor|docs|test|ci|chore): [a-z0-9`].*[^.]$'; then
-            echo "::error::The title must be '<type>: <sentence>': type feat, fix, refactor, docs, test, ci or chore;" \
-              "the sentence starts lowercase and has no trailing period."
-            exit 1
-          fi
-          if [ "${#TITLE}" -gt 72 ]; then
-            echo "::error::The title is ${#TITLE} characters; keep it within 72, where GitHub starts cutting titles."
-            exit 1
-          fi
+        # The same rule the commit-msg hook in .githooks runs on each commit's subject.
+        run: node scripts/check-title.mjs "$TITLE"
       - name: Check the changelog entry of a feat or fix
         env:
           TITLE: ${{ github.event.pull_request.title }}
