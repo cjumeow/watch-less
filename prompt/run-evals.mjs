@@ -110,6 +110,17 @@ function argumentRangeProblems(digest) {
   return problems;
 }
 
+/** The references that are more than a named link, or a name with the moment it is named. */
+function referenceFormatProblems(digest) {
+  const section = digest.split(/^## /m).find((part) => part.startsWith("References")) ?? "";
+  const linked = /^- \[[^\]]+\]\(https?:\/\/[^)\s]+\)$/;
+  const named = /^- [^[\]()]+ \(\[(?:\d+:)?\d+:\d\d\]\(https:\/\/www\.youtube\.com\/watch\?v=[^)\s]+\)\)$/;
+  return section
+    .split("\n")
+    .filter((line) => line.startsWith("- ") && !linked.test(line) && !named.test(line))
+    .map((line) => `reference is more than a name and a link: ${line.slice(0, 60)}`);
+}
+
 /** Links the developer excluded from references: social accounts, memberships, and affiliate, referral or discount links. */
 function excludedLinks(digest) {
   return links(digest).filter(
@@ -201,6 +212,7 @@ function reportRun(name, transcript, output) {
     report(headingProblems(digest), "the three headings, in order, and nothing before them"),
     report(argumentCountProblems(digest, transcript), "as many main arguments as asked for"),
     report(argumentRangeProblems(digest), "every main argument starts with a linked range, none overlapping"),
+    report(referenceFormatProblems(digest), "every reference is a named link, or a name and its moment"),
     report(
       strayMoments(digest, transcript).map((seconds) => `moment not in the transcript: &t=${seconds}s`),
       "every moment is a transcript timestamp",

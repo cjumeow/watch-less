@@ -24,6 +24,8 @@ is public.
 - [ ] Faithful: every argument is the speaker's own, with their hedges, and nothing the transcript does not say is
       added; misheard words are corrected only where the context makes them plain; the speaker is "the speaker", a
       name, or "they", never a guessed "he" or "she".
+- [ ] The script reports every reference as only a named link, `[name](url)`, or a name and the moment it is named,
+      with no description and no bare address.
 - [ ] The references are the description's sources, with its exact links, and what the speaker names as a source,
       unlinked unless the description links it. The script reports any link not in the description.
 - [ ] No sponsor, affiliate, discount, merchandise, membership or social link is in the references. The script
