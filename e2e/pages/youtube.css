@@ -162,9 +162,12 @@ tp-yt-iron-dropdown {
   padding: 8px 0;
   border-radius: 12px;
   background: #282828;
+  /* As on the live page, the menu itself sets no text colour, so it is black; each of YouTube's items sets its own. */
+  color: initial;
 }
 yt-list-item-view-model,
 ytd-menu-service-item-renderer tp-yt-paper-item {
+  color: #f1f1f1;
   display: flex;
   align-items: center;
   height: 36px;

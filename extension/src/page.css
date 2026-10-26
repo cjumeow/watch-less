@@ -12,16 +12,27 @@ yt-digest-menu-item {
   padding: 0 16px 0 12px;
   cursor: pointer;
   white-space: nowrap;
-  color: var(--yt-spec-text-primary, inherit);
+  /*
+    YouTube's menu sets no text colour of its own and its colour variables have changed names before, so the item
+    takes the colours of YouTube's items itself, from the theme: YouTube's dark theme sets `dark` on <html>.
+  */
+  color: #0f0f0f;
   font:
     400 14px/20px Roboto,
     Arial,
     sans-serif;
 }
+html[dark] yt-digest-menu-item {
+  color: #f1f1f1;
+}
 yt-digest-menu-item:hover,
 yt-digest-menu-item:focus-visible {
-  background: var(--yt-spec-10-percent-layer, rgb(128 128 128 / 20%));
+  background: rgb(0 0 0 / 5%);
   outline: none;
+}
+html[dark] yt-digest-menu-item:hover,
+html[dark] yt-digest-menu-item:focus-visible {
+  background: rgb(255 255 255 / 10%);
 }
 yt-digest-menu-item > svg {
   flex: none;

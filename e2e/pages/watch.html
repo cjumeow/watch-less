@@ -49,10 +49,19 @@
                                 <button class="pill" aria-label="like this video">Like</button>
                                 <button class="pill" aria-label="Share">Share</button>
                               </div>
-                              <yt-icon-button id="button" class="dropdown-trigger style-scope ytd-menu-renderer"
+                              <!--
+                                As on the live page: the ⋯ the developer sees is a yt-button-shape, and the older
+                                yt-icon-button beside it is hidden.
+                              -->
+                              <yt-icon-button id="button" class="dropdown-trigger style-scope ytd-menu-renderer" hidden
                                 ><button id="button" class="style-scope yt-icon-button" aria-label="More actions">
                                   ⋯
                                 </button></yt-icon-button
+                              >
+                              <yt-button-shape
+                                ><button class="pill ytSpecButtonShapeNextHost" aria-label="More actions">
+                                  ⋯
+                                </button></yt-button-shape
                               >
                             </ytd-menu-renderer>
                           </div>

@@ -5,9 +5,11 @@ import { parseRequest, type RequestMessage } from "@yt-digest/shared";
 
 /**
  * The ⋯ under the player that opens the playing video's menu, after Like and Share. Matched by structure, not by its
- * label, which changes with YouTube's language.
+ * label, which changes with YouTube's language. The live page shows a yt-button-shape and hides an older
+ * yt-icon-button beside it that opens the same menu, so both count.
  */
-export const WATCH_MENU_OPENER = "ytd-watch-metadata ytd-menu-renderer yt-icon-button#button > button";
+export const WATCH_MENU_OPENER =
+  "ytd-watch-metadata ytd-menu-renderer :is(yt-icon-button#button, yt-button-shape) > button";
 
 /** The video whose menu the ⋯ `opener` opens on the page at `url`, read when it is pressed. */
 export function videoOfWatchMenu(opener: Element, url: URL): RequestMessage | undefined {

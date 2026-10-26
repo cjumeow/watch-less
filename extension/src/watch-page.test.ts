@@ -45,9 +45,10 @@ describe("videoOfWatchMenu", () => {
     return element;
   }
 
-  test("the ⋯ under the player is the only menu opener on the page it matches", () => {
-    expect(document.querySelectorAll(WATCH_MENU_OPENER)).toHaveLength(1);
-    expect(opener().closest("ytd-watch-metadata")).not.toBeNull();
+  test("matches the ⋯ the developer sees under the player, and nothing outside it", () => {
+    const matches = [...document.querySelectorAll(WATCH_MENU_OPENER)];
+    expect(matches.some((element) => element.closest("yt-button-shape") !== null)).toBe(true);
+    expect(matches.every((element) => element.closest("ytd-watch-metadata") !== null)).toBe(true);
   });
 
   test("reads the video playing, with its title", () => {

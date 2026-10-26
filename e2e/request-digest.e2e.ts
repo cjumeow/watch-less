@@ -30,7 +30,7 @@ function cardOpener(page: Page, videoId: string): Locator {
 
 /** The ⋯ under the player on the watch page. */
 function watchOpener(page: Page): Locator {
-  return page.locator("ytd-watch-metadata #menu yt-icon-button button");
+  return page.locator("ytd-watch-metadata #menu yt-button-shape button");
 }
 
 const DROPDOWN = "ytd-popup-container tp-yt-iron-dropdown";
@@ -69,6 +69,7 @@ const MENUS = [
   ["search results", SEARCH, (page: Page) => cardOpener(page, "searchVid01"), VIDEOS.searchVid01],
   ["Watch Later", WATCH_LATER, (page: Page) => cardOpener(page, "laterVideo2"), VIDEOS.laterVideo2],
   ["the watch page", WATCH, watchOpener, VIDEOS.watchVideo1],
+  ["the watch page's related videos", WATCH, (page: Page) => cardOpener(page, "watchVideo2"), VIDEOS.watchVideo2],
 ] as const;
 
 test.describe("where the item appears", () => {
@@ -78,6 +79,12 @@ test.describe("where the item appears", () => {
       await open(page, opener(page));
       await expect.poll(() => items(page)).toEqual(WITH_SUMMARIZE);
       await expect(summarize(page).locator("svg")).toBeVisible();
+      // In YouTube's text colour, which the menu itself does not set.
+      const youTubeColor = await page
+        .locator(`${DROPDOWN} :is(yt-list-item-view-model, tp-yt-paper-item)`)
+        .first()
+        .evaluate((element) => getComputedStyle(element).color);
+      await expect(summarize(page)).toHaveCSS("color", youTubeColor);
       await summarize(page).hover();
       await page.screenshot({ path: testInfo.outputPath(`menu-${name.replaceAll(" ", "-")}.png`) });
     });
@@ -96,7 +103,6 @@ test.describe("where the item appears", () => {
       "https://www.youtube.com/playlist?list=PLexampleList",
       "#menu button, .ytLockupMetadataViewModelMenuButton button",
     ],
-    ["the related video's menu on the watch page", WATCH, "#secondary .ytLockupMetadataViewModelMenuButton button"],
   ] as const) {
     test(`${name} has no Summarize`, async ({ page }) => {
       await page.goto(url);

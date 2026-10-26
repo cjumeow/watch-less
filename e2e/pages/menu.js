@@ -9,7 +9,7 @@
 
 const SHEET_OPENER =
   ".ytLockupMetadataViewModelMenuButton button, .shortsLockupViewModelHostOutsideMetadataMenu button";
-const POPUP_OPENER = "ytd-menu-renderer yt-icon-button#button > button";
+const POPUP_OPENER = "ytd-menu-renderer :is(yt-icon-button#button, yt-button-shape) > button";
 const ITEMS = ["Add to queue", "Save to Watch later", "Save to playlist", "Share", "Report"];
 
 const dropdown = document.querySelector("ytd-popup-container tp-yt-iron-dropdown");
