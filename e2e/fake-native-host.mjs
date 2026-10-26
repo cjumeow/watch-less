@@ -2,7 +2,7 @@
 // Native Messaging's framing (a 32-bit length in native byte order, then JSON) and answers as the test said to.
 //
 // FAKE_HOST_DIR, set by the test for the browser and so inherited by the host, holds:
-//   reply.json     what to answer, or the word "silent" to never answer (the button's 5-second timeout)
+//   reply.json     what to answer, or the word "silent" to never answer (the extension's 5-second timeout)
 //   requests.jsonl one line per message received, appended
 
 import { appendFileSync, readFileSync } from "node:fs";

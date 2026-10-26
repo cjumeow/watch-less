@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, test } from "vitest";
-import { videoOfWatchPage } from "./watch-page.js";
+import { videoOfWatchMenu, videoOfWatchPage, WATCH_MENU_OPENER } from "./watch-page.js";
 
 const WATCH = "https://www.youtube.com/watch?v=watchVideo1";
 
@@ -35,5 +35,29 @@ describe("videoOfWatchPage", () => {
 
   test("reads no video from a URL without one", () => {
     expect(videoOfWatchPage(document, new URL("https://www.youtube.com/watch"))).toBeUndefined();
+  });
+});
+
+describe("videoOfWatchMenu", () => {
+  function opener() {
+    const element = document.querySelector(WATCH_MENU_OPENER);
+    if (element === null) throw new Error("The page has no ⋯ under the player");
+    return element;
+  }
+
+  test("the ⋯ under the player is the only menu opener on the page it matches", () => {
+    expect(document.querySelectorAll(WATCH_MENU_OPENER)).toHaveLength(1);
+    expect(opener().closest("ytd-watch-metadata")).not.toBeNull();
+  });
+
+  test("reads the video playing, with its title", () => {
+    expect(videoOfWatchMenu(opener(), new URL(WATCH))).toEqual({
+      videoId: "watchVideo1",
+      title: "Example lecture: why bridges hum in the wind",
+    });
+  });
+
+  test("reads no video once the page is no longer a watch page", () => {
+    expect(videoOfWatchMenu(opener(), new URL("https://www.youtube.com/"))).toBeUndefined();
   });
 });

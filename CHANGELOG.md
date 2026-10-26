@@ -8,6 +8,9 @@ checkout, so every entry is under Unreleased.
 
 ### Changed
 
+- Request a digest with Summarize, first in a video's ⋮ menu (home, search, Watch Later) or the ⋯ under the player;
+  the result shows in a toast with the video's title. The note buttons on thumbnails and in the player are gone.
+
 - Digests are written in English by Haiku 5.5, faster and lighter on the subscription, in three sections:
   Conclusion, Main arguments (one per three minutes) and References. The assessment and web searches are gone,
   and the header links the channel. The prompt can write in other languages, ready for choosing one.

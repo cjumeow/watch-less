@@ -22,10 +22,10 @@ const ROUTES: Record<string, string> = {
   "/": "home.html",
   "/results?search_query=example": "search.html",
   "/playlist?list=WL": "watch-later.html",
-  // Another playlist, with the same markup as Watch Later, where no button belongs.
+  // Another playlist, with the same markup as Watch Later, where no item belongs.
   "/playlist?list=PLexampleList": "watch-later.html",
   "/e2e-pages/youtube.css": "youtube.css",
-  "/e2e-pages/preview.js": "preview.js",
+  "/e2e-pages/menu.js": "menu.js",
   "/watch?v=watchVideo1": "watch.html",
   "/e2e-pages/watch.js": "watch.js",
 };
@@ -135,72 +135,6 @@ async function installFakeHost(profileDir: string, hostDir: string) {
 /** A path as one shell word, whatever characters it has. */
 function shellQuote(path: string): string {
   return `'${path.replaceAll("'", `'\\''`)}'`;
-}
-
-/** What the button on one card shows, read from inside its closed shadow root. */
-export interface ButtonState {
-  label: string | null;
-  /** True while the request is waiting for the host. */
-  disabled: boolean;
-  icon: "note" | "check";
-  /** The message next to the icon, or null when none shows. */
-  message: string | null;
-  messageRole: string | null;
-}
-
-/**
- * The state of every button on the page, in document order. The button's shadow root is closed, so a page script,
- * and Playwright's own selectors, cannot see inside it; the DevTools protocol can, as it lists closed shadow roots.
- */
-export async function buttonStates(page: Page): Promise<ButtonState[]> {
-  const cdp = await page.context().newCDPSession(page);
-  try {
-    const { root } = (await cdp.send("DOM.getDocument", { depth: -1, pierce: true })) as { root: DomNode };
-    const states: ButtonState[] = [];
-    for (const host of findNodes(root, "YT-DIGEST-BUTTON")) {
-      const shadowRoot = host.shadowRoots?.[0];
-      if (shadowRoot === undefined) throw new Error("A button has no shadow root");
-      const { object } = await cdp.send("DOM.resolveNode", { backendNodeId: shadowRoot.backendNodeId });
-      const { result } = await cdp.send("Runtime.callFunctionOn", {
-        objectId: object.objectId,
-        functionDeclaration: readButton.toString(),
-        returnByValue: true,
-      });
-      states.push(result.value as ButtonState);
-    }
-    return states;
-  } finally {
-    await cdp.detach();
-  }
-}
-
-// Runs in the page, on one button's shadow root.
-function readButton(this: ShadowRoot): ButtonState {
-  const button = this.querySelector("button");
-  const message = this.querySelector<HTMLElement>("[role]");
-  // The check is the icon whose path starts with the tick's first point; the note is the other one.
-  const path = button?.querySelector("path")?.getAttribute("d") ?? "";
-  const text = message?.textContent ?? "";
-  return {
-    label: button?.getAttribute("aria-label") ?? null,
-    disabled: button?.getAttribute("aria-disabled") === "true",
-    icon: path.startsWith("m5 12.5") ? "check" : "note",
-    message: text === "" ? null : text,
-    messageRole: message?.getAttribute("role") ?? null,
-  };
-}
-
-interface DomNode {
-  nodeName: string;
-  backendNodeId: number;
-  children?: DomNode[];
-  shadowRoots?: DomNode[];
-}
-
-function findNodes(node: DomNode, name: string): DomNode[] {
-  const found = node.nodeName === name ? [node] : [];
-  for (const child of [...(node.shadowRoots ?? []), ...(node.children ?? [])]) found.push(...findNodes(child, name));
-  return found;
 }
 
 export { expect } from "@playwright/test";

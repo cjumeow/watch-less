@@ -1,17 +1,24 @@
-// The content script, on every YouTube page: YouTube changes pages without reloading, so it decides on each scan
-// whether the current page gets buttons.
+// The content script, on every YouTube page: it puts the Summarize item first in YouTube's video menu when the menu is
+// an ordinary video's, and shows the result of choosing it in a toast.
+//
+// YouTube opens one shared menu for the whole page, in ytd-popup-container, and fills it anew each time; the menu holds
+// no video. So the script remembers which ⋮ was pressed, before YouTube's own handlers run, and adds the item when the
+// menu's list appears.
 
 import { BUTTON_MESSAGES, type RequestMessage } from "@yt-digest/shared";
 import { type ButtonResult } from "./button-result.js";
-import { cardOfPreview, findCards, HANDLED, pageOf, PREVIEW, thumbnailOf, videoOf, videoOfPreview } from "./cards.js";
-import { BUTTON_TAG, createButton } from "./digest-button.js";
-import { ANY_PLAYER_CONTROLS, isWatchPage, PLAYER_CONTROLS, videoOfWatchPage } from "./watch-page.js";
+import { CARD_MENU_OPENER, videoOfCardMenu } from "./cards.js";
+import { createItem, ITEM_TAG, MENU_LISTS } from "./menu-item.js";
+import { showToast } from "./toast.js";
+import { videoOfWatchMenu, WATCH_MENU_OPENER } from "./watch-page.js";
 
 const FAILED: ButtonResult = { ok: false, message: BUTTON_MESSAGES.failed };
 
-/** Sends the video shown now to the service worker, which asks the native host. */
-async function request(video: RequestMessage | undefined): Promise<ButtonResult> {
-  if (video === undefined) return FAILED;
+/** Where YouTube puts its shared menu. It may not exist yet when the script runs. */
+const POPUP_CONTAINER = "ytd-popup-container";
+
+/** Sends the video to the service worker, which asks the native host. */
+async function request(video: RequestMessage): Promise<ButtonResult> {
   try {
     return await chrome.runtime.sendMessage<RequestMessage, ButtonResult>(video);
   } catch {
@@ -20,97 +27,78 @@ async function request(video: RequestMessage | undefined): Promise<ButtonResult>
   }
 }
 
-let scannedUrl = "";
+/** The video of the menu opening now, from the last press; none when that press opened no ordinary video's menu. */
+let opening: RequestMessage | undefined;
 
-function scan(container: Element) {
-  // After YouTube moves to another page, a card it reuses must not keep a button from the page before.
-  if (location.href !== scannedUrl) {
-    scannedUrl = location.href;
-    for (const button of container.querySelectorAll(BUTTON_TAG)) button.remove();
-    for (const link of container.querySelectorAll(`[${HANDLED}]`)) link.removeAttribute(HANDLED);
-  }
-  for (const card of findCards(container, new URL(location.href))) {
-    const thumbnail = thumbnailOf(card);
-    thumbnail?.setAttribute(HANDLED, "");
-    thumbnail?.before(createButton(() => request(videoOf(card))));
-  }
-  placeInPlayer();
+/** The video whose menu the pressed element opens, if it is the ⋮ of a card with the item or the ⋯ under the player. */
+function videoOfMenuOpenedBy(target: Element): RequestMessage | undefined {
+  const url = new URL(location.href);
+  const cardOpener = target.closest(CARD_MENU_OPENER);
+  if (cardOpener !== null) return videoOfCardMenu(cardOpener, url);
+  const watchOpener = target.closest(WATCH_MENU_OPENER);
+  return watchOpener === null ? undefined : videoOfWatchMenu(watchOpener, url);
 }
 
 /**
- * Puts the button first in the watch page's player controls, again whenever YouTube renders them anew, and takes it
- * out of a player that has left the watch page, such as the miniplayer.
+ * Remembers each press, in the capture phase, before YouTube opens a menu for it: a pointer's pointerdown, or the click
+ * a key makes on a focused button, which has no pointerdown. A press outside the menu also takes away the item from the
+ * last menu, since YouTube may reuse that menu's list for the next one, which may not be a video's.
  */
-function placeInPlayer() {
-  const controls = isWatchPage(new URL(location.href)) ? document.querySelector(PLAYER_CONTROLS) : null;
-  for (const button of document.querySelectorAll(`${ANY_PLAYER_CONTROLS} > ${BUTTON_TAG}`)) {
-    if (button.parentElement !== controls) button.remove();
+function remember(event: Event) {
+  const target = event.target;
+  if (!(target instanceof Element) || target.closest(ITEM_TAG) !== null) return;
+  // A pointer's click follows its pointerdown, which was already remembered.
+  if (event instanceof MouseEvent && event.type === "click" && event.detail !== 0) return;
+  opening = videoOfMenuOpenedBy(target);
+  if (target.closest(POPUP_CONTAINER) === null) {
+    for (const item of document.querySelectorAll(ITEM_TAG)) item.remove();
   }
-  if (controls === null || controls.querySelector(`:scope > ${BUTTON_TAG}`)) return;
-  controls.prepend(createButton(() => request(videoOfWatchPage(document, new URL(location.href))), "player"));
 }
-
-/** Scans YouTube's content area now and once per animation frame in which it changed. */
-function watch(container: Element) {
-  let scheduled = false;
-  new MutationObserver(() => {
-    if (scheduled) return;
-    scheduled = true;
-    requestAnimationFrame(() => {
-      scheduled = false;
-      scan(container);
-    });
-  }).observe(container, { childList: true, subtree: true });
-  scan(container);
-}
+for (const type of ["pointerdown", "click"])
+  document.addEventListener(type, remember, { capture: true, passive: true });
 
 /**
- * Gives the preview its button when the pointer reaches it, on the pages with buttons, and takes it away on others.
- * The preview lies outside the content area, and YouTube may create it only on the first hover.
+ * A key that chooses one of YouTube's items or closes the menu ends it too, so that a menu YouTube opens next without a
+ * press, such as the sheet of Save to playlist, gets no item.
  */
 document.addEventListener(
-  "pointerover",
+  "keydown",
   (event) => {
-    const preview = event.target instanceof Element ? event.target.closest(PREVIEW) : null;
-    if (preview === null) return;
-    let button = preview.querySelector<HTMLElement>(`:scope > ${BUTTON_TAG}`);
-    if (pageOf(new URL(location.href)) === undefined) {
-      button?.remove();
-      return;
-    }
-    if (button === null) {
-      button = createButton(() => request(videoOfPreview(preview, document)));
-      preview.append(button);
-    }
-    // Moving between the preview's own elements, the pointer is still over the same card.
-    if (!(event.relatedTarget instanceof Node && preview.contains(event.relatedTarget))) alignWithCard(button, preview);
+    if (event.target instanceof Element && event.target.closest(ITEM_TAG) !== null) return;
+    if (["Enter", " ", "Escape"].includes(event.key)) opening = undefined;
   },
   { capture: true, passive: true },
 );
 
-/**
- * Puts the preview's button exactly over the button of the card the preview covers. The preview is larger than the
- * card's thumbnail, so at the preview's own corner the button would jump each time the pointer crossed between the
- * preview and the rest of the card.
- */
-function alignWithCard(button: HTMLElement, preview: Element) {
-  button.style.translate = "";
-  const cardButton = cardOfPreview(preview, document)?.querySelector(BUTTON_TAG);
-  if (cardButton === null || cardButton === undefined) return;
-  const from = button.getBoundingClientRect();
-  const to = cardButton.getBoundingClientRect();
-  button.style.translate = `${String(to.left - from.left)}px ${String(to.top - from.top)}px`;
+/** Puts the item first in each of the menu's lists that lacks it, for the video of the menu opening. */
+function fill(container: Element) {
+  const video = opening;
+  if (video === undefined) return;
+  for (const list of container.querySelectorAll(MENU_LISTS)) {
+    if (list.querySelector(`:scope > ${ITEM_TAG}`) !== null) continue;
+    list.prepend(
+      createItem(() => {
+        void request(video).then((result) => {
+          showToast(result, video.title);
+        });
+      }),
+    );
+  }
 }
 
-// YouTube's content area, which holds every page it renders. It may not exist yet when the script runs.
-const CONTENT_AREA = "ytd-page-manager";
+function watch(container: Element) {
+  new MutationObserver(() => {
+    fill(container);
+  }).observe(container, { childList: true, subtree: true });
+  fill(container);
+}
 
-const contentArea = document.querySelector(CONTENT_AREA);
-if (contentArea !== null) {
-  watch(contentArea);
+const container = document.querySelector(POPUP_CONTAINER);
+if (container !== null) {
+  watch(container);
 } else {
   const waiting = new MutationObserver(() => {
-    const found = document.querySelector(CONTENT_AREA);
+    const found = document.querySelector(POPUP_CONTAINER);
     if (found === null) return;
     waiting.disconnect();
     watch(found);

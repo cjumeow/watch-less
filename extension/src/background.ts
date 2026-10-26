@@ -1,4 +1,4 @@
-// The service worker: a content script cannot reach the native host, so the button's request comes here and goes on
+// The service worker: a content script cannot reach the native host, so the menu item's request comes here and goes on
 // with chrome.runtime.sendNativeMessage. Only this extension's own content scripts can send it a message: the manifest
 // has no externally_connectable, so no web page can.
 
@@ -8,7 +8,7 @@ import { buttonResult, type ButtonResult, type NativeOutcome } from "./button-re
 /** The native host's name, which its manifest declares. */
 const HOST = "com.yt_digest.host";
 
-/** How long the button waits for the host's reply. */
+/** How long the extension waits for the host's reply before its toast says it did not respond. */
 const TIMEOUT_MS = 5000;
 
 async function send(request: RequestMessage): Promise<NativeOutcome> {
