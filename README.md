@@ -3,17 +3,16 @@
 Another framework. Another “must-watch” talk. Another video saved for later.
 Keeping up with technology can start to feel like a watch list you will never finish.
 
-Get a neutral, evidence-backed **digest** before giving a video your time. Read its main arguments, see what supports
-them, and decide whether the full video is worth watching. Stay curious without treating every recommendation as homework.
+Get a faithful **digest** before giving a video your time. Read its conclusion and main arguments, see what it cites,
+and decide whether the full video is worth watching. Stay curious without treating every recommendation as homework.
 
 ## From a thumbnail to a digest
 
 Hover a YouTube thumbnail and press its note button. The video becomes a Markdown digest in Heptabase, written in
-Traditional Chinese, without opening the video.
+English by default, without opening the video.
 
-The digest includes a short conclusion, the video's main arguments linked to their moments, the sources it cites,
-and an assessment of what is worth learning and what is exaggerated or unsupported. Claims the assessment adds
-carry a source or are marked unverified. The details are in [`docs/spec.md`](docs/spec.md).
+The digest includes a short conclusion, the video's main arguments in the speaker's own terms, linked to their moments,
+and the references the video cites, with the description's links. The details are in [`docs/spec.md`](docs/spec.md).
 
 **Work in progress:** the extension, native host and all worker steps are built. Installation and a real end-to-end
 run still need to be verified before the complete flow is ready to use.

@@ -66,6 +66,7 @@ export function inspectVideo(value: unknown): {
     details: {
       title: typeof info.title === "string" ? info.title : "",
       channel: typeof info.channel === "string" ? info.channel : "",
+      channelUrl: [info.uploader_url, info.channel_url].find((url): url is string => typeof url === "string") ?? "",
       durationSeconds: info.duration,
       description: typeof info.description === "string" ? info.description : "",
     },

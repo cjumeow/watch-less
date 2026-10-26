@@ -6,6 +6,8 @@ export interface VideoDetails {
   /** The title YouTube gives; empty when it gives none, and the worker then uses the queue file's. */
   title: string;
   channel: string;
+  /** The channel's page, `https://www.youtube.com/@<handle>` when it has one; empty when YouTube gives none. */
+  channelUrl: string;
   /** As yt-dlp reports it; the header rounds it to whole seconds. */
   durationSeconds: number;
   /** The text under the video, as its uploader wrote it, links included; empty when it has none. Untrusted, like the transcript. */

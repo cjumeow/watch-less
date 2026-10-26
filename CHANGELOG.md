@@ -8,6 +8,10 @@ checkout, so every entry is under Unreleased.
 
 ### Changed
 
+- Digests are written in English by Haiku 5.5, faster and lighter on the subscription, in three sections:
+  Conclusion, Main arguments (about one per three minutes) and References. The assessment and web searches are gone,
+  and the header links the channel. The prompt can write in other languages, ready for choosing one.
+
 - A digest's third section is now 參考資料 (references): what the video mentions, such as papers, repositories and
   tools, each with its moment and a link from the description or a search, or 找不到連結, without sponsor links.
 

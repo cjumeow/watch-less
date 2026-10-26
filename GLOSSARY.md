@@ -1,12 +1,12 @@
 # yt-digest
 
-A button on a YouTube thumbnail turns the video into a neutral, evidence-backed summary, so the developer can decide
+A button on a YouTube thumbnail turns the video into a faithful summary, so the developer can decide
 from the summary whether the video is worth watching.
 
 ## Language
 
 **Digest**:
-The neutral, evidence-backed summary of one video, as a Markdown document in the sections the digest prompt defines.
+The faithful summary of one video, in the speaker's own terms, as a Markdown document in the sections the digest prompt defines.
 _Avoid_: summary note, report, card
 
 **Destination**:
@@ -29,14 +29,15 @@ _Avoid_: subtitles, captions (each is one source of a transcript)
 
 **Description**:
 The text the uploader wrote under a video, links included, as yt-dlp gives it. The worker sends it to the model as
-untrusted data, like the transcript, so the model can find the links of the video's references.
+untrusted data, like the transcript, so the model can list the video's references with their links.
 _Avoid_: show notes, about, info
 
 **Reference**:
-Something a video mentions that the reader could look up, such as an article, a paper, a GitHub repository, a book or
-a tool, listed in the digest's 參考資料 section with the moment it is mentioned and a link, or 找不到連結. A sponsor, an
-affiliate or social link, and anything the video never mentions, is not a reference.
-_Avoid_: source (the assessment's word for a page that backs a claim), citation, resource
+Something a video cites that the reader could look up, such as an article, a paper, a GitHub repository, a book or
+a tool: a link its description lists as a source, or something the speaker names as one, listed in the digest's
+References section with the description's link when it has one. A sponsor, an affiliate or social link, and a vague
+appeal that names nothing, is not a reference.
+_Avoid_: source, citation, resource
 
 **Usage limit**:
 How much the developer's Claude subscription allows in a period. A digest that meets it is **postponed**: it waits

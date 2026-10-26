@@ -20,8 +20,8 @@ export interface FakeVideo {
   postponed?: boolean;
 }
 
-export const FAKE_SECTIONS = "## 結論\n\nA made-up conclusion.\n\n## 主要論點\n\n## 參考資料\n\n## 評估\n";
-export const FAKE_MODEL = "claude-opus-made-up";
+export const FAKE_SECTIONS = "## Conclusion\n\nA made-up conclusion.\n\n## Main arguments\n\n## References\n";
+export const FAKE_MODEL = "claude-made-up";
 export const FAKE_TRANSCRIPT: Transcript = {
   source: "subtitles",
   lines: [
@@ -60,6 +60,7 @@ export function fakeSteps(videos: Record<string, FakeVideo> = {}): FakeSteps {
       const details = {
         title: "A made-up video",
         channel: "A made-up channel",
+        channelUrl: "https://www.youtube.com/@made-up-channel",
         durationSeconds: 754,
         description: "A made-up description.",
         ...video.details,

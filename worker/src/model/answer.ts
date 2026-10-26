@@ -1,10 +1,12 @@
 import { DigestFailure } from "../digest-failure.js";
 import type { ModelAnswer } from "./model-step.js";
 
-/** The model requested for every digest and recorded in its header. */
-export const MODEL = "opus";
-
-export function readModelAnswer(stdout: string, exitCode: number): ModelAnswer {
+/** Reads the CLI's answer, which must have each of `headings`, as written by `model`. */
+export function readModelAnswer(
+  stdout: string,
+  exitCode: number,
+  expected: { headings: readonly string[]; model: string },
+): ModelAnswer {
   if (isUsageLimit(stdout)) return { outcome: "postponed" };
   let value: unknown;
   try {
@@ -33,10 +35,10 @@ export function readModelAnswer(stdout: string, exitCode: number): ModelAnswer {
     value.is_error !== false
   )
     throw new DigestFailure("The model failed to write a digest");
-  const headings = ["## 結論", "## 主要論點", "## 參考資料", "## 評估"];
   const lines = value.result.split(/\r?\n/).map((line) => line.trim());
-  if (headings.some((heading) => !lines.includes(heading))) throw new DigestFailure("The digest was incomplete");
-  return { outcome: "written", sections: value.result, model: MODEL };
+  if (expected.headings.some((heading) => !lines.includes(heading)))
+    throw new DigestFailure("The digest was incomplete");
+  return { outcome: "written", sections: value.result, model: expected.model };
 }
 
 /** Matches the observed CLI message, never arbitrary text that merely mentions a limit. */

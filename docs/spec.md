@@ -165,14 +165,15 @@ A failure at any step removes the request, logs the details and sends the failed
 The transcript and the description are untrusted, so the model gets only what writing the digest needs:
 
 - the prompt in `prompt/digest.md` as its system prompt, and the video's title, description and transcript on stdin;
-- one tool, WebSearch; no file access, no shell, no WebFetch, and `--permission-mode dontAsk`, so anything else is
-  refused without stopping to ask;
+- no tools at all (`--tools ""`): no web search, no file access, no shell, and `--permission-mode dontAsk`, so
+  anything it tries is refused without stopping to ask;
 - no user/project customizations, hooks or `CLAUDE.md` (`--safe-mode`, `--setting-sources ""`), no MCP servers
   (`--strict-mcp-config --mcp-config '{"mcpServers":{}}'`), and no saved session (`--no-session-persistence`);
   Claude Code's administrator-managed policy still applies;
 - an empty temporary folder as its working folder, and only `HOME`, `PATH` and `USER` in its environment, so no token or
   key reaches it (`claude` needs `USER` to find its login in the macOS keychain);
-- the Opus model, set in one place.
+- the model the request asks for; until the extension lets the developer choose one, Haiku 5.5
+  (`claude-haiku-5-5`), set in one place.
 
 It runs on the developer's Claude subscription. The worker reads its answer from `--output-format json`, and fails
 the digest (`The digest was incomplete`) when a section heading of [The digest](#the-digest) is missing, or when the
@@ -185,23 +186,25 @@ the real one the first time it appears.
 
 ## The digest
 
-A digest is written in Traditional Chinese, whatever the video's language. Words quoted from the video stay in their
-own language, with a link to the moment they are said (`&t=754s`).
+A digest is written in the language the request asks for, whatever the video's language: English, 繁體中文, 简体中文,
+日本語, 한국어 or Español, and English until the extension lets the developer choose. It reports what the speaker says as they say it,
+neither judging nor adding to it, and corrects the words automatic captions mishear where the context makes the
+intended word plain. A quote has a link to the moment it is said (`&t=754s`).
 
 It starts with a header the worker writes, never the model, so the transcript cannot change it: the title as the
 first line, `# <title>`, which the destination makes the card's title, then the video's link on a line of its own,
-then its channel, length, when it was requested, the transcript's source (subtitles, automatic captions or Whisper)
-and the model, labelled in Traditional Chinese. The title is the one YouTube gives, or the one the extension sent
-when YouTube gives none. The model writes four sections:
+then its channel, linked to the channel's page, its length, when it was requested and the model, labelled in English
+whatever the digest's language (`Channel`, `Length`, `Added`, `Model`). The title is the one YouTube gives, or the one the extension sent when
+YouTube gives none. The model writes three sections, with headings in the digest's language that the worker gives it
+and checks:
 
-1. **Conclusion:** a short paragraph on what the video says and whether it is worth watching.
-2. **Main arguments:** each with the time range it covers (`12:34–15:10`), linked to that moment in the video.
-3. **References:** what the video mentions that the reader could look up, such as articles, papers, GitHub
-   repositories, books and tools, each with the moment it is mentioned and a link, or that it mentions none. A link
-   comes from the video's description or from WebSearch, is never guessed, and is `找不到連結` when none is found.
-   Sponsor, affiliate, merchandise and social links are left out, and so is anything the video never mentions.
-4. **Assessment:** what is worth learning and what is exaggerated or unsupported. Every claim the model adds comes
-   with the source it found; a judgment it found no source for says it is unverified.
+1. **Conclusion:** two to four sentences on the video's main point and the conclusion the speaker reaches.
+2. **Main arguments:** about one bullet per three minutes of video, at least three and at most ten, each with the
+   time range it covers (`12:34–15:10`), linked to that moment in the video.
+3. **References:** the sources the description lists, with its links, and the articles, repositories, books and the
+   like the speaker names as sources, linked only when the description links them. Nothing is searched for or
+   guessed. Sponsor, affiliate, merchandise and social links are left out, and so are vague appeals that name
+   nothing.
 
 ## The destination
 

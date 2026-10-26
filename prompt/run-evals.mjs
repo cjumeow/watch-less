@@ -14,16 +14,22 @@ import { basename, dirname, join } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-/** The four section headings, in order. The worker fails a digest that lacks one. */
-const SECTION_HEADINGS = ["## 結論", "## 主要論點", "## 參考資料", "## 評估"];
+/** The three section headings, in order, of English, the language the evaluations ask for. The worker fails a digest that lacks one. */
+const SECTION_HEADINGS = ["## Conclusion", "## Main arguments", "## References"];
 
-const MODEL = "opus";
+/** Adds the lines the worker writes after `Video:`, which the transcripts in evals/ leave out, as the worker would. */
+function withSettings(transcript) {
+  const [video, ...rest] = transcript.split("\n");
+  return [video, "Language: English", `Headings: ${SECTION_HEADINGS.join(" | ")}`, ...rest].join("\n");
+}
+
+const MODEL = "claude-haiku-5-5";
 const TIMEOUT_MS = 10 * 60 * 1000;
 
 const promptDir = dirname(fileURLToPath(import.meta.url));
 const evalsDir = join(promptDir, "evals");
 
-/** What is wrong with the digest's headings: it must start with the first one and have exactly the four, in order. */
+/** What is wrong with the digest's headings: it must start with the first one and have exactly the three, in order. */
 function headingProblems(digest) {
   const lines = digest.split("\n").map((line) => line.trim());
   const headings = lines.filter((line) => /^#{1,6}\s/.test(line));
@@ -56,13 +62,43 @@ function descriptionLinks(input) {
   return [...description.matchAll(/https?:\/\/[^\s）」]+/g)].map(([url]) => url.replace(/[.,;:!?]+$/, ""));
 }
 
-/** The links the model added, outside the video's own, that appear in neither the description nor a search result. */
-function unfoundLinks(digest, input, searchResults) {
+/** The links the model added, outside the video's own, that are not in the description. */
+function unfoundLinks(digest, input) {
   const described = descriptionLinks(input);
-  return links(digest).filter(
-    (url) =>
-      !url.startsWith("https://www.youtube.com/watch?v=") && !described.includes(url) && !searchResults.includes(url),
-  );
+  return links(digest).filter((url) => !url.startsWith("https://www.youtube.com/watch?v=") && !described.includes(url));
+}
+
+/**
+ * What is wrong with the number of main arguments: about one per three minutes of the transcript, at least three and
+ * at most ten, give or take one.
+ */
+function argumentCountProblems(digest, transcript) {
+  const stamps = [...transcript.matchAll(/^\[(?:(\d+):)?(\d+):(\d\d)\]/gm)];
+  const [, hours = "0", minutes = "0"] = stamps.at(-1) ?? [];
+  const expected = Math.min(10, Math.max(3, Math.round((Number(hours) * 60 + Number(minutes)) / 3)));
+  const section = digest.split(/^## /m).find((part) => part.startsWith("Main arguments")) ?? "";
+  const count = section.split("\n").filter((line) => line.startsWith("- ")).length;
+  return Math.abs(count - expected) > 1 ? [`${String(count)} main arguments, expected about ${String(expected)}`] : [];
+}
+
+/** The main arguments that do not start with a linked time range, or whose range starts before the last one ended. */
+function argumentRangeProblems(digest) {
+  const section = digest.split(/^## /m).find((part) => part.startsWith("Main arguments")) ?? "";
+  const seconds = (stamp) => stamp.split(":").reduce((total, part) => total * 60 + Number(part), 0);
+  const problems = [];
+  let lastEnd = 0;
+  for (const line of section.split("\n").filter((line) => line.startsWith("- "))) {
+    const range = line.match(
+      /^- \[((?:\d+:)?\d+:\d\d)[–-]((?:\d+:)?\d+:\d\d)\]\(https:\/\/www\.youtube\.com\/watch\?v=/,
+    );
+    if (range === null) {
+      problems.push(`argument without a linked time range: ${line.slice(0, 40)}`);
+      continue;
+    }
+    if (seconds(range[1]) < lastEnd) problems.push(`argument overlaps the one before: ${range[1]}–${range[2]}`);
+    lastEnd = seconds(range[2]);
+  }
+  return problems;
 }
 
 /** Links the developer excluded from references: social accounts, memberships, and affiliate, referral or discount links. */
@@ -75,11 +111,6 @@ function excludedLinks(digest) {
   );
 }
 
-/** Citations the prompt forbids: a source list after the assessment, and a source without its link. */
-function forbiddenCitations(digest) {
-  return [/^\**(?:Sources?|參考來源|來源)\**[:：]/m, /（來源：同上）/].filter((pattern) => pattern.test(digest));
-}
-
 /** Runs `claude -p` on one transcript and resolves with its stream-json events, one per line. */
 function runModel(transcript) {
   const workDir = mkdtempSync(join(tmpdir(), "yt-digest-eval-"));
@@ -90,9 +121,7 @@ function runModel(transcript) {
     "--system-prompt-file",
     join(promptDir, "digest.md"),
     "--tools",
-    "WebSearch",
-    "--allowedTools",
-    "WebSearch",
+    "",
     "--permission-mode",
     "dontAsk",
     "--safe-mode",
@@ -102,7 +131,7 @@ function runModel(transcript) {
     "--mcp-config",
     '{"mcpServers":{}}',
     "--no-session-persistence",
-    // stream-json carries the same final result as the worker's json, plus each search the model made.
+    // stream-json carries the same final result as the worker's json, plus any tool the model tried to call.
     "--output-format",
     "stream-json",
     "--verbose",
@@ -131,7 +160,7 @@ function runModel(transcript) {
   });
 }
 
-/** The final answer, the tools the model called, and the text of the results those tools returned, in a stream-json run. */
+/** The final answer and the tools the model tried to call, in a stream-json run. It has none, so there should be none. */
 function readEvents(output) {
   const events = output
     .split("\n")
@@ -144,44 +173,36 @@ function readEvents(output) {
     .flatMap((event) => event.message.content)
     .filter((block) => block.type === "tool_use")
     .map((block) => `${block.name}: ${JSON.stringify(block.input)}`);
-  // Only the tools' results, never the model's own messages, which repeat the digest and every link in it.
-  const searchResults = events
-    .filter((event) => event.type === "user")
-    .flatMap((event) => event.message.content)
-    .filter((block) => block.type === "tool_result")
-    .map((block) => (typeof block.content === "string" ? block.content : JSON.stringify(block.content)))
-    .join("\n");
-  return { digest: result.result, searches, searchResults };
+  return { digest: result.result, searches };
 }
 
 /** Prints what the checks find in one run, and whether it failed one. */
 function reportRun(name, transcript, output) {
-  const { digest, searches, searchResults } = readEvents(output);
+  const { digest, searches } = readEvents(output);
   const report = (problems, ok) => {
     for (const problem of problems) console.log(`${name}: ${problem}`);
     if (!problems.length) console.log(`${name}: ${ok}`);
     return problems.length > 0;
   };
-  for (const search of searches) console.log(`${name}: used ${search}`);
   const failed = [
-    report(headingProblems(digest), "the four headings, in order, and nothing before them"),
+    report(
+      searches.map((search) => `tried a tool it does not have: ${search}`),
+      "no tool calls",
+    ),
+    report(headingProblems(digest), "the three headings, in order, and nothing before them"),
+    report(argumentCountProblems(digest, transcript), "about one main argument per three minutes"),
+    report(argumentRangeProblems(digest), "every main argument starts with a linked range, none overlapping"),
     report(
       strayMoments(digest, transcript).map((seconds) => `moment not in the transcript: &t=${seconds}s`),
       "every moment is a transcript timestamp",
     ),
     report(
-      unfoundLinks(digest, transcript, searchResults).map(
-        (url) => `link in neither the description nor a search result: ${url}`,
-      ),
-      "every added link is in the description or a search result",
+      unfoundLinks(digest, transcript).map((url) => `link not in the description: ${url}`),
+      "every added link is in the description",
     ),
     report(
       excludedLinks(digest).map((url) => `social, affiliate or referral link: ${url}`),
       "no social, affiliate or referral links",
-    ),
-    report(
-      forbiddenCitations(digest).map((pattern) => `forbidden citation: ${String(pattern)}`),
-      "no forbidden citations",
     ),
   ];
   return { digest, failed: failed.some(Boolean) };
@@ -216,7 +237,7 @@ if (process.argv[1] !== fileURLToPath(import.meta.url)) {
     console.log(`${name}: running`);
     try {
       const transcript = readFileSync(join(evalsDir, `${name}.txt`), "utf8");
-      const output = await runModel(transcript);
+      const output = await runModel(withSettings(transcript));
       writeFileSync(join(outDir, `${name}.events.jsonl`), output);
       const run = reportRun(name, transcript, output);
       writeFileSync(join(outDir, `${name}.md`), run.digest);

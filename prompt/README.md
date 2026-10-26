@@ -11,6 +11,8 @@ On stdin, as UTF-8 text, one video:
 
 ```text
 Video: https://www.youtube.com/watch?v=<id>
+Language: <the language's name, such as English or 繁體中文 (Traditional Chinese)>
+Headings: ## <first heading> | ## <second heading> | ## <third heading>
 Title: <the video's title>
 Description:
 > <a line of the video's description>
@@ -23,6 +25,9 @@ Transcript:
 
 - `Video:` is the video's link, always `https://www.youtube.com/watch?v=` followed by its ID. The model links to a
   moment by appending `&t=<seconds>s` to it.
+- `Language:` names the language the digest is written in, and `Headings:` gives its three section headings in
+  that language, in order, separated by ` | `. The worker takes both from `worker/src/model/languages.ts`, the
+  languages the extension's popup offers, and they are the only lines the prompt follows rather than treats as data.
 - `Title:` is the title on one line.
 - `Description:` is followed by the video's description as yt-dlp gives it, links included, one line of it per line,
   each starting with `> ` (a blank line of it is `>` alone). Quoting every line keeps a description from passing for
@@ -34,16 +39,16 @@ Everything on stdin, the title and the description included, is untrusted: the p
 
 ## What the model returns
 
-The digest's four sections and nothing else, in this order, each starting with its heading on a line of its own:
+The digest's three sections in the language asked for, and nothing else, in this order, each starting with its
+heading from `Headings:` on a line of its own. In English:
 
 | Heading | Section |
 |---|---|
-| `## 結論` | Conclusion |
-| `## 主要論點` | Main arguments, each with its time range |
-| `## 參考資料` | The references: what the video mentions that the reader could look up, each with a link or `找不到連結`, or `影片未提到任何參考資料。` |
-| `## 評估` | Assessment |
+| `## Conclusion` | The video's main point and the speaker's conclusion, in two to four sentences |
+| `## Main arguments` | About one bullet per three minutes of video, three to ten, each with its time range |
+| `## References` | The sources the description lists, with its links, and those the speaker names, or a sentence saying it cites none |
 
-The worker fails the digest (`The digest was incomplete`) when one of these four lines is missing. The model writes no
+The worker fails the digest (`The digest was incomplete`) when one of the three headings it sent is missing. The model writes no
 title and no header: the worker writes the header above the sections, as `docs/spec.md` describes.
 
 ## Evaluations
