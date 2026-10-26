@@ -54,7 +54,7 @@ Update this table when the layout changes. Rows marked (planned) do not exist ye
 | The worker that turns a queued video into a digest: the loop in `src/run-queue.ts`, each step's interface in `src/transcript/`, `src/model/` and `src/destination/`, and its launchd agent | `worker/` |
 | The digest prompt, the contract with the worker, and the evaluations | `prompt/` |
 | Shared TypeScript settings, lint and format rules | `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json` |
-| Repository checks that are not lint rules, the scripts hooks run, and `install-local.sh`, which installs yt-digest for this account, with their tests | `scripts/` |
+| Repository checks that are not lint rules, the scripts hooks run, `setup.sh`, which installs the tools yt-digest runs on and then yt-digest, and `install-local.sh`, which installs yt-digest for this account, with their tests | `scripts/` |
 | Git hooks, which `npm install` turns on: `commit-msg` refuses a subject the pull request title check would | `.githooks/` |
 | Claude Code hooks for every agent in this repository: Prettier formats each file an agent writes or edits | `.claude/settings.json` |
 | Skills for developing this repository | `.claude/skills/<name>/SKILL.md` (other agents read them through the `.agents/skills` link) |
@@ -156,6 +156,8 @@ npm run lint             # ESLint with type-aware rules
 npm run typecheck        # tsc in every workspace
 npm test                 # Vitest
 npm run build            # every workspace that has a build
+sh scripts/setup.sh      # the developer's step: install the missing tools, sign in, then install-local (npm run setup)
+sh scripts/setup.sh --check   # the same check, installing nothing: safe for agents
 npm run install-local    # the developer's step: install the last commit outside the checkout, or update it
 npm run install-local -- --dry-run   # the same into a new temporary home, with no launchctl: safe for agents
 ```

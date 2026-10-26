@@ -1,7 +1,8 @@
 #!/bin/sh
 # Installs yt-digest for this macOS account from the checkout's last commit, and updates it when run again:
 #
-#   npm run install-local              # install, register the native host and (re)load the worker's launchd agent
+#   npm run install-local              # check the tools, install, register the native host and (re)load the worker's
+#                                      # launchd agent
 #   npm run install-local -- --dry-run # install into a new temporary home instead, and run no launchctl
 #
 # It builds the commit in a temporary folder, so uncommitted edits are not installed, and copies what runs into
@@ -16,6 +17,12 @@ case "${1-}" in
 esac
 
 checkout=$(cd "$(dirname "$0")/.." && pwd -P)
+
+# Stop before building when a tool yt-digest needs is missing, rather than at the first digest. A dry run installs
+# into a temporary home that never runs, so it needs none of them.
+if [ "$dry_run" = false ]; then
+  sh "$checkout/scripts/setup.sh" --check >&2 || exit 1
+fi
 build=$(mktemp -d "${TMPDIR:-/tmp}/yt-digest-build.XXXXXX")
 trap 'rm -rf "$build"' EXIT
 

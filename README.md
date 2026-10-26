@@ -35,20 +35,29 @@ This is a personal tool, not a service.
 
 ## Installing
 
-On a Mac, from a checkout, with Node.js 24, `yt-dlp` and the `heptabase` CLI on `PATH`, and `claude` (Claude Code)
-or `codex` (Codex CLI) signed in:
+On a Mac with Apple Silicon, with [Homebrew](https://brew.sh), Chrome and the Heptabase app:
 
 ```bash
-npm install
-npm run install-local
+git clone https://github.com/cjumeow/watch-less.git yt-digest
+cd yt-digest
+sh scripts/setup.sh
 ```
 
-It builds the last commit and installs it in `~/Library/Application Support/yt-digest/app/`, registers the native
-host with Chrome and loads the worker's launchd agent. Then, once, in `chrome://extensions`, turn on Developer mode,
-press Load unpacked and pick `~/Library/Application Support/yt-digest/app/extension/dist` (press ⌘⇧G in the picker to
-type the path).
+The script installs what yt-digest needs and is missing, after asking you once, then installs yt-digest itself:
 
-To update, commit and run `npm run install-local` again, then press Reload on yt-digest in `chrome://extensions`.
+- Node.js 24, `yt-dlp` (reads a video's subtitles), and `ffmpeg` and `mlx_whisper` (transcribe a video without
+  subtitles), with Homebrew and `uv`;
+- Claude Code or Codex CLI, whichever you choose, and signs you in with your Claude or ChatGPT plan, not an API key;
+- yt-digest, in `~/Library/Application Support/yt-digest/app/`, where Chrome can reach it and it runs in the
+  background whenever you request a summary.
+
+Two steps are yours, and the script tells you when:
+
+1. **Heptabase's CLI:** in the Heptabase app's settings, install the CLI and turn on the Local CLI Server.
+2. **The extension, once:** in `chrome://extensions`, turn on Developer mode, press Load unpacked and pick
+   `~/Library/Application Support/yt-digest/app/extension/dist` (press ⌘⇧G in the picker to type the path).
+
+To update, `git pull`, run `npm run install-local`, and press Reload on yt-digest in `chrome://extensions`.
 
 ## Development
 

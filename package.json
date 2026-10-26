@@ -22,6 +22,7 @@
     "test": "vitest run",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run test:e2e",
     "test:e2e": "playwright test -c e2e",
+    "setup": "sh scripts/setup.sh",
     "install-local": "sh scripts/install-local.sh",
     "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && git config core.hooksPath .githooks || true"
   },
