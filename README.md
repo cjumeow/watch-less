@@ -35,20 +35,38 @@ This is a personal tool, not a service.
 
 ## Installing
 
-On a Mac, from a checkout, with Node.js 24, `yt-dlp` and the `heptabase` CLI on `PATH`, and `claude` (Claude Code)
-or `codex` (Codex CLI) signed in:
+On a Mac with Apple Silicon, Chrome and the Heptabase app, from a clone of this repository:
 
-```bash
-npm install
-npm run install-local
-```
+1. **Check the tools.** yt-digest uses Node.js 24, `yt-dlp` to read a video's subtitles, the Heptabase CLI, and
+   Claude Code or Codex CLI to write the summary; `ffmpeg` and `mlx_whisper` transcribe a video without subtitles.
 
-It builds the last commit and installs it in `~/Library/Application Support/yt-digest/app/`, registers the native
-host with Chrome and loads the worker's launchd agent. Then, once, in `chrome://extensions`, turn on Developer mode,
-press Load unpacked and pick `~/Library/Application Support/yt-digest/app/extension/dist` (press ⌘⇧G in the picker to
-type the path).
+   ```bash
+   npm install
+   npm run setup
+   ```
 
-To update, commit and run `npm run install-local` again, then press Reload on yt-digest in `chrome://extensions`.
+   It lists what is missing, offers to install what Homebrew and `uv` can, and says how to do the rest.
+
+2. **Sign in and turn on Heptabase's CLI.** These need you, so the script only checks them:
+   - sign in to Claude Code (`claude auth login`) or Codex CLI (`codex login`) with your Claude or ChatGPT plan, not
+     an API key;
+   - in the Heptabase app's settings, install the CLI and turn on the Local CLI Server.
+
+3. **Install yt-digest.**
+
+   ```bash
+   npm run install-local
+   ```
+
+   It checks the tools again, builds the code you have checked out, copies it to
+   `~/Library/Application Support/yt-digest/app/`, lets Chrome talk to it, and sets it to run in the background
+   whenever you request a summary.
+
+4. **Load the extension in Chrome,** once: in `chrome://extensions`, turn on Developer mode, press Load unpacked
+   and pick `~/Library/Application Support/yt-digest/app/extension/dist` (press ⌘⇧G in the picker to type the path).
+
+To update, pull the latest code, run `npm run install-local` again, and press Reload on yt-digest in
+`chrome://extensions`.
 
 ## Development
 
