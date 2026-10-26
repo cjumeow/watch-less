@@ -17,10 +17,24 @@ import { fileURLToPath } from "node:url";
 /** The three section headings, in order, of English, the language the evaluations ask for. The worker fails a digest that lacks one. */
 const SECTION_HEADINGS = ["## Conclusion", "## Main arguments", "## References"];
 
+/** How many main arguments the worker asks for: one per three minutes of transcript, at least two and at most ten. */
+function argumentCount(transcript) {
+  const stamps = [...transcript.matchAll(/^\[(?:(\d+):)?(\d+):(\d\d)\]/gm)];
+  const [, hours = "0", minutes = "0", seconds = "0"] = stamps.at(-1) ?? [];
+  const total = Number(hours) * 60 + Number(minutes) + Number(seconds) / 60;
+  return Math.min(10, Math.max(2, Math.round(total / 3)));
+}
+
 /** Adds the lines the worker writes after `Video:`, which the transcripts in evals/ leave out, as the worker would. */
 function withSettings(transcript) {
   const [video, ...rest] = transcript.split("\n");
-  return [video, "Language: English", `Headings: ${SECTION_HEADINGS.join(" | ")}`, ...rest].join("\n");
+  return [
+    video,
+    "Language: English",
+    `Headings: ${SECTION_HEADINGS.join(" | ")}`,
+    `Main arguments: ${String(argumentCount(transcript))}`,
+    ...rest,
+  ].join("\n");
 }
 
 const MODEL = "claude-haiku-5-5";
@@ -68,17 +82,12 @@ function unfoundLinks(digest, input) {
   return links(digest).filter((url) => !url.startsWith("https://www.youtube.com/watch?v=") && !described.includes(url));
 }
 
-/**
- * What is wrong with the number of main arguments: about one per three minutes of the transcript, at least three and
- * at most ten, give or take one.
- */
+/** What is wrong with the number of main arguments: exactly as many as the worker asks for. */
 function argumentCountProblems(digest, transcript) {
-  const stamps = [...transcript.matchAll(/^\[(?:(\d+):)?(\d+):(\d\d)\]/gm)];
-  const [, hours = "0", minutes = "0"] = stamps.at(-1) ?? [];
-  const expected = Math.min(10, Math.max(3, Math.round((Number(hours) * 60 + Number(minutes)) / 3)));
+  const expected = argumentCount(transcript);
   const section = digest.split(/^## /m).find((part) => part.startsWith("Main arguments")) ?? "";
   const count = section.split("\n").filter((line) => line.startsWith("- ")).length;
-  return Math.abs(count - expected) > 1 ? [`${String(count)} main arguments, expected about ${String(expected)}`] : [];
+  return count === expected ? [] : [`${String(count)} main arguments, asked for ${String(expected)}`];
 }
 
 /** The main arguments that do not start with a linked time range, or whose range starts before the last one ended. */
@@ -190,7 +199,7 @@ function reportRun(name, transcript, output) {
       "no tool calls",
     ),
     report(headingProblems(digest), "the three headings, in order, and nothing before them"),
-    report(argumentCountProblems(digest, transcript), "about one main argument per three minutes"),
+    report(argumentCountProblems(digest, transcript), "as many main arguments as asked for"),
     report(argumentRangeProblems(digest), "every main argument starts with a linked range, none overlapping"),
     report(
       strayMoments(digest, transcript).map((seconds) => `moment not in the transcript: &t=${seconds}s`),

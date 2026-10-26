@@ -13,6 +13,7 @@ On stdin, as UTF-8 text, one video:
 Video: https://www.youtube.com/watch?v=<id>
 Language: <the language's name, such as English or 繁體中文 (Traditional Chinese)>
 Headings: ## <first heading> | ## <second heading> | ## <third heading>
+Main arguments: <a number from 2 to 10>
 Title: <the video's title>
 Description:
 > <a line of the video's description>
@@ -27,7 +28,10 @@ Transcript:
   moment by appending `&t=<seconds>s` to it.
 - `Language:` names the language the digest is written in, and `Headings:` gives its three section headings in
   that language, in order, separated by ` | `. The worker takes both from `worker/src/model/languages.ts`, the
-  languages the extension's popup offers, and they are the only lines the prompt follows rather than treats as data.
+  languages the extension's popup offers.
+- `Main arguments:` is how many main arguments to write: one per three minutes of transcript, counted to its last
+  timestamp, at least two and at most ten. The worker counts, because the model does not keep to that rule itself.
+- These three lines are the only ones the prompt follows rather than treats as data.
 - `Title:` is the title on one line.
 - `Description:` is followed by the video's description as yt-dlp gives it, links included, one line of it per line,
   each starting with `> ` (a blank line of it is `>` alone). Quoting every line keeps a description from passing for
@@ -45,7 +49,7 @@ heading from `Headings:` on a line of its own. In English:
 | Heading | Section |
 |---|---|
 | `## Conclusion` | The video's main point and the speaker's conclusion, in two to four sentences |
-| `## Main arguments` | About one bullet per three minutes of video, three to ten, each with its time range |
+| `## Main arguments` | As many bullets as `Main arguments:` says, each starting with its linked time range, none overlapping |
 | `## References` | The sources the description lists, with its links, and those the speaker names, or a sentence saying it cites none |
 
 The worker fails the digest (`The digest was incomplete`) when one of the three headings it sent is missing. The model writes no

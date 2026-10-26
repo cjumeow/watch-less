@@ -141,6 +141,7 @@ function formatInput(input: DigestInput): string {
     `Video: https://www.youtube.com/watch?v=${input.videoId}`,
     `Language: ${LANGUAGES[input.language].name}`,
     `Headings: ${LANGUAGES[input.language].headings.join(" | ")}`,
+    `Main arguments: ${String(argumentCount(input.transcript))}`,
     `Title: ${oneLine(input.title)}`,
     "Description:",
     // Quoted line by line, so no line of the description can pass for a transcript line or another field.
@@ -154,6 +155,15 @@ function formatInput(input: DigestInput): string {
     ...input.transcript.lines.map((line) => `[${timestamp(line.startSeconds)}] ${oneLine(line.text)}`),
     "",
   ].join("\n");
+}
+
+/**
+ * How many main arguments the digest has: one per three minutes of transcript, at least two and at most ten. The
+ * worker counts, because the model does not keep to a rule it has to work out itself.
+ */
+function argumentCount(transcript: DigestInput["transcript"]): number {
+  const minutes = (transcript.lines.at(-1)?.startSeconds ?? 0) / 60;
+  return Math.min(10, Math.max(2, Math.round(minutes / 3)));
 }
 
 function oneLine(text: string): string {
