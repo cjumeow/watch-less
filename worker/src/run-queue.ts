@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, parseQueueFile, providerOf, type QueueFile } from "@y
 import { DigestFailure } from "./digest-failure.js";
 import type { Destination } from "./destination/destination.js";
 import { formatHeader, videoLink } from "./header.js";
+import { linkMoments } from "./link-moments.js";
 import { fileLog, type Log } from "./log.js";
 import type { ModelStep } from "./model/model-step.js";
 import type { NotificationTitle, Notifier } from "./notifier.js";
@@ -112,7 +113,7 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
         },
         run.timeZone,
       );
-      const markdown = `${header}\n${answer.sections}`;
+      const markdown = `${header}\n${linkMoments(answer.sections, videoLink(videoId))}`;
       // Written aside and moved into the done folder only once delivered, so an interrupted digest never counts as done.
       await writeFile(draft, markdown);
       await steps.destination.deliver({ videoLink: videoLink(videoId), markdown });

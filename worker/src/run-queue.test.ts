@@ -96,6 +96,16 @@ describe("runQueue", () => {
     expect(notifier.sent).toEqual(["Digest failed: A made-up video: OpenAI models are not supported yet"]);
   });
 
+  test("links a time range the model left without its link", async () => {
+    await queue("aB3_x-9Zq0Y", "A made-up video");
+
+    await run({ "aB3_x-9Zq0Y": { sections: `${FAKE_SECTIONS}\n- [0:07–0:30] **A made-up point**: Made-up words.\n` } });
+
+    expect(await readFile(join(dataFolder, "done", "aB3_x-9Zq0Y.md"), "utf8")).toContain(
+      "- [0:07–0:30](https://www.youtube.com/watch?v=aB3_x-9Zq0Y&t=7s) **A made-up point**",
+    );
+  });
+
   test("takes the oldest request first", async () => {
     await queue("aaaaaaaaaaa", "A made-up newer video", "2026-10-25T09:00:00.000Z");
     await queue("zzzzzzzzzzz", "A made-up older video", "2026-10-25T08:00:00.000Z");
