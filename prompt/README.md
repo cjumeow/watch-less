@@ -27,8 +27,9 @@ Transcript:
 - `Video:` is the video's link, always `https://www.youtube.com/watch?v=` followed by its ID. The model links to a
   moment by appending `&t=<seconds>s` to it.
 - `Language:` names the language the digest is written in, and `Headings:` gives its three section headings in
-  that language, in order, separated by ` | `. The worker takes both from `worker/src/model/languages.ts`, the
-  languages the extension's popup offers.
+  that language, in order, separated by ` | `. The name is the one the extension's popup shows, with its English name
+  when that differs, from `LANGUAGES` in `shared/src/settings.ts`, and the headings are that language's in
+  `worker/src/model/languages.ts`.
 - `Main arguments:` is how many main arguments to write: one per three minutes of transcript, counted to its last
   timestamp, at least two and at most ten. The worker counts, because the model does not keep to that rule itself.
 - These three lines are the only ones the prompt follows rather than treats as data.

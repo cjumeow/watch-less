@@ -23,8 +23,9 @@ OAuth token environment variable or caller-selected config path is forwarded. ma
 `__CF_USER_TEXT_ENCODING`; tests validate that platform field separately. Each call starts in a private empty
 folder, removed after its child closes. No shell is used and model text is never executed.
 
-Each digest names its model and its language; until the request carries them, both come from `DEFAULT_SETTINGS`
-in `languages.ts`, English and `claude-haiku-5-5`. The model is recorded in the header, and the language sets the
+Each digest names its model and its language: the queue file's when it has them, and otherwise `DEFAULT_SETTINGS`
+from `@yt-digest/shared`, English and `claude-haiku-5-5`. The worker fails a digest that asks for an OpenAI model
+with `OpenAI models are not supported yet` before any step runs. The model is recorded in the header, and the language sets the
 headings sent on stdin and checked in the answer. The executable must be available on the worker's `PATH` and support these CLI flags.
 The eval runner uses the same customization/MCP flags, but stream-json output to capture searches.
 

@@ -1,11 +1,10 @@
 import { access, mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { parseQueueFile, type QueueFile } from "@yt-digest/shared";
+import { DEFAULT_SETTINGS, parseQueueFile, providerOf, type QueueFile } from "@yt-digest/shared";
 import { DigestFailure } from "./digest-failure.js";
 import type { Destination } from "./destination/destination.js";
 import { formatHeader, videoLink } from "./header.js";
 import { fileLog, type Log } from "./log.js";
-import { DEFAULT_SETTINGS } from "./model/languages.js";
 import type { ModelStep } from "./model/model-step.js";
 import type { NotificationTitle, Notifier } from "./notifier.js";
 import type { TranscriptStep } from "./transcript/transcript-step.js";
@@ -82,7 +81,11 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
   // Until the video is checked, its title is the one the extension scraped from the card.
   let title = request.title;
   let postponed = false;
+  const language = request.language ?? DEFAULT_SETTINGS.language;
+  const model = request.model ?? DEFAULT_SETTINGS.model;
   try {
+    // The model step runs Claude Code; Codex CLI for the OpenAI models comes later.
+    if (providerOf(model) !== "claude") throw new DigestFailure("OpenAI models are not supported yet");
     const video = await steps.transcript.checkVideo(videoId);
     title = video.details.title || request.title;
     const transcript = await video.getTranscript();
@@ -91,7 +94,8 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
       title,
       description: video.details.description,
       transcript,
-      ...DEFAULT_SETTINGS,
+      language,
+      model,
     });
     if (answer.outcome === "postponed") {
       postponed = true;
