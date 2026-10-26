@@ -4,11 +4,11 @@ import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { DigestFailure } from "../digest-failure.js";
 import { readModelAnswer } from "./answer.js";
-import { LANGUAGES } from "./languages.js";
+import { LANGUAGES } from "@yt-digest/shared";
+import { HEADINGS } from "./languages.js";
 import type { DigestInput, ModelStep } from "./model-step.js";
 
 export type * from "./model-step.js";
-export { DEFAULT_SETTINGS, LANGUAGES, type Language } from "./languages.js";
 
 // The module is read from src/model by tests and bundled into worker/dist/worker.js for launchd.
 const OUTPUT_LIMIT_BYTES = 8 * 1024 * 1024;
@@ -27,7 +27,7 @@ export function createModelStep(): ModelStep {
         const result = await runModel(folder, input.model, formatInput(input));
         try {
           return readModelAnswer(result.stdout, result.exitCode, {
-            headings: LANGUAGES[input.language].headings,
+            headings: HEADINGS[input.language],
             model: input.model,
           });
         } catch (cause) {
@@ -136,11 +136,16 @@ function runModel(
   });
 }
 
+/** The language's own name, as the popup shows it, with its English name when that differs. */
+const LANGUAGE_NAMES = Object.fromEntries(
+  LANGUAGES.map(({ id, name, englishName }) => [id, name === englishName ? name : `${name} (${englishName})`]),
+) as Record<DigestInput["language"], string>;
+
 function formatInput(input: DigestInput): string {
   return [
     `Video: https://www.youtube.com/watch?v=${input.videoId}`,
-    `Language: ${LANGUAGES[input.language].name}`,
-    `Headings: ${LANGUAGES[input.language].headings.join(" | ")}`,
+    `Language: ${LANGUAGE_NAMES[input.language]}`,
+    `Headings: ${HEADINGS[input.language].join(" | ")}`,
     `Main arguments: ${String(argumentCount(input.transcript))}`,
     `Title: ${oneLine(input.title)}`,
     "Description:",

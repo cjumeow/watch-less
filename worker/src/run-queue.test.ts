@@ -15,9 +15,17 @@ afterEach(async () => {
   await rm(dataFolder, { recursive: true, force: true });
 });
 
-async function queue(videoId: string, title: string, requestedAt = "2026-10-25T08:00:00.000Z") {
+async function queue(
+  videoId: string,
+  title: string,
+  requestedAt = "2026-10-25T08:00:00.000Z",
+  settings: { language?: string; model?: string } = {},
+) {
   await mkdir(join(dataFolder, "queue"), { recursive: true });
-  await writeFile(join(dataFolder, "queue", `${videoId}.json`), JSON.stringify({ videoId, title, requestedAt }));
+  await writeFile(
+    join(dataFolder, "queue", `${videoId}.json`),
+    JSON.stringify({ videoId, title, requestedAt, ...settings }),
+  );
 }
 
 async function list(folder: string): Promise<string[]> {
@@ -47,7 +55,7 @@ describe("runQueue", () => {
         "- Channel: [A made-up channel](https://www.youtube.com/@made-up-channel)",
         "- Length: 12:34",
         "- Added: 2026-10-25 16:00",
-        "- Model: claude-made-up",
+        "- Model: claude-haiku-5-5",
         "",
         FAKE_SECTIONS,
       ].join("\n"),
@@ -56,6 +64,36 @@ describe("runQueue", () => {
     expect(await list("queue")).toEqual([]);
     expect(await list("drafts")).toEqual([]);
     expect(notifier.sent).toEqual(["Digest ready: A made-up video"]);
+  });
+
+  test("writes the digest in English with Haiku when the queue file does not say", async () => {
+    await queue("aB3_x-9Zq0Y", "A made-up video");
+
+    const { steps } = await run();
+
+    expect(steps.settings).toEqual([{ language: "en", model: "claude-haiku-5-5" }]);
+  });
+
+  test("writes the digest in the queue file's language with its model, and the header names the model", async () => {
+    await queue("aB3_x-9Zq0Y", "A made-up video", undefined, { language: "zh-Hant", model: "claude-sonnet-5-5" });
+
+    const { steps } = await run();
+
+    expect(steps.settings).toEqual([{ language: "zh-Hant", model: "claude-sonnet-5-5" }]);
+    expect(await readFile(join(dataFolder, "done", "aB3_x-9Zq0Y.md"), "utf8")).toContain(
+      "\n- Model: claude-sonnet-5-5\n",
+    );
+  });
+
+  test("fails a digest asking for an OpenAI model, before any step runs", async () => {
+    await queue("aB3_x-9Zq0Y", "A made-up video", undefined, { model: "gpt-6-luna" });
+
+    const { steps, notifier } = await run();
+
+    expect(steps.calls).toEqual([]);
+    expect(await list("queue")).toEqual([]);
+    expect(await list("done")).toEqual([]);
+    expect(notifier.sent).toEqual(["Digest failed: A made-up video: OpenAI models are not supported yet"]);
   });
 
   test("takes the oldest request first", async () => {

@@ -3,7 +3,7 @@
 
 import { DigestFailure } from "./digest-failure.js";
 import type { Digest, Destination } from "./destination/destination.js";
-import type { ModelAnswer, ModelStep } from "./model/model-step.js";
+import type { DigestInput, ModelAnswer, ModelStep } from "./model/model-step.js";
 import type { Notifier } from "./notifier.js";
 import type { Steps } from "./run-queue.js";
 import type { Transcript, TranscriptStep, VideoDetails } from "./transcript/transcript-step.js";
@@ -21,7 +21,6 @@ export interface FakeVideo {
 }
 
 export const FAKE_SECTIONS = "## Conclusion\n\nA made-up conclusion.\n\n## Main arguments\n\n## References\n";
-export const FAKE_MODEL = "claude-made-up";
 export const FAKE_TRANSCRIPT: Transcript = {
   source: "subtitles",
   lines: [
@@ -41,12 +40,15 @@ export const FAKE_REASONS: Record<Exclude<FakeFailure, "crash">, string> = {
 export interface FakeSteps extends Steps {
   /** What each step was called with, in order, as `<step> <videoId>`. */
   calls: string[];
+  /** The language and model the model step was given, one entry per call. */
+  settings: Pick<DigestInput, "language" | "model">[];
   delivered: Digest[];
 }
 
 /** Steps that look each video up in `videos`; a video missing from it is an ordinary one that succeeds. */
 export function fakeSteps(videos: Record<string, FakeVideo> = {}): FakeSteps {
   const calls: string[] = [];
+  const settings: FakeSteps["settings"] = [];
   const delivered: Digest[] = [];
   const failIf = (video: FakeVideo, step: Exclude<FakeFailure, "crash">) => {
     if (video.failsAt === step) throw new DigestFailure(FAKE_REASONS[step]);
@@ -77,13 +79,15 @@ export function fakeSteps(videos: Record<string, FakeVideo> = {}): FakeSteps {
   };
 
   const model: ModelStep = {
-    writeDigest({ videoId }): Promise<ModelAnswer> {
+    writeDigest(input): Promise<ModelAnswer> {
+      const { videoId } = input;
       calls.push(`model ${videoId}`);
+      settings.push({ language: input.language, model: input.model });
       const video = videos[videoId] ?? {};
       if (video.failsAt === "crash") throw new Error("A made-up crash");
       failIf(video, "model");
       if (video.postponed === true) return Promise.resolve({ outcome: "postponed" });
-      return Promise.resolve({ outcome: "written", sections: FAKE_SECTIONS, model: FAKE_MODEL });
+      return Promise.resolve({ outcome: "written", sections: FAKE_SECTIONS, model: input.model });
     },
   };
 
@@ -97,7 +101,7 @@ export function fakeSteps(videos: Record<string, FakeVideo> = {}): FakeSteps {
     },
   };
 
-  return { transcript, model, destination, calls, delivered };
+  return { transcript, model, destination, calls, settings, delivered };
 }
 
 export interface FakeNotifier extends Notifier {
