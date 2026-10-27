@@ -86,10 +86,20 @@ function fill(container: Element) {
   }
 }
 
+/**
+ * Fills the menu whenever its contents change, and whenever YouTube shows it again: when every video's menu has the
+ * same items, as when signed out, YouTube shows the last list unchanged, so only the dropdown's style and aria-hidden
+ * change.
+ */
 function watch(container: Element) {
   new MutationObserver(() => {
     fill(container);
-  }).observe(container, { childList: true, subtree: true });
+  }).observe(container, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["style", "aria-hidden"],
+  });
   fill(container);
 }
 
