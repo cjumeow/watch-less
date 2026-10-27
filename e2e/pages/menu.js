@@ -1,5 +1,6 @@
 // Plays YouTube's part in the fixture pages' video menu, as the live site behaves: a ⋮ or ⋯ opens the page's one
-// tp-yt-iron-dropdown in ytd-popup-container, filled anew on each open with the menu's own markup: a sheet of
+// tp-yt-iron-dropdown in ytd-popup-container, filled anew when its kind changes, and otherwise shown again as it is,
+// with the menu's own markup: a sheet of
 // yt-list-item-view-model for a lockup's ⋮, and a ytd-menu-popup-renderer of ytd-menu-service-item-renderer for the
 // ⋮ of a search result and the ⋯ under the player. The menu holds no video. Escape, a click outside it, or choosing
 // one of YouTube's items closes it; each item closes it with its own handler, as YouTube's do. Not YouTube's code,
@@ -66,9 +67,21 @@ function chooseOn(item, label) {
   return item;
 }
 
+/**
+ * The menu kind the opener needs, which YouTube keeps and shows again, unchanged, when the last menu was the same kind
+ * with the same items: it does so for every card when signed out, where each video's menu has the same items.
+ */
 function open(opener) {
   openedBy = opener;
-  wrapper.replaceChildren(opener.matches(SHEET_OPENER) ? sheet() : popup());
+  const kind = opener.matches(SHEET_OPENER) ? "YT-SHEET-VIEW-MODEL" : "YTD-MENU-POPUP-RENDERER";
+  const shown = wrapper.firstElementChild;
+  const ownItems =
+    shown === null
+      ? []
+      : [...shown.querySelectorAll('[role="menuitem"]')].filter((item) => item.nodeName !== "YT-DIGEST-MENU-ITEM");
+  if (shown?.nodeName !== kind || ownItems.map((item) => item.textContent.trim()).join("|") !== ITEMS.join("|")) {
+    wrapper.replaceChildren(kind === "YT-SHEET-VIEW-MODEL" ? sheet() : popup());
+  }
   dropdown.style.display = "";
   dropdown.removeAttribute("aria-hidden");
   const box = opener.getBoundingClientRect();
