@@ -8,8 +8,11 @@
   each provider's documentation lists for that tool, checked in October 2026:
   https://support.claude.com/en/articles/11940350 and https://learn.chatgpt.com/docs/models.
 
+  It also picks where a digest is saved: Heptabase, through its CLI and the desktop app, or Notion, through Notion's
+  CLI `ntn` signed in with `ntn login`, at the top of the workspace or under a page whose link is pasted.
+
   A choice is saved as soon as it is made and applies to the next digest requested. The panel above the popup tries
-  the case where a provider's tool is not installed on this Mac.
+  the cases where a provider's tool is not installed on this Mac, or ntn is not signed in.
 
   The icon is Tabler's message-ai (MIT licence, https://tabler.io/icons).
 -->
@@ -192,7 +195,8 @@
         outline: 2px solid var(--accent);
       }
 
-      .providers {
+      .providers,
+      .destinations {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 4px;
@@ -201,7 +205,8 @@
         border-radius: 8px;
         background: var(--field);
       }
-      .providers label {
+      .providers label,
+      .destinations label {
         display: grid;
         place-items: center;
         height: 30px;
@@ -209,16 +214,19 @@
         cursor: pointer;
         font-weight: 500;
       }
-      .providers input {
+      .providers input,
+      .destinations input {
         position: absolute;
         opacity: 0;
         pointer-events: none;
       }
-      .providers label:has(input:checked) {
+      .providers label:has(input:checked),
+      .destinations label:has(input:checked) {
         background: var(--popup);
         box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
       }
-      .providers label:has(input:focus-visible) {
+      .providers label:has(input:focus-visible),
+      .destinations label:has(input:focus-visible) {
         outline: 2px solid var(--accent);
       }
 
@@ -266,6 +274,35 @@
         opacity: 0.5;
       }
 
+      .hint {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .hint[hidden],
+      .notion[hidden] {
+        display: none;
+      }
+      .notion input {
+        width: 100%;
+        height: 34px;
+        margin: 4px 0 6px;
+        padding: 0 10px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: var(--field);
+        color: var(--text);
+        font: inherit;
+      }
+      .notion input:focus-visible {
+        outline: 2px solid var(--accent);
+      }
+      .notion input[aria-invalid="true"] {
+        border-color: var(--warn);
+      }
+      .notion label {
+        font-size: 12px;
+      }
       .warning {
         margin-top: 10px;
         padding: 8px 10px;
@@ -296,6 +333,7 @@
       <label><input type="checkbox" id="dark" /> Dark theme</label>
       <label><input type="checkbox" id="claude-missing" /> Claude Code not installed</label>
       <label><input type="checkbox" id="codex-missing" /> Codex CLI not installed</label>
+      <label><input type="checkbox" id="ntn-signed-out" /> Notion CLI not signed in</label>
     </div>
 
     <div class="toolbar">
@@ -351,6 +389,23 @@
             <option value="ko">한국어</option>
             <option value="es">Español</option>
           </select>
+        </div>
+
+        <div class="section">
+          <span class="label">Save to</span>
+          <div class="destinations" role="radiogroup" aria-label="Save to">
+            <label><input type="radio" name="destination" value="heptabase" checked />Heptabase</label>
+            <label><input type="radio" name="destination" value="notion" />Notion</label>
+          </div>
+          <p class="hint" id="heptabase-hint">A new card tagged yt-digest. Heptabase opens if it is closed.</p>
+          <div class="notion" id="notion" hidden>
+            <label for="notion-page">Under a page (optional)</label>
+            <input id="notion-page" type="url" placeholder="Paste a Notion page link" aria-describedby="notion-hint" />
+            <p class="hint" id="notion-hint">Empty: a new page in your Private section.</p>
+          </div>
+          <p class="warning" id="notion-warning" hidden>
+            Notion's CLI is not signed in, so digests cannot be saved there. In Terminal: <code>ntn login</code>
+          </p>
         </div>
 
         <div class="section">
@@ -410,7 +465,12 @@
         language: "en",
         provider: "claude",
         model: { claude: "claude-haiku-5-5", openai: "gpt-6-luna" },
+        destination: "heptabase",
+        notionParent: "",
       };
+
+      // A Notion page link ends in the page's ID: 32 hexadecimal characters, after the title and a hyphen if any.
+      const NOTION_PAGE = /^https:\/\/(?:www\.|app\.)?notion\.(?:so|com)\/(?:[^?#]*[-/])?([0-9a-f]{32})(?:[?#].*)?$/i;
 
       const models = document.querySelector("#models");
       const warning = document.querySelector("#warning");
@@ -455,6 +515,38 @@
           : `Digests keep using the last model that works until ${provider.tool} is installed.`;
       }
 
+      function renderDestination() {
+        const notion = settings.destination === "notion";
+        document.querySelector("#heptabase-hint").hidden = notion;
+        document.querySelector("#notion").hidden = !notion;
+        document.querySelector("#notion-warning").hidden =
+          !notion || !document.querySelector("#ntn-signed-out").checked;
+      }
+
+      for (const input of document.querySelectorAll('input[name="destination"]')) {
+        input.addEventListener("change", () => {
+          settings.destination = input.value;
+          renderDestination();
+          save();
+        });
+      }
+      const notionPage = document.querySelector("#notion-page");
+      const notionHint = document.querySelector("#notion-hint");
+      notionPage.addEventListener("change", () => {
+        const link = notionPage.value.trim();
+        const id = link === "" ? "" : link.match(NOTION_PAGE)?.[1];
+        notionPage.setAttribute("aria-invalid", String(id === undefined));
+        if (id === undefined) {
+          notionHint.textContent = "That is not a Notion page link. Copy it with Share → Copy link.";
+          return;
+        }
+        settings.notionParent = id;
+        notionHint.textContent =
+          id === "" ? "Empty: a new page in your Private section." : "New pages go under that page.";
+        save();
+      });
+      document.querySelector("#ntn-signed-out").addEventListener("change", renderDestination);
+
       let hideSaved;
       function save() {
         console.log("saved", structuredClone(settings));
@@ -492,6 +584,7 @@
       });
 
       render();
+      renderDestination();
     </script>
   </body>
 </html>
