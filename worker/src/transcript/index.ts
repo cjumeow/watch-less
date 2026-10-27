@@ -105,7 +105,7 @@ export function createTranscriptStep(): TranscriptStep {
               ],
               { timeout: 1_800_000 },
             );
-            const answer: unknown = JSON.parse(await readFile(join(folder, "transcript.json"), "utf8"));
+            const answer = parsePythonJson(await readFile(join(folder, "transcript.json"), "utf8"));
             const segments = object(answer).segments;
             if (!Array.isArray(segments)) throw new Error("Whisper did not return timed segments");
             let previousStart = 0;
@@ -156,4 +156,15 @@ async function readMetadata(url: string): Promise<unknown> {
     const reason = reasons.find(([pattern]) => pattern.test(stderr))?.[1] ?? "Could not read video details";
     throw new DigestFailure(reason, { cause });
   }
+}
+
+/**
+ * Parses JSON that Python's json module wrote, which writes NaN, Infinity and -Infinity, as Whisper does for a
+ * segment's scores, though JSON has no such values. They become null outside strings; strings are left as they are,
+ * since a transcript's own words may say "NaN".
+ */
+export function parsePythonJson(text: string): unknown {
+  return JSON.parse(
+    text.replace(/"(?:[^"\\]|\\.)*"|-?Infinity|NaN/g, (token) => (token.startsWith('"') ? token : "null")),
+  ) as unknown;
 }

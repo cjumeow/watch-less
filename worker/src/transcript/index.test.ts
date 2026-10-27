@@ -44,7 +44,7 @@ if (args.includes("--dump-single-json")) {
   fs.writeFileSync(option("--output").replace("%(ext)s", "wav"), "made-up audio");
 } else {
   if (scenario.whisperError) { console.error("A made-up Whisper failure"); process.exit(1); }
-  fs.writeFileSync(path.join(option("--output-dir"), option("--output-name") + ".json"), JSON.stringify(scenario.whisper ?? { segments: [{ start: 1.5, text: " 原文逐字稿 " }] }));
+  fs.writeFileSync(path.join(option("--output-dir"), option("--output-name") + ".json"), scenario.whisperRaw ?? JSON.stringify(scenario.whisper ?? { segments: [{ start: 1.5, text: " 原文逐字稿 " }] }));
 }
 `;
   for (const name of ["yt-dlp", "mlx_whisper"]) {
@@ -167,6 +167,19 @@ test("transcribes downloaded audio in its original language when captions are ab
   );
   const args = received[2]?.args;
   await expect(access(args?.[args.indexOf("--output-dir") + 1] ?? "missing-output-dir")).rejects.toThrow();
+});
+
+test("reads Whisper's answer with NaN and Infinity, which Python writes and JSON does not allow", async () => {
+  await scenario({
+    metadata: { ...metadata, subtitles: {} },
+    whisperRaw:
+      '{"segments": [{"start": 1.5, "text": " Not NaN, Infinity ", "avg_logprob": NaN, "compression_ratio": Infinity, "no_speech_prob": -Infinity}]}',
+  });
+  const checked = await createTranscriptStep().checkVideo("aaaaaaaaaaa");
+  expect(await checked.getTranscript()).toEqual({
+    source: "whisper",
+    lines: [{ startSeconds: 1.5, text: "Not NaN, Infinity" }],
+  });
 });
 
 test("falls back to audio when the advertised subtitles cannot be downloaded", async () => {
