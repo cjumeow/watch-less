@@ -115,6 +115,24 @@ test.describe("where the item appears", () => {
     });
   }
 
+  test("a menu YouTube shows again unchanged, as for every card when signed out, has the item for the new video", async ({
+    page,
+    host,
+  }) => {
+    await host.answer({ reply: { ok: true } });
+    await page.goto(HOME);
+    await open(page, cardOpener(page, "homeVideo01"));
+    await expect.poll(() => items(page)).toEqual(WITH_SUMMARIZE);
+    // A click outside closes the menu and takes its item away, so the list YouTube shows next is unchanged.
+    await page.mouse.click(1, 1);
+    await expect(page.locator(DROPDOWN)).toBeHidden();
+
+    await open(page, cardOpener(page, "homeVideo02"));
+    await expect.poll(() => items(page)).toEqual(WITH_SUMMARIZE);
+    await summarize(page).click();
+    await expect.poll(() => host.requests()).toEqual([{ ...VIDEOS.homeVideo02, ...DEFAULT_SETTINGS }]);
+  });
+
   test("YouTube's one menu, refilled for a mix after a video and for a video after a mix, has the item only for the video", async ({
     page,
   }) => {

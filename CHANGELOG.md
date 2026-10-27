@@ -33,6 +33,8 @@ checkout, so every entry is under Unreleased.
 
 ### Fixed
 
+- Summarize shows in every video's menu when signed out of YouTube, not only in the first one opened after loading
+  the page.
 - A digest's references are each just the name as a link, or the name and the moment it is named, without a
   description or a bare address.
 - A main argument's time range, or a moment, that the model writes without its link now links to that moment
