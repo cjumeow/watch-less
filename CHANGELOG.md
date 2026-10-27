@@ -33,6 +33,7 @@ checkout, so every entry is under Unreleased.
 
 ### Fixed
 
+- A video without subtitles is transcribed with Whisper again instead of failing with "No transcript available".
 - Summarize shows in every video's menu when signed out of YouTube, not only in the first one opened after loading
   the page.
 - A digest's references are each just the name as a link, or the name and the moment it is named, without a
