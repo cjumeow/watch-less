@@ -123,11 +123,15 @@ The extension's button in Chrome's toolbar opens a popup, which the developer co
   简体中文, 日本語, 한국어 or Español.
 - **Model,** a Claude / OpenAI switch and that provider's models, from `PROVIDERS`. The prototype's warning that a provider's command-line tool is not installed is not
   built: the popup cannot see this Mac's tools without asking the native host.
+- **Save to,** Heptabase or Notion, from `DESTINATIONS`. For Notion, an optional **Folder page**: a Notion page's link
+  or ID is pasted, and the popup keeps and shows the 32-character ID. The hint under it says: each video becomes a
+  new page inside this page; empty, in the Private section. A text that is not a page is refused and not saved. The
+  prototype's warning that `ntn` is signed out is not built, for the same reason as the model's.
 - A choice is saved as soon as it is made, with `Saved` shown briefly, and applies to the next request. Opened for
-  the first time, the popup shows `DEFAULT_SETTINGS`: English and Haiku 5.5.
-- The extension stores only these two values, `language` and `model`, in `chrome.storage.local`, which needs the
+  the first time, the popup shows `DEFAULT_SETTINGS`: English, Haiku 5.5 and Heptabase.
+- The extension stores only these values, `language`, `model`, `destination` and `notionFolderPage`, in `chrome.storage.local`, which needs the
   `storage` permission. It stores nothing about videos.
-- The service worker reads them when a request is sent and sends `{ videoId, title, language, model }`. A value that
+- The service worker reads them when a request is sent and sends `{ videoId, title, language, model, destination }`, with `notionFolderPage` when a page is set. A value that
   is missing or no longer one of the known IDs, such as a removed model, is replaced by its default.
 - The toolbar icon is Tabler's message-ai (MIT), the Summarize item's icon, at 16, 32, 48 and 128 pixels.
 
@@ -137,10 +141,11 @@ Chrome starts the native host for each message and it exits after replying. It d
 in the queue. Its native messaging name is `com.yt_digest.host`, which the extension calls and the host's manifest
 declares, and the manifest allows only the extension's ID, fixed by the `key` in the extension's manifest.
 
-- The message is `{ videoId, title }` with `language` and `model` when the popup's settings are sent; one that is
-  not a known ID is refused, since the model becomes a command-line argument. A `videoId` that is not 11 characters of `A-Z`, `a-z`, `0-9`, `_` or `-` is
+- The message is `{ videoId, title }` with `language`, `model`, `destination` and `notionFolderPage` when the popup's settings are sent; one that is
+  not a known ID is refused, and so is a folder page that is not 32 hexadecimal characters, since the model and the
+  page become command-line arguments. A `videoId` that is not 11 characters of `A-Z`, `a-z`, `0-9`, `_` or `-` is
   refused, since it becomes a file name.
-- It writes `{ videoId, title, requestedAt }`, with `language` and `model` when the request has them, to `<videoId>.json` in the queue folder, first under another name and
+- It writes `{ videoId, title, requestedAt }`, with those settings when the request has them, to `<videoId>.json` in the queue folder, first under another name and
   then renamed, so the worker never reads half a file. A request for a video already queued replaces the same file.
 - It replies `{ ok: true }`, or `{ ok: false, error }` with `error` either `invalid-request` or `queue-unwritable`.
 - It never looks in the done folder and never starts the worker.
@@ -250,14 +255,27 @@ and checks:
 
 ## The destination
 
-The first destination is Heptabase. The digest does not depend on it: deduplication uses the done folder, and the
-digest's Markdown carries nothing Heptabase-specific.
+The request says which destination a digest goes to: Heptabase, the default, or Notion. The digest does not depend on
+it: deduplication uses the done folder, and the digest's Markdown carries nothing specific to either.
 
 - The worker creates a note from the digest with the `heptabase` CLI; the digest's first line, `# <title>`, becomes
   the card's title, and the video's link becomes an embedded player (`{{youtube <link>}}`, Heptabase's own syntax).
 - It tags the card `yt-digest`, and leaves Heptabase's Created by AI mark on it.
 - When Heptabase is not running, the worker starts it with `heptabase start`; if delivery still fails, the digest
   fails.
+
+### Notion
+
+- The worker creates a page with Notion's official CLI, `ntn pages create`, signed in once with `ntn login`; the
+  login is in the macOS keychain, so there is no token or OAuth code of our own, and no Notion app has to be open.
+- The digest's Markdown goes on stdin, which is always closed after it: `ntn` waits forever on a stdin left open. The
+  first line, `# <title>`, becomes the page's title, and the video's link becomes a `<video src="<link>"></video>`
+  block, which Notion embeds as a player.
+- With a folder page, `--parent page:<id>` makes the digest a new page inside it; without one the page goes to the
+  Private section. Notion pages have no tags, so there is no `yt-digest` tag.
+- `ntn` runs with only `HOME`, `PATH` and `USER`, and for at most 90 seconds. When it is not installed, or its
+  login is gone, the digest fails with `Notion CLI is not installed: run sh scripts/setup.sh` or `Notion CLI is not
+  signed in: run ntn login`.
 
 ## Notifications
 

@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { DigestFailure } from "../digest-failure.js";
 import type { Destination } from "./destination.js";
 import { toHeptabaseMarkdown } from "./heptabase.js";
+import { deliverToNotion } from "./notion.js";
 
 export type * from "./destination.js";
 
@@ -14,6 +15,7 @@ const execute = promisify(execFile);
 export function createDestination(): Destination {
   return {
     async deliver(digest) {
+      if (digest.destination === "notion") return deliverToNotion(digest);
       const folder = await mkdtemp(join(tmpdir(), "yt-digest-delivery-"));
       let started = false;
       async function run(args: string[]): Promise<string> {

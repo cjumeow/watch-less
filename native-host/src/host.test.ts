@@ -56,6 +56,27 @@ describe("runHost", () => {
     expect(written).toEqual({ ...request, requestedAt: "2026-03-04T05:06:07.890Z" });
   });
 
+  test("copies the request's destination and Notion folder page into the queue file", async () => {
+    const request = {
+      videoId: VIDEO_ID,
+      title: "A made-up video",
+      destination: "notion",
+      notionFolderPage: "0123456789abcdef0123456789abcdef",
+    };
+
+    expect(await reply(frame(JSON.stringify(request)))).toEqual({ ok: true });
+
+    const written = JSON.parse(await readFile(join(dataDir, "queue", `${VIDEO_ID}.json`), "utf8")) as unknown;
+    expect(written).toEqual({ ...request, requestedAt: "2026-03-04T05:06:07.890Z" });
+  });
+
+  test("refuses a Notion folder page that is not an ID, and writes nothing", async () => {
+    const request = { videoId: VIDEO_ID, title: "A made-up video", notionFolderPage: "--parent" };
+
+    expect(await reply(frame(JSON.stringify(request)))).toEqual({ ok: false, error: "invalid-request" });
+    expect(await readdir(dataDir)).toEqual([]);
+  });
+
   test("refuses a model the popup does not offer, and writes nothing", async () => {
     const request = { videoId: VIDEO_ID, title: "A made-up video", model: "--dangerously-skip-permissions" };
 

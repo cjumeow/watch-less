@@ -6,7 +6,8 @@
 #
 # It runs before Node.js may be there, so it is plain sh and `npm run setup` only calls it. It lists everything it
 # would install and asks once; Homebrew installs Node.js 24, yt-dlp, ffmpeg and uv, uv installs mlx_whisper, and npm
-# installs Claude Code or Codex CLI. Two steps stay with the developer, and it says how: turning on Heptabase's CLI,
+# installs Claude Code or Codex CLI. Notion's CLI, ntn, is optional (Heptabase is the default destination): it is
+# never installed for you, since its installer is a script piped from the web, but its sign-in is offered. Two steps stay with the developer, and it says how: turning on Heptabase's CLI,
 # which has no command, and loading the extension in Chrome, which Chrome allows no program to do.
 set -u
 
@@ -32,6 +33,9 @@ claude_signed_in() {
   printf '%s' "$status" | grep -q '"loggedIn": *true' && ! printf '%s' "$status" | grep -qi '"authMethod": *"[^"]*api'
 }
 codex_signed_in() { codex login status 2>&1 | grep -q 'ChatGPT'; }
+# ntn doctor reports in words that may change in a beta CLI, so ask Notion who the login is: it fails when signed out.
+# stdin is closed because ntn waits forever on one that stays open.
+ntn_signed_in() { ntn api v1/users/me </dev/null >/dev/null 2>&1; }
 signed_in() { { has claude && claude_signed_in; } || { has codex && codex_signed_in; }; }
 
 # Prints each tool as ok or missing, and sets `ready` to false when yt-digest cannot run.
@@ -66,6 +70,12 @@ report() {
   if ! signed_in; then
     missing "Claude Code or Codex CLI, signed in with your plan, which writes the digest" \
       "npm install -g @anthropic-ai/claude-code, then claude auth login; or npm install -g @openai/codex, then codex login."
+  fi
+  if has ntn; then
+    if ntn_signed_in; then ok "Notion CLI, signed in"; else optional "Notion CLI signed in, to save digests to Notion" "ntn login"; fi
+  else
+    optional "Notion CLI (ntn), to save digests to Notion instead of Heptabase" \
+      "curl -fsSL https://ntn.dev | bash, then ntn login"
   fi
   if has ffmpeg; then ok "ffmpeg"; else optional "ffmpeg, for videos without subtitles" "brew install ffmpeg"; fi
   if has mlx_whisper; then
@@ -145,6 +155,13 @@ if ! signed_in; then
     if [ "$tool" = claude ]; then claude auth login; else codex login; fi
     signed_in && break
   done
+fi
+
+if has ntn && ! ntn_signed_in; then
+  ask "Sign in to Notion with ntn login now, to save digests there? [y/N]" n
+  case "$answer" in
+    y | Y | yes) ntn login ;;
+  esac
 fi
 
 # 4. Install yt-digest itself, once every tool it needs is there.

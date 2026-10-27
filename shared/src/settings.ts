@@ -1,5 +1,5 @@
 // The choices a digest is written with, as the extension's popup offers them (docs/prototypes/popup.html): the
-// language it is written in, and the model that writes it.
+// language it is written in, the model that writes it, and where it is saved.
 
 import type { Parsed } from "./fields.js";
 
@@ -50,14 +50,43 @@ export const PROVIDERS = [
 export type ProviderId = (typeof PROVIDERS)[number]["id"];
 export type ModelId = (typeof PROVIDERS)[number]["models"][number]["id"];
 
-/** The language a digest is written in and the model that writes it. */
+/** The destinations a digest can be saved to, in the popup's order. */
+export const DESTINATIONS = [
+  { id: "heptabase", name: "Heptabase" },
+  { id: "notion", name: "Notion" },
+] as const;
+
+export type DestinationId = (typeof DESTINATIONS)[number]["id"];
+
+/** The language a digest is written in, the model that writes it, and the destination it is saved to. */
 export interface DigestSettings {
   language: LanguageId;
   model: ModelId;
+  destination: DestinationId;
 }
 
-/** What a digest is written with when its request does not say: English, and Claude's default model. */
-export const DEFAULT_SETTINGS: DigestSettings = { language: "en", model: PROVIDERS[0].defaultModel };
+/**
+ * What a digest is written with when its request does not say: English, Claude's default model, and Heptabase. A
+ * Notion folder page has no default: without one, a page goes to the Private section.
+ */
+export const DEFAULT_SETTINGS: DigestSettings = {
+  language: "en",
+  model: PROVIDERS[0].defaultModel,
+  destination: DESTINATIONS[0].id,
+};
+
+/** A Notion page's ID: 32 hexadecimal characters, as `ntn` takes it after `page:`. */
+const NOTION_PAGE_ID = /^[0-9a-f]{32}$/i;
+
+export function isNotionPageId(value: unknown): value is string {
+  return typeof value === "string" && NOTION_PAGE_ID.test(value);
+}
+
+/** The settings a request or a queue file carries, each optional. */
+export type GivenSettings = Partial<DigestSettings> & {
+  /** The Notion page that holds the digests, when the destination is Notion. */
+  notionFolderPage?: string;
+};
 
 const PROVIDER_OF = Object.fromEntries(
   PROVIDERS.flatMap((provider) => provider.models.map((model) => [model.id, provider.id])),
@@ -78,17 +107,29 @@ export function providerOf(model: ModelId): ProviderId {
 
 /**
  * The settings a request or a queue file gives, each of them optional, since every one written before the popup has
- * neither. One that is given must be known: the model becomes a command-line argument.
+ * none. One that is given must be known: the model and the folder page become command-line arguments.
  */
-export function readSettings(language: unknown, model: unknown): Parsed<Partial<DigestSettings>> {
+export function readSettings(given: Record<keyof DigestSettings | "notionFolderPage", unknown>): Parsed<GivenSettings> {
+  const { language, model, destination, notionFolderPage } = given;
   if (language !== undefined && !isLanguageId(language)) {
     return { parsed: false, reason: `language is not one of ${LANGUAGES.map((known) => known.id).join(", ")}` };
   }
   if (model !== undefined && !isModelId(model)) {
     return { parsed: false, reason: "model is not one of the models the popup offers" };
   }
+  if (destination !== undefined && !DESTINATIONS.some((known) => known.id === destination)) {
+    return { parsed: false, reason: `destination is not one of ${DESTINATIONS.map((known) => known.id).join(", ")}` };
+  }
+  if (notionFolderPage !== undefined && !isNotionPageId(notionFolderPage)) {
+    return { parsed: false, reason: "notionFolderPage is not 32 hexadecimal characters" };
+  }
   return {
     parsed: true,
-    value: { ...(language === undefined ? {} : { language }), ...(model === undefined ? {} : { model }) },
+    value: {
+      ...(language === undefined ? {} : { language }),
+      ...(model === undefined ? {} : { model }),
+      ...(destination === undefined ? {} : { destination: destination as DestinationId }),
+      ...(notionFolderPage === undefined ? {} : { notionFolderPage }),
+    },
   };
 }

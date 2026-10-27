@@ -9,6 +9,7 @@
   --accent: #0b57d0;
   --accent-soft: #d3e3fd;
   --ok: #146c2e;
+  --warn: #b3261e;
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -22,6 +23,7 @@
     --accent: #a8c7fa;
     --accent-soft: #0842a0;
     --ok: #6dd58c;
+    --warn: #f2b8b5;
   }
 }
 * {
@@ -85,7 +87,8 @@ select:focus-visible {
   outline: 2px solid var(--accent);
 }
 
-.providers {
+.providers,
+.destinations {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
@@ -94,7 +97,8 @@ select:focus-visible {
   border-radius: 8px;
   background: var(--field);
 }
-.providers label {
+.providers label,
+.destinations label {
   display: grid;
   place-items: center;
   height: 30px;
@@ -102,16 +106,19 @@ select:focus-visible {
   cursor: pointer;
   font-weight: 500;
 }
-.providers input {
+.providers input,
+.destinations input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
-.providers label:has(input:checked) {
+.providers label:has(input:checked),
+.destinations label:has(input:checked) {
   background: var(--popup);
   box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
 }
-.providers label:has(input:focus-visible) {
+.providers label:has(input:focus-visible),
+.destinations label:has(input:focus-visible) {
   outline: 2px solid var(--accent);
 }
 
@@ -153,6 +160,36 @@ select:focus-visible {
 .model .about {
   color: var(--muted);
   font-size: 12px;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.hint[hidden],
+.notion[hidden] {
+  display: none;
+}
+.notion label {
+  font-size: 12px;
+}
+.notion input {
+  width: 100%;
+  height: 34px;
+  margin: 4px 0 6px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+}
+.notion input:focus-visible {
+  outline: 2px solid var(--accent);
+}
+.notion input[aria-invalid="true"] {
+  border-color: var(--warn);
 }
 
 footer {

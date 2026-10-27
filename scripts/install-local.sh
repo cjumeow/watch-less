@@ -95,6 +95,11 @@ for folder in $PATH; do
   worker_path=${worker_path:+$worker_path:}$folder
 done
 IFS=$old_ifs
+# Notion's installer puts ntn here, and it may be installed after this runs.
+case ":$worker_path:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) worker_path=${worker_path:+$worker_path:}$HOME/.local/bin ;;
+esac
 
 # Escapes a value for XML text, then for the replacement side of sed.
 escape() {

@@ -19,7 +19,7 @@ async function queue(
   videoId: string,
   title: string,
   requestedAt = "2026-10-25T08:00:00.000Z",
-  settings: { language?: string; model?: string } = {},
+  settings: { language?: string; model?: string; destination?: string; notionFolderPage?: string } = {},
 ) {
   await mkdir(join(dataFolder, "queue"), { recursive: true });
   await writeFile(
@@ -60,7 +60,9 @@ describe("runQueue", () => {
         FAKE_SECTIONS,
       ].join("\n"),
     );
-    expect(steps.delivered).toEqual([{ videoLink: "https://www.youtube.com/watch?v=aB3_x-9Zq0Y", markdown: done }]);
+    expect(steps.delivered).toEqual([
+      { destination: "heptabase", videoLink: "https://www.youtube.com/watch?v=aB3_x-9Zq0Y", markdown: done },
+    ]);
     expect(await list("queue")).toEqual([]);
     expect(await list("drafts")).toEqual([]);
     expect(notifier.sent).toEqual(["Digest ready: A made-up video"]);
@@ -83,6 +85,25 @@ describe("runQueue", () => {
     expect(await readFile(join(dataFolder, "done", "aB3_x-9Zq0Y.md"), "utf8")).toContain(
       "\n- Model: claude-sonnet-5-5\n",
     );
+  });
+
+  test("delivers to the queue file's destination, with its folder page", async () => {
+    const notionFolderPage = "0123456789abcdef0123456789abcdef";
+    await queue("aB3_x-9Zq0Y", "A made-up video", undefined, { destination: "notion", notionFolderPage });
+
+    const { steps } = await run();
+
+    expect(steps.delivered).toEqual([expect.objectContaining({ destination: "notion", notionFolderPage })]);
+  });
+
+  test("delivers to Notion without a folder page when the queue file has none", async () => {
+    await queue("aB3_x-9Zq0Y", "A made-up video", undefined, { destination: "notion" });
+
+    const { steps } = await run();
+
+    expect(steps.delivered).toHaveLength(1);
+    expect(steps.delivered[0]).toMatchObject({ destination: "notion" });
+    expect(steps.delivered[0]).not.toHaveProperty("notionFolderPage");
   });
 
   test("writes the digest with an OpenAI model when the queue file asks for one", async () => {

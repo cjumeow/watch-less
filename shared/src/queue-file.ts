@@ -1,11 +1,11 @@
 import { isTitle, isVideoId, readFields, TITLE_RULE, VIDEO_ID_RULE, type Parsed } from "./fields.js";
-import { readSettings, type DigestSettings } from "./settings.js";
+import { readSettings, type GivenSettings } from "./settings.js";
 
 /**
  * What the native host writes to `<videoId>.json` in the queue folder, and the worker reads, with the request's
  * settings when it has them.
  */
-export interface QueueFile extends Partial<DigestSettings> {
+export interface QueueFile extends GivenSettings {
   videoId: string;
   title: string;
   /** When the request was received, in UTC, as `Date.prototype.toISOString()` writes it. */
@@ -21,15 +21,23 @@ function isRequestedAt(value: unknown): value is string {
 }
 
 export function parseQueueFile(input: unknown): Parsed<QueueFile> {
-  const fields = readFields(input, ["videoId", "title", "requestedAt", "language", "model"]);
+  const fields = readFields(input, [
+    "videoId",
+    "title",
+    "requestedAt",
+    "language",
+    "model",
+    "destination",
+    "notionFolderPage",
+  ]);
   if (!fields.parsed) return fields;
-  const { videoId, title, requestedAt, language, model } = fields.value;
+  const { videoId, title, requestedAt, language, model, destination, notionFolderPage } = fields.value;
   if (!isVideoId(videoId)) return { parsed: false, reason: VIDEO_ID_RULE };
   if (!isTitle(title)) return { parsed: false, reason: TITLE_RULE };
   if (!isRequestedAt(requestedAt)) {
     return { parsed: false, reason: "requestedAt is not a UTC time as Date.prototype.toISOString() writes it" };
   }
-  const settings = readSettings(language, model);
+  const settings = readSettings({ language, model, destination, notionFolderPage });
   if (!settings.parsed) return settings;
   return { parsed: true, value: { videoId, title, requestedAt, ...settings.value } };
 }

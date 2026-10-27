@@ -13,6 +13,25 @@ describe("parseQueueFile", () => {
     expect(parseQueueFile(withSettings)).toEqual({ parsed: true, value: withSettings });
   });
 
+  test("accepts a destination and a Notion folder page", () => {
+    const withDestination = {
+      ...queueFile,
+      destination: "notion",
+      notionFolderPage: "0123456789abcdef0123456789abcdef",
+    };
+    expect(parseQueueFile(withDestination)).toEqual({ parsed: true, value: withDestination });
+  });
+
+  test.each([
+    ["destination", "obsidian"],
+    ["notionFolderPage", "not-a-page-id"],
+  ])("refuses a %s it does not know: %s", (name, value) => {
+    expect(parseQueueFile({ ...queueFile, [name]: value })).toEqual({
+      parsed: false,
+      reason: expect.stringContaining(name) as string,
+    });
+  });
+
   test.each([
     ["language", "fr"],
     ["model", "claude-made-up"],

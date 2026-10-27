@@ -8,6 +8,9 @@ checkout, so every entry is under Unreleased.
 
 ### Added
 
+- Digests can be saved to Notion as well as Heptabase, with Notion's official CLI `ntn` signed in once with
+  `ntn login`: choose Save to in the popup, and optionally a folder page for the new pages (empty: your Private
+  section). Heptabase stays the default. `sh scripts/setup.sh` checks for `ntn` and offers the sign-in.
 - Set up yt-digest with one command, `sh scripts/setup.sh`: it installs the missing tools after asking once,
   signs you in to Claude Code or Codex CLI, and installs yt-digest.
 - Digests can be written by OpenAI's models (GPT-6 Luna, Sol, 6.1 Sol and Astra) through Codex CLI and your
