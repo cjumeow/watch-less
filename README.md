@@ -4,7 +4,7 @@ Another framework. Another “must-watch” talk. Another video saved for later.
 Keeping up with technology can start to feel like a watch list you will never finish.
 
 yt-digest summarizes a YouTube video for you, on your Mac, with the Claude or ChatGPT plan you already pay for, and
-files the summary in Heptabase. Read it in a minute, then decide whether the full video is worth your time.
+files the summary in Heptabase or Notion. Read it in a minute, then decide whether the full video is worth your time.
 
 ## From YouTube to Heptabase
 
@@ -16,7 +16,8 @@ Heptabase, tagged `yt-digest`, with the video embedded at the top and three sect
 - **Main arguments:** about one per three minutes of video, in the speaker's own terms, each linked to its moment.
 - **References:** what the video cites, such as articles, repositories and books, each as a link.
 
-The toolbar button picks the digest's language (English by default, or 繁體中文, 简体中文, 日本語, 한국어,
+The toolbar button picks where the digest is saved (Heptabase, or Notion, in your Private section or inside a folder
+page), the digest's language (English by default, or 繁體中文, 简体中文, 日本語, 한국어,
 Español) and the model: Claude's, through Claude Code, or OpenAI's, through Codex CLI. The details are in
 [`docs/spec.md`](docs/spec.md).
 
@@ -54,7 +55,9 @@ The script installs what yt-digest needs and is missing, after asking you once, 
 Two steps are yours, and the script tells you when:
 
 1. **Heptabase's CLI:** in the Heptabase app's settings, install the CLI and turn on the Local CLI Server.
-2. **The extension, once:** in `chrome://extensions`, turn on Developer mode, press Load unpacked and pick
+2. **Notion, optional:** to save digests to Notion, install its CLI with `curl -fsSL https://ntn.dev | bash` and
+   sign in with `ntn login`; the script offers the sign-in once `ntn` is installed. Then choose Notion in the popup.
+3. **The extension, once:** in `chrome://extensions`, turn on Developer mode, press Load unpacked and pick
    `~/Library/Application Support/yt-digest/app/extension/dist` (press ⌘⇧G in the picker to type the path).
 
 To update, `git pull`, run `npm run install-local`, and press Reload on yt-digest in `chrome://extensions`.

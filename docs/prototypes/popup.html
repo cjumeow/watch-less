@@ -9,7 +9,7 @@
   https://support.claude.com/en/articles/11940350 and https://learn.chatgpt.com/docs/models.
 
   It also picks where a digest is saved: Heptabase, through its CLI and the desktop app, or Notion, through Notion's
-  CLI `ntn` signed in with `ntn login`, at the top of the workspace or under a page whose link is pasted.
+  CLI `ntn` signed in with `ntn login`, in the Private section or inside a folder page whose link is pasted.
 
   A choice is saved as soon as it is made and applies to the next digest requested. The panel above the popup tries
   the cases where a provider's tool is not installed on this Mac, or ntn is not signed in.
@@ -399,9 +399,11 @@
           </div>
           <p class="hint" id="heptabase-hint">A new card tagged yt-digest. Heptabase opens if it is closed.</p>
           <div class="notion" id="notion" hidden>
-            <label for="notion-page">Under a page (optional)</label>
+            <label for="notion-page">Folder page (optional)</label>
             <input id="notion-page" type="url" placeholder="Paste a Notion page link" aria-describedby="notion-hint" />
-            <p class="hint" id="notion-hint">Empty: a new page in your Private section.</p>
+            <p class="hint" id="notion-hint">
+              Each video becomes a new page inside this page. Empty: in your Private section.
+            </p>
           </div>
           <p class="warning" id="notion-warning" hidden>
             Notion's CLI is not signed in, so digests cannot be saved there. In Terminal: <code>ntn login</code>
@@ -541,8 +543,7 @@
           return;
         }
         settings.notionParent = id;
-        notionHint.textContent =
-          id === "" ? "Empty: a new page in your Private section." : "New pages go under that page.";
+        notionHint.textContent = "Each video becomes a new page inside this page. Empty: in your Private section.";
         save();
       });
       document.querySelector("#ntn-signed-out").addEventListener("change", renderDestination);

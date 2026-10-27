@@ -33,6 +33,19 @@
     </div>
 
     <div class="section">
+      <span class="label" id="destination-label">Save to</span>
+      <div class="destinations" id="destinations" role="radiogroup" aria-labelledby="destination-label"></div>
+      <p class="hint" id="heptabase-hint">A new card tagged yt-digest. Heptabase opens if it is closed.</p>
+      <div class="notion" id="notion" hidden>
+        <label for="notion-page">Folder page (optional)</label>
+        <input id="notion-page" type="text" placeholder="Paste a Notion page link" aria-describedby="notion-hint" />
+        <p class="hint" id="notion-hint">
+          Each video becomes a new page inside this page. Empty: in your Private section.
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
       <span class="label" id="model-label">Model</span>
       <div class="providers" id="providers" role="radiogroup" aria-label="Provider"></div>
       <div class="models" id="models" role="radiogroup" aria-labelledby="model-label"></div>

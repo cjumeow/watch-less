@@ -83,6 +83,8 @@ test("a choice is saved as soon as it is made, says Saved, and is shown again wh
   expect(await (await storage(context)).get()).toEqual({
     language: "zh-Hant",
     model: "claude-opus-5-5",
+    destination: "heptabase",
+    notionFolderPage: "",
   });
 
   await popup.close();
@@ -123,15 +125,15 @@ test("the next Summarize sends the chosen language and model, and the one after 
 
   await summarizeWatchedVideo(page);
   expect(await host.requests()).toEqual([
-    { videoId: "watchVideo1", title: TITLE, language: "ja", model: "claude-sonnet-5-5" },
+    { videoId: "watchVideo1", title: TITLE, language: "ja", model: "claude-sonnet-5-5", destination: "heptabase" },
   ]);
 
   await popup.locator("#language").selectOption("es");
   await expect(popup.locator("#saved")).toHaveText("Saved");
   await summarizeWatchedVideo(page);
   expect(await host.requests()).toEqual([
-    { videoId: "watchVideo1", title: TITLE, language: "ja", model: "claude-sonnet-5-5" },
-    { videoId: "watchVideo1", title: TITLE, language: "es", model: "claude-sonnet-5-5" },
+    { videoId: "watchVideo1", title: TITLE, language: "ja", model: "claude-sonnet-5-5", destination: "heptabase" },
+    { videoId: "watchVideo1", title: TITLE, language: "es", model: "claude-sonnet-5-5", destination: "heptabase" },
   ]);
 });
 
@@ -145,6 +147,53 @@ test("a saved setting that no longer parses falls back to the default in the req
 
   await summarizeWatchedVideo(page);
   expect(await host.requests()).toEqual([
-    { videoId: "watchVideo1", title: TITLE, language: "ja", model: DEFAULT_SETTINGS.model },
+    { videoId: "watchVideo1", title: TITLE, language: "ja", model: DEFAULT_SETTINGS.model, destination: "heptabase" },
   ]);
+});
+
+test("choosing Notion shows the folder page field; the next Summarize sends Notion and the page", async ({
+  context,
+  page,
+  host,
+}, testInfo) => {
+  await host.answer({ reply: { ok: true } });
+  const popup = await openPopup(context);
+  await expect(popup.locator("#notion")).toBeHidden();
+  await popup.locator("#destinations label", { hasText: "Notion" }).click();
+  await expect(popup.locator("#saved")).toHaveText("Saved");
+  await expect(popup.locator("#notion")).toBeVisible();
+  await expect(popup.getByLabel("Folder page (optional)")).toBeVisible();
+
+  await popup.locator("#notion-page").fill("https://www.notion.so/My-Folder-0123456789abcdef0123456789abcdef?pvs=4");
+  await popup.locator("#notion-page").blur();
+  await expect(popup.locator("#saved")).toHaveText("Saved");
+  await expect(popup.locator("#notion-page")).toHaveValue("0123456789abcdef0123456789abcdef");
+  await popup.screenshot({ path: testInfo.outputPath("popup-notion.png") });
+
+  await summarizeWatchedVideo(page);
+  expect(await host.requests()).toEqual([
+    {
+      videoId: "watchVideo1",
+      title: TITLE,
+      language: DEFAULT_SETTINGS.language,
+      model: DEFAULT_SETTINGS.model,
+      destination: "notion",
+      notionFolderPage: "0123456789abcdef0123456789abcdef",
+    },
+  ]);
+
+  await popup.close();
+  const reopened = await openPopup(context);
+  await expect(reopened.locator("#destinations input:checked")).toHaveValue("notion");
+  await expect(reopened.locator("#notion-page")).toHaveValue("0123456789abcdef0123456789abcdef");
+});
+
+test("a pasted text that is not a Notion page is refused and not saved", async ({ context }) => {
+  const popup = await openPopup(context);
+  await popup.locator("#destinations label", { hasText: "Notion" }).click();
+  await popup.locator("#notion-page").fill("my folder");
+  await popup.locator("#notion-page").blur();
+  await expect(popup.locator("#notion-page")).toHaveAttribute("aria-invalid", "true");
+  await expect(popup.locator("#notion-hint")).toContainText("not a Notion page link");
+  expect(await (await storage(context)).get()).toMatchObject({ destination: "notion", notionFolderPage: "" });
 });

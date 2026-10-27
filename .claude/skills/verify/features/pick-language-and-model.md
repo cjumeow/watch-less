@@ -8,15 +8,20 @@ carries it through the native host into the queue file, which the worker writes 
 
 - `defaults`: opened for the first time, the popup shows English and Haiku 5.5 (`DEFAULT_SETTINGS`), the six languages
   and the four Claude models, from `@yt-digest/shared`.
-- `saved`: choosing a language or a model saves it in `chrome.storage.local` (only `language` and `model`), shows
+- `saved`: choosing a language or a model saves it in `chrome.storage.local` (only `language`, `model`, `destination` and `notionFolderPage`), shows
   `Saved` for about a second, and shows the same choice when the popup opens again.
 - `openai`: the OpenAI tab lists its four models, enabled; choosing one saves it and the footer names Codex CLI.
 - `openai-digest`: a digest asked for an OpenAI model is written by `codex exec` (the built worker with a fake `codex`
   on a temporary queue file; a real run only with the developer's approval), and the header names the model.
-- `request`: the next Summarize sends `{ videoId, title, language, model }` to the native host, and one after a change
+- `request`: the next Summarize sends `{ videoId, title, language, model, destination }` to the native host, and one after a change
   sends the change.
+- `notion`: choosing Notion in Save to shows the optional Folder page field (a pasted page link or ID is kept as the
+  32-character ID, a text that is not a page is refused), and the next Summarize sends `destination: "notion"` and
+  `notionFolderPage`; the native host copies both into the queue file.
+- `notion-digest`: the built worker delivers a queue file for Notion with `ntn pages create` (a fake `ntn` on a
+  temporary queue file; one real page only with the developer's approval, read back with `ntn`).
 - `fallback`: a stored value that is no longer a known ID is replaced by its default in the request.
-- `queue-file`: the native host copies `language` and `model` into `<videoId>.json`, and writes the file as before
+- `queue-file`: the native host copies `language`, `model`, `destination` and `notionFolderPage` into `<videoId>.json`, and writes the file as before
   when the request has neither.
 
 ## How to get to it (user POV)

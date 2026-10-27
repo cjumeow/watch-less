@@ -10,7 +10,7 @@ The faithful summary of one video, in the speaker's own terms, as a Markdown doc
 _Avoid_: summary note, report, card
 
 **Destination**:
-Where a finished digest is delivered. Heptabase is the first; the digest does not depend on which one it is.
+Where a finished digest is delivered: Heptabase (the default) or Notion, chosen in the popup. The digest does not depend on which one it is.
 _Avoid_: sink, output, target
 
 **Request**:

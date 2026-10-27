@@ -7,10 +7,11 @@ import { createDestination } from "./index.js";
 import { toHeptabaseMarkdown } from "./heptabase.js";
 
 const digest = {
+  destination: "heptabase",
   videoLink: "https://www.youtube.com/watch?v=aaaaaaaaaaa",
   markdown:
     "# 虛構影片\n\nhttps://www.youtube.com/watch?v=aaaaaaaaaaa\n\n## 結論\n參見 [影片](https://www.youtube.com/watch?v=aaaaaaaaaaa)。\n",
-};
+} as const;
 
 test("embeds the header video link while preserving the title and model sections", () => {
   expect(toHeptabaseMarkdown(digest)).toBe(

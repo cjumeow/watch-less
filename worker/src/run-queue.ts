@@ -84,6 +84,7 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
   let postponed = false;
   const language = request.language ?? DEFAULT_SETTINGS.language;
   const model = request.model ?? DEFAULT_SETTINGS.model;
+  const destination = request.destination ?? DEFAULT_SETTINGS.destination;
   try {
     const video = await steps.transcript.checkVideo(videoId);
     title = video.details.title || request.title;
@@ -114,7 +115,12 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
       const markdown = `${header}\n${linkMoments(answer.sections, videoLink(videoId))}`;
       // Written aside and moved into the done folder only once delivered, so an interrupted digest never counts as done.
       await writeFile(draft, markdown);
-      await steps.destination.deliver({ videoLink: videoLink(videoId), markdown });
+      await steps.destination.deliver({
+        destination,
+        ...(request.notionFolderPage === undefined ? {} : { notionFolderPage: request.notionFolderPage }),
+        videoLink: videoLink(videoId),
+        markdown,
+      });
       await rename(draft, doneFile);
     }
   } catch (error) {

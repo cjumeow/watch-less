@@ -70,6 +70,27 @@ describe("setup.sh --check", () => {
     expect(output).toContain("Ready");
   });
 
+  it("passes without ntn, and says how to install it", () => {
+    everything();
+    const { code, output } = setup();
+    expect(code).toBe(0);
+    expect(output).toContain("https://ntn.dev");
+  });
+
+  it("passes with ntn signed out, and says to run ntn login", () => {
+    everything();
+    command("ntn", "", 1);
+    const { code, output } = setup();
+    expect(code).toBe(0);
+    expect(output).toContain("ntn login");
+  });
+
+  it("reports ntn signed in when it answers", () => {
+    everything();
+    command("ntn", "{}");
+    expect(setup().output).toContain("ok       Notion CLI, signed in");
+  });
+
   it("fails without yt-dlp, and says how to install it", () => {
     everything();
     rmSync(join(bin, "yt-dlp"));
@@ -199,6 +220,25 @@ describe("setup.sh", () => {
     installers();
     setup([], "y\n");
     expect(calls()).toContain("claude auth login");
+  });
+
+  it("offers to sign in to Notion when ntn is installed but not signed in, defaulting to no", () => {
+    everything();
+    command("ntn", "", 1);
+    installers();
+    setup([], "\n");
+    expect(calls()).not.toContain("ntn login");
+    setup([], "y\n");
+    expect(calls()).toContain("ntn login");
+  });
+
+  it("does not ask about Notion when ntn is signed in or not installed", () => {
+    everything();
+    installers();
+    setup([], "");
+    command("ntn", "{}");
+    setup([], "");
+    expect(calls()).not.toContain("ntn login");
   });
 
   it("installs nothing when the developer declines", () => {

@@ -60,6 +60,32 @@ describe("parseRequest", () => {
     expect(parseRequest(request)).toEqual({ parsed: true, value: request });
   });
 
+  test("accepts a destination and a Notion folder page", () => {
+    const request = {
+      videoId: "aB3_x-9Zq0Y",
+      title: "A made-up video",
+      destination: "notion",
+      notionFolderPage: "0123456789abcdef0123456789ABCDEF",
+    };
+    expect(parseRequest(request)).toEqual({ parsed: true, value: request });
+  });
+
+  test.each([
+    ["destination", "obsidian"],
+    ["destination", ""],
+    ["destination", 1],
+    ["notionFolderPage", ""],
+    ["notionFolderPage", "0123456789abcdef0123456789abcde"],
+    ["notionFolderPage", "0123456789abcdef0123456789abcdeg"],
+    ["notionFolderPage", "01234567-89ab-cdef-0123-456789abcdef"],
+    ["notionFolderPage", "--parent"],
+  ])("refuses a %s it does not know: %s", (name, value) => {
+    expect(parseRequest({ videoId: "aB3_x-9Zq0Y", title: "A made-up video", [name]: value })).toEqual({
+      parsed: false,
+      reason: expect.stringContaining(name) as string,
+    });
+  });
+
   test("accepts an OpenAI model, which the worker refuses later", () => {
     const request = { videoId: "aB3_x-9Zq0Y", title: "A made-up video", model: "gpt-6.1-sol" };
     expect(parseRequest(request)).toEqual({ parsed: true, value: request });
