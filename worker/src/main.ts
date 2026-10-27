@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { createDestination } from "./destination/index.js";
 import { createModelStep } from "./model/index.js";
-import { osascriptNotifier } from "./osascript-notifier.js";
+import { macosNotifier } from "./macos-notifier.js";
 import { runQueue } from "./run-queue.js";
 import { createTranscriptStep } from "./transcript/index.js";
 
@@ -19,5 +19,5 @@ const dataFolder =
 await runQueue({
   dataFolder,
   steps: { transcript: createTranscriptStep(), model: createModelStep(), destination: createDestination() },
-  notifier: osascriptNotifier,
+  notifier: macosNotifier,
 });

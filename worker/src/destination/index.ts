@@ -44,6 +44,8 @@ export function createDestination(): Destination {
           throw new Error("Heptabase did not return a note id");
         }
         await run(["tag", "add", "--card-id", note.id, "--tag-name", "yt-digest"]);
+        // Heptabase registers the heptabase: scheme, which opens the card in the desktop app.
+        return { link: `heptabase://card/${note.id}` };
       } catch (cause) {
         throw new DigestFailure("Heptabase delivery failed", { cause });
       } finally {

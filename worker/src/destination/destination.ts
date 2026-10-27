@@ -14,7 +14,12 @@ export interface Digest {
   markdown: string;
 }
 
+/** Where a delivered digest can be opened, for the notification: absent when the destination gave none. */
+export interface Delivered {
+  link?: string;
+}
+
 export interface Destination {
   /** Resolves once the digest is delivered; throws a `DigestFailure` with the reason when it cannot be. */
-  deliver(digest: Digest): Promise<void>;
+  deliver(digest: Digest): Promise<Delivered>;
 }

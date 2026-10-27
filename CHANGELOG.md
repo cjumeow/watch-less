@@ -8,6 +8,8 @@ checkout, so every entry is under Unreleased.
 
 ### Added
 
+- Click the "Digest ready" notification to open the digest: its card in Heptabase or its page in Notion. This
+  uses `terminal-notifier`, which `sh scripts/setup.sh` installs.
 - Digests can be saved to Notion as well as Heptabase, with Notion's official CLI `ntn` signed in once with
   `ntn login`: choose Save to in the popup, and optionally a folder page for the new pages (empty: your Private
   section). Heptabase stays the default. `sh scripts/setup.sh` checks for `ntn` and offers the sign-in.

@@ -82,6 +82,7 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
   // Until the video is checked, its title is the one the extension scraped from the card.
   let title = request.title;
   let postponed = false;
+  let delivered: { link?: string } = {};
   const language = request.language ?? DEFAULT_SETTINGS.language;
   const model = request.model ?? DEFAULT_SETTINGS.model;
   const destination = request.destination ?? DEFAULT_SETTINGS.destination;
@@ -115,7 +116,7 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
       const markdown = `${header}\n${linkMoments(answer.sections, videoLink(videoId))}`;
       // Written aside and moved into the done folder only once delivered, so an interrupted digest never counts as done.
       await writeFile(draft, markdown);
-      await steps.destination.deliver({
+      delivered = await steps.destination.deliver({
         destination,
         ...(request.notionFolderPage === undefined ? {} : { notionFolderPage: request.notionFolderPage }),
         videoLink: videoLink(videoId),
@@ -139,14 +140,14 @@ async function digest(run: Run, queueFile: string, request: QueueFile): Promise<
   }
   await removeRequest(queueFile, request);
   await log(videoId, "done");
-  await notify(run, videoId, "Digest ready", title);
+  await notify(run, videoId, "Digest ready", title, delivered.link);
   return "finished";
 }
 
 /** A notification that cannot be shown is logged, never a reason to stop the run. */
-async function notify(run: Run, videoId: string, title: NotificationTitle, text: string): Promise<void> {
+async function notify(run: Run, videoId: string, title: NotificationTitle, text: string, link?: string): Promise<void> {
   try {
-    await run.notifier.notify(title, text);
+    await run.notifier.notify(title, text, link);
   } catch (error) {
     await run.log(videoId, `notification not shown: ${title}`, error);
   }

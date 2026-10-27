@@ -5,7 +5,7 @@
 #   sh scripts/setup.sh --check    # check only, installing nothing; exits 1 when yt-digest cannot run
 #
 # It runs before Node.js may be there, so it is plain sh and `npm run setup` only calls it. It lists everything it
-# would install and asks once; Homebrew installs Node.js 24, yt-dlp, ffmpeg and uv, uv installs mlx_whisper, and npm
+# would install and asks once; Homebrew installs Node.js 24, yt-dlp, ffmpeg, uv and terminal-notifier, uv installs mlx_whisper, and npm
 # installs Claude Code or Codex CLI. Notion's CLI, ntn, is optional (Heptabase is the default destination): it is
 # never installed for you, since its installer is a script piped from the web, but its sign-in is offered. Two steps stay with the developer, and it says how: turning on Heptabase's CLI,
 # which has no command, and loading the extension in Chrome, which Chrome allows no program to do.
@@ -77,6 +77,11 @@ report() {
     optional "Notion CLI (ntn), to save digests to Notion instead of Heptabase" \
       "curl -fsSL https://ntn.dev | bash, then ntn login"
   fi
+  if has terminal-notifier; then
+    ok "terminal-notifier"
+  else
+    optional "terminal-notifier, so clicking a notification opens the digest" "brew install terminal-notifier"
+  fi
   if has ffmpeg; then ok "ffmpeg"; else optional "ffmpeg, for videos without subtitles" "brew install ffmpeg"; fi
   if has mlx_whisper; then
     ok "mlx_whisper"
@@ -101,6 +106,11 @@ brew_formulas=""
 node_ok || brew_formulas="$brew_formulas node@24"
 has yt-dlp || brew_formulas="$brew_formulas yt-dlp"
 has ffmpeg || brew_formulas="$brew_formulas ffmpeg"
+notifier=false
+if ! has terminal-notifier; then
+  notifier=true
+  brew_formulas="$brew_formulas terminal-notifier"
+fi
 whisper=false
 if ! has mlx_whisper; then
   whisper=true
@@ -141,6 +151,13 @@ if [ -n "$brew_formulas" ] || [ "$whisper" = true ] || [ -n "$cli" ]; then
     node_added=true
   fi
   if [ "$whisper" = true ]; then uv tool install mlx-whisper || exit 1; fi
+  # macOS asks whether terminal-notifier may show notifications only when it starts as an app, never when the worker
+  # runs it in the background, so start it once here.
+  if [ "$notifier" = true ] && has brew; then
+    open -a "$(brew --prefix terminal-notifier)/terminal-notifier.app" --args -title yt-digest \
+      -message "Allow notifications, so a finished digest can tell you." 2>/dev/null || true
+    echo "When macOS asks, allow notifications from terminal-notifier."
+  fi
   if [ -n "$cli" ]; then npm install -g "$cli" || exit 1; fi
 fi
 

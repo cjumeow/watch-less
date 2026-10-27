@@ -9,8 +9,9 @@ files the summary in Heptabase or Notion. Read it in a minute, then decide wheth
 ## From YouTube to Heptabase
 
 Open a video's ⋮ menu on YouTube, on a card or under the player, and choose **Summarize**. You do not have to open
-the video. A few seconds to a few minutes later, a macOS notification says the **digest** is ready: a card in
-Heptabase, tagged `yt-digest`, with the video embedded at the top and three sections:
+the video. A few seconds to a few minutes later, a macOS notification says the **digest** is ready; click it to open
+the digest, a card in Heptabase tagged `yt-digest` or a page in Notion, with the video embedded at the top and three
+sections:
 
 - **Conclusion:** what the video says, in two to four sentences.
 - **Main arguments:** about one per three minutes of video, in the speaker's own terms, each linked to its moment.

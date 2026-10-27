@@ -71,7 +71,9 @@ async function calls(): Promise<string[][]> {
 }
 
 test("delivers an embedded digest and tags the created note, keeping the AI mark", async () => {
-  await createDestination().deliver(digest);
+  expect(await createDestination().deliver(digest)).toEqual({
+    link: "heptabase://card/11111111-1111-4111-8111-111111111111",
+  });
 
   const receivedCalls = await calls();
   expect(receivedCalls).toEqual([

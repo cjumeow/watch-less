@@ -83,7 +83,7 @@ the request at once. The developer learns the result from a macOS notification:
 - one when a digest is finished, and one when it fails, each with the video's title and the result;
 - none when a request is accepted (the toast says so), and none when the usage limit of the Claude subscription
   postpones a digest, which waits and runs later, ending in one of the two notifications above;
-- clicking a notification does nothing.
+- clicking the finished notification opens the digest: its card in Heptabase or its page in Notion.
 
 yt-digest never removes a video from Watch Later.
 
@@ -279,9 +279,14 @@ it: deduplication uses the done folder, and the digest's Markdown carries nothin
 
 ## Notifications
 
-macOS notifications in English, sent with `osascript`:
+macOS notifications in English, titled `yt-digest`, sent with `terminal-notifier`:
 
-| When | Title | Text |
-|---|---|---|
-| A digest is delivered | `Digest ready` | the video's title |
-| A digest fails | `Digest failed` | the video's title and the reason, such as `No transcript available` |
+| When | Subtitle | Text | Clicking it |
+|---|---|---|---|
+| A digest is delivered | `Digest ready` | the video's title | opens the digest: `heptabase://card/<id>` in Heptabase, or the page's link in Notion |
+| A digest fails | `Digest failed` | the video's title and the reason, such as `No transcript available` | does nothing |
+
+The destination gives the link when it delivers. macOS lets `terminal-notifier` show notifications only after the
+developer allows it, which `setup.sh` asks for by starting it once. When it is not installed or not allowed, the
+worker shows the same notification with `osascript`, which cannot open anything. A video's title that starts with a
+hyphen is shown with a non-breaking hyphen, so `terminal-notifier` cannot read it as an option.

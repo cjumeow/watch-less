@@ -99,7 +99,7 @@ export function fakeSteps(videos: Record<string, FakeVideo> = {}): FakeSteps {
       calls.push(`deliver ${videoId}`);
       failIf(videos[videoId] ?? {}, "delivery");
       delivered.push(digest);
-      return Promise.resolve();
+      return Promise.resolve({ link: `https://example.invalid/${videoId}` });
     },
   };
 
@@ -109,14 +109,19 @@ export function fakeSteps(videos: Record<string, FakeVideo> = {}): FakeSteps {
 export interface FakeNotifier extends Notifier {
   /** Each notification sent, as `<title>: <text>`. */
   sent: string[];
+  /** The link each notification opens, or `undefined`, in the same order. */
+  links: (string | undefined)[];
 }
 
 export function fakeNotifier(): FakeNotifier {
   const sent: string[] = [];
+  const links: (string | undefined)[] = [];
   return {
     sent,
-    notify(title, text) {
+    links,
+    notify(title, text, link) {
       sent.push(`${title}: ${text}`);
+      links.push(link);
       return Promise.resolve();
     },
   };

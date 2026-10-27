@@ -66,6 +66,7 @@ describe("runQueue", () => {
     expect(await list("queue")).toEqual([]);
     expect(await list("drafts")).toEqual([]);
     expect(notifier.sent).toEqual(["Digest ready: A made-up video"]);
+    expect(notifier.links).toEqual(["https://example.invalid/aB3_x-9Zq0Y"]);
   });
 
   test("writes the digest in English with Haiku when the queue file does not say", async () => {
@@ -246,7 +247,7 @@ describe("runQueue", () => {
     const deliver = steps.destination.deliver.bind(steps.destination);
     steps.destination.deliver = async (digest) => {
       if (digest.videoLink.endsWith("aB3_x-9Zq0Y")) await queue("zzzzzzzzzzz", "A made-up later video");
-      await deliver(digest);
+      return deliver(digest);
     };
 
     await runQueue({ dataFolder, steps, notifier: fakeNotifier(), timeZone: "Asia/Taipei" });
@@ -260,7 +261,7 @@ describe("runQueue", () => {
     const deliver = steps.destination.deliver.bind(steps.destination);
     steps.destination.deliver = async (digest) => {
       await queue("aB3_x-9Zq0Y", "A made-up video", "2026-10-25T08:05:00.000Z");
-      await deliver(digest);
+      return deliver(digest);
     };
 
     await runQueue({ dataFolder, steps, notifier: fakeNotifier(), timeZone: "Asia/Taipei" });

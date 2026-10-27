@@ -26,6 +26,7 @@ function everything() {
   command("node", "v24.18.0");
   command("yt-dlp", "2026.10.01");
   command("ffmpeg", "ffmpeg version 8.0");
+  command("terminal-notifier");
   command("mlx_whisper", "usage: mlx_whisper");
   command("heptabase", "0.7.0");
   command("claude", '{ "loggedIn": true, "authMethod": "claude.ai" }');
@@ -178,10 +179,13 @@ describe("setup.sh", () => {
 
   it("installs every missing tool after one yes, then yt-digest", () => {
     everything();
-    for (const tool of ["yt-dlp", "ffmpeg", "mlx_whisper"]) rmSync(join(bin, tool));
+    for (const tool of ["yt-dlp", "ffmpeg", "mlx_whisper", "terminal-notifier"]) rmSync(join(bin, tool));
     installers();
+    command("open");
     setup([], "y\n");
-    expect(calls()).toContain("brew install yt-dlp ffmpeg");
+    expect(calls()).toContain("brew install yt-dlp ffmpeg terminal-notifier");
+    // Started once as an app, so macOS asks whether it may show notifications.
+    expect(calls()).toContain("open -a");
     expect(calls()).toContain("uv tool install mlx-whisper");
   });
 

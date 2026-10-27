@@ -41,7 +41,9 @@ process.stdin.on("end", () => {
   const mode = fs.existsSync(modeFile) ? fs.readFileSync(modeFile, "utf8") : "";
   if (mode === "signed-out") { console.error("Error: not logged in. Run ntn login."); process.exit(1); }
   if (mode === "failure") { console.error("Error: A made-up failure"); process.exit(1); }
-  console.log("{}");
+  if (mode === "no-url") { console.log(JSON.stringify({ object: "page", id: "406742b6-e653-8173-9e30-e292a7d678dc" })); return; }
+  if (mode === "not-json") { console.log("Created a page"); return; }
+  console.log(JSON.stringify({ object: "page", id: "406742b6-e653-8173-9e30-e292a7d678dc", url: "https://www.notion.so/A-made-up-page-406742b6e65381739e30e292a7d678dc" }));
 });
 `,
   );
@@ -72,14 +74,32 @@ async function failure(): Promise<DigestFailure> {
 
 test("creates a page in the Private section: no --parent, the Markdown on stdin", async () => {
   await createDestination().deliver(digest);
-  expect(await call()).toMatchObject({ args: ["pages", "create"], input: toNotionMarkdown(digest) });
+  expect(await call()).toMatchObject({ args: ["pages", "create", "--json"], input: toNotionMarkdown(digest) });
+});
+
+test("returns the new page's link, for the notification to open", async () => {
+  expect(await createDestination().deliver(digest)).toEqual({
+    link: "https://www.notion.so/A-made-up-page-406742b6e65381739e30e292a7d678dc",
+  });
+});
+
+test("builds the link from the page's ID when ntn gives no URL", async () => {
+  await writeFile(join(folder, "mode"), "no-url");
+  expect(await createDestination().deliver(digest)).toEqual({
+    link: "https://www.notion.so/406742b6e65381739e30e292a7d678dc",
+  });
+});
+
+test("still delivers when ntn's answer cannot be read, with no link", async () => {
+  await writeFile(join(folder, "mode"), "not-json");
+  expect(await createDestination().deliver(digest)).toEqual({});
 });
 
 test("creates the page inside the folder page when there is one", async () => {
   const notionFolderPage = "0123456789abcdef0123456789abcdef";
   await createDestination().deliver({ ...digest, notionFolderPage });
   expect(await call()).toMatchObject({
-    args: ["pages", "create", "--parent", `page:${notionFolderPage}`],
+    args: ["pages", "create", "--json", "--parent", `page:${notionFolderPage}`],
     input: toNotionMarkdown(digest),
   });
 });

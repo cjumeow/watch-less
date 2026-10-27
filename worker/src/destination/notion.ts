@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { DigestFailure } from "../digest-failure.js";
-import type { Digest } from "./destination.js";
+import type { Delivered, Digest } from "./destination.js";
 
 const TIMEOUT_MS = 90_000;
 
@@ -14,7 +14,7 @@ const SIGNED_OUT = /not (?:logged|signed) in|ntn login|unauthori[sz]ed/i;
 
 /** The arguments after `ntn`: a page inside the folder page when there is one, else the Private section. */
 export function notionArguments(folderPage: string | undefined): string[] {
-  return ["pages", "create", ...(folderPage === undefined ? [] : ["--parent", `page:${folderPage}`])];
+  return ["pages", "create", "--json", ...(folderPage === undefined ? [] : ["--parent", `page:${folderPage}`])];
 }
 
 /**
@@ -22,7 +22,7 @@ export function notionArguments(folderPage: string | undefined): string[] {
  * which is always closed: `ntn` waits forever on a stdin that stays open. It runs with only `HOME`, `PATH` and `USER`,
  * enough to reach the keychain login from launchd.
  */
-export async function deliverToNotion(digest: Digest): Promise<void> {
+export async function deliverToNotion(digest: Digest): Promise<Delivered> {
   const result = await runNtn(notionArguments(digest.notionFolderPage), toNotionMarkdown(digest));
   if (result === "missing") {
     throw new DigestFailure("Notion CLI is not installed: run sh scripts/setup.sh");
@@ -35,6 +35,26 @@ export async function deliverToNotion(digest: Digest): Promise<void> {
       cause: new Error(`ntn exited with ${String(result.exitCode)}: ${result.stderr}`),
     });
   }
+  return pageLink(result.stdout);
+}
+
+/**
+ * The created page's link from `ntn --json`'s answer, the API's page object: its `url`, or one built from its `id`.
+ * The page is already created, so an answer that cannot be read only leaves the notification without a link.
+ */
+function pageLink(stdout: string): Delivered {
+  let page: unknown;
+  try {
+    page = JSON.parse(stdout) as unknown;
+  } catch {
+    return {};
+  }
+  if (typeof page !== "object" || page === null) return {};
+  if ("url" in page && typeof page.url === "string" && /^https:\/\/(?:www\.|app\.)?notion\.(?:so|com)\//.test(page.url))
+    return { link: page.url };
+  if ("id" in page && typeof page.id === "string" && /^[0-9a-f-]{32,36}$/i.test(page.id))
+    return { link: `https://www.notion.so/${page.id.replaceAll("-", "")}` };
+  return {};
 }
 
 function runNtn(
