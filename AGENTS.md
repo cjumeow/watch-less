@@ -83,7 +83,7 @@ read `shared/src/` directly, and the programs will bundle it.
 
 | Before you | Use |
 |---|---|
-| commit, push a branch, or open or merge a pull request | [`commit-and-pull-request-convention`](.claude/skills/commit-and-pull-request-convention/SKILL.md) |
+| commit, push a branch, open or merge a pull request, or cut a release | [`commit-and-pull-request-convention`](.claude/skills/commit-and-pull-request-convention/SKILL.md) |
 | say a change works, or write a pull request's Verification section | [`verify`](.claude/skills/verify/SKILL.md) |
 | plan a feature or settle an open design decision | [`/grill-with-docs`](.claude/skills/grill-with-docs/SKILL.md), which only the developer can start; it runs `grilling` and `domain-modeling` |
 | stress-test a plan without writing docs | [`grilling`](.claude/skills/grilling/SKILL.md) |
@@ -135,7 +135,9 @@ needs a seam the issue does not list asks before testing there.
   permissions (after `/security-review`), and one that changes the workflows in `.github/workflows/` or the rules in
   this file and the skills.
 
-There are no releases and no release workflow yet: yt-digest is a personal tool, installed from a checkout.
+yt-digest is a personal tool, installed from a checkout. A release is a version tag on `main`, which the
+`publish-release` workflow turns into a GitHub release with the tag's changelog section as notes; how to cut one is in
+[`commit-and-pull-request-convention`](.claude/skills/commit-and-pull-request-convention/SKILL.md), Releases.
 
 ## Proving a change
 

@@ -1,6 +1,6 @@
 ---
 name: commit-and-pull-request-convention
-description: How commits and pull requests are written in yt-digest, covering branch names, Conventional Commits subjects, commit bodies, the changelog, and pull request titles and descriptions. Use before committing, writing or rewording a commit message, pushing a branch, or opening, describing or merging a pull request in this repository, even for a one-line change.
+description: How commits and pull requests are written in yt-digest, covering branch names, Conventional Commits subjects, commit bodies, the changelog, pull request titles and descriptions, and releases. Use before committing, writing or rewording a commit message, pushing a branch, or opening, describing or merging a pull request, or cutting a release in this repository, even for a one-line change.
 ---
 
 # Commits and pull requests
@@ -64,9 +64,8 @@ becomes a pull request title. Check a pull request title you write by hand with 
 
 ## Changelog
 
-`CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). There are no releases: yt-digest is
-installed from a checkout, so entries collect under `## [Unreleased]` and the changelog is the history of what the
-user can do.
+`CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Entries collect under
+`## [Unreleased]` until a release moves them under its version; the changelog is the history of what the user can do.
 
 - A `feat` or `fix` adds an entry under `## [Unreleased]`, in its category: Added, Changed, Deprecated, Removed, Fixed
   or Security. Write it for the user: what is different for them, not how the code changed. Other types get no entry;
@@ -74,6 +73,21 @@ user can do.
 - An entry is one line, two at most: the thing the user meets (the button on a thumbnail, the digest in Heptabase, a
   notification), what is different, and a short example when it says more than an explanation would.
   The reason, how it works, edge cases and trade-offs go in the pull request.
+
+## Releases
+
+A release is a tag `v<version>` on `main`, with [Semantic Versioning](https://semver.org/spec/v2.0.0.html) versions.
+Pushing the tag runs the `publish-release` workflow, which makes the tag's changelog section the GitHub release's
+notes; it fails when the tag is off `main`, differs from `package.json`'s version, or has no section.
+
+1. Open a pull request titled `chore: release <version>` on a branch `chore/release-<version>`. It moves the entries
+   under `## [Unreleased]` to `## [<version>] - <YYYY-MM-DD>`, leaves `## [Unreleased]` empty above it, updates the
+   link definitions at the end of the file, and sets `<version>` in every `package.json`, the workspaces' pins on
+   `@yt-digest/shared`, `extension/manifest.json` and `package-lock.json`.
+2. Release notes are read once, by someone meeting the release: merge entries a later one in the same release
+   undoes or rewrites, so the section says what the release does.
+3. After the pull request is merged, tag its commit on `main` and push the tag:
+   `git tag v<version> origin/main && git push origin v<version>`.
 
 ## Pull requests
 

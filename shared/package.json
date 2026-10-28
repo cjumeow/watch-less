@@ -1,6 +1,6 @@
 {
   "name": "@yt-digest/shared",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "What the extension, the native host and the worker all use.",
   "type": "module",

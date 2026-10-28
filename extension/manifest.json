@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "yt-digest",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A Summarize item in YouTube's video menu that requests a digest of the video from yt-digest on this computer.",
   "minimum_chrome_version": "120",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6UGtzEwu/tu613SzMXC5s8ohahjs2kKrQSm53MRFVbLY7h2LTQ2fLneVz1PllAV2mhSe3GmtbhwhHHSL8tRwU/qcC1OkXjg3uzf6iP6e/7P892E6UQY5iUgy6wenrcgPHtM/eUokERM5RJaGNBGjPPpxHXmeQt9GBBmD8iMkCNqfFLes1a/Q7aN7TGfwxadYFABi744KOqm64wrTRXYOFZ4KmjWqr/2HFwIvks2sVP9VaXYUhAnrhJYlGymPhTdgARe3AP0Nh5808uMD6tzGUx8x7G/hMiJgAEfb6/sh/qXh5T/ct5elKxgGBTPeBy0bCKdiw3+QwUPT4BSYdhE3hwIDAQAB",
