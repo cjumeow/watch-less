@@ -33,5 +33,5 @@ The first release: summarize a YouTube video into a digest in Heptabase or Notio
   you in to Claude Code or Codex CLI, offers Notion's sign-in, and installs yt-digest outside the checkout with
   `npm run install-local`.
 
-[unreleased]: https://github.com/cjumeow/yt-digest/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/cjumeow/yt-digest/releases/tag/v0.1.0
+[unreleased]: https://github.com/cjumeow/watch-less/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/cjumeow/watch-less/releases/tag/v0.1.0
